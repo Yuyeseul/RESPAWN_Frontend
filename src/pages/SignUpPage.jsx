@@ -318,7 +318,7 @@ const SignupPage = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/buyers/join`,
+        `http://localhost:8080/join`,
         signupData
       );
       console.log('회원가입 성공', response.data);

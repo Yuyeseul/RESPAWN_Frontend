@@ -5,13 +5,14 @@ import userIcon from '../assets/user_icon.png';
 import categoryIcon from '../assets/category_icon.png';
 import Search from '../components/Search';
 
-const Header = () => {
+const Header = ({ username }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <HeaderContainer>
       <TopBar>
         <TopMenu>
+          {username && <span>{username}님</span>}
           <UserIcon src={userIcon} alt="User Icon" />
           <span>장바구니</span>
           <span>고객센터</span>

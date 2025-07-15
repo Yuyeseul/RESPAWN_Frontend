@@ -17,27 +17,24 @@ const LogInPage = (e) => {
   const handleLogIn = async () => {
     if (!username) {
       setMsg('아이디를 입력해주세요.');
-    } else if (!password) {
+      return;
+    }
+    if (!password) {
       setMsg('비밀번호를 입력해주세요.');
+      return;
     }
 
-    // const formData = {
-    //   username: username,
-    //   password: password,
-    //   // userType: userType,
-    // };
-
-    const formData = new URLSearchParams();
-    formData.append('username', username);
-    formData.append('password', password);
+    const formData = {
+      username,
+      password,
+    };
 
     try {
       const response = await axios.post(
         'http://localhost:8080/login',
         formData,
         {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          withCredentials: true,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
       console.log('로그인 성공', response.data);
