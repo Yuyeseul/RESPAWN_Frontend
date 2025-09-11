@@ -584,7 +584,7 @@ const SignupPage = () => {
       );
     }
     try {
-      const response = await axios.post(`/join/${userType}`, signupData);
+      const response = await axios.post(`/join`, signupData);
       console.log('회원가입 성공', response.data);
       navigate('/login');
     } catch (error) {

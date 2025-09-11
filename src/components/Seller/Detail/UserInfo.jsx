@@ -35,7 +35,8 @@ function UserInfo() {
     }
     try {
       const response = await axios.post('/myPage/checkPassword', { password });
-      if (response.data === true) {
+      console.log(response.data);
+      if (response.data.isSuccess === true) {
         setIsAuthenticated(true);
       } else {
         alert('비밀번호가 일치하지 않습니다.');
@@ -50,7 +51,8 @@ function UserInfo() {
     const fetchUserDetails = async () => {
       try {
         const response = await axios.get(`/user`);
-        setUser(response.data);
+        console.log(response.data);
+        setUser(response.data.result);
       } catch (error) {
         console.error('회원 정보 조회 실패', error);
       }
@@ -69,7 +71,7 @@ function UserInfo() {
     setIsResetPasswordModalOpen(false);
   };
 
-  if (user.provider === 'local' && !isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <Wrapper>
         <Section>
