@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from '../../api/axios';
 import Pagination from '../Pagination';
 
@@ -11,7 +11,7 @@ const NOTICE_TYPE_MAP = {
   OPERATIONS: { label: '운영' },
 };
 
-function Notices() {
+const NoticeList = () => {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ function Notices() {
         setNotices(content);
         setPageInfo((prev) => ({
           ...prev,
-          page: typeof meta.number === 'number' ? meta.number : prev.page,
+          page: typeof meta.page === 'number' ? meta.page : prev.page,
           size: typeof meta.size === 'number' ? meta.size : prev.size,
           totalPages:
             typeof meta.totalPages === 'number'
@@ -76,19 +76,21 @@ function Notices() {
   const formatDate = (dateString) => String(dateString).substring(0, 10);
 
   return (
-    <Wrap>
+    <PageContainer>
+      <BreadcrumbLink to="/customerCenter">&larr; 고객센터 홈</BreadcrumbLink>
+      <PageHeader>
+        <h1>공지사항</h1>
+        <p>서비스 이용에 필요한 최신 소식과 중요한 안내를 확인하세요.</p>
+      </PageHeader>
       <TableWrap>
         <StyledTable role="table" aria-label="공지사항 목록">
           <thead>
             <Tr as="tr">
-              <Th as="th" style={{ width: 80 }}>
-                번호
-              </Th>
-              <Th as="th" style={{ width: 100 }}>
+              <Th as="th" style={{ width: 100, textAlign: 'center' }}>
                 유형
               </Th>
               <Th as="th">제목</Th>
-              <Th as="th" style={{ width: 140 }}>
+              <Th as="th" style={{ width: 140, textAlign: 'center' }}>
                 작성일
               </Th>
             </Tr>
@@ -101,11 +103,7 @@ function Notices() {
                 </Td>
               </Tr>
             ) : notices.length > 0 ? (
-              notices.map((notice, idx) => {
-                // 번호: 전체 개수에서 현재 페이지 기준 역순 번호 예시
-                const rowNumber =
-                  pageInfo.totalElements -
-                  (pageInfo.page * pageInfo.size + idx);
+              notices.map((notice) => {
                 return (
                   <Tr
                     as="tr"
@@ -122,8 +120,7 @@ function Notices() {
                       }
                     }}
                   >
-                    <Td as="td">{rowNumber}</Td>
-                    <Td as="td">
+                    <Td as="td" style={{ textAlign: 'center' }}>
                       <TypeBadge title={notice.noticeType}>
                         {NOTICE_TYPE_MAP[notice.noticeType]?.label ||
                           notice.noticeType}
@@ -132,7 +129,7 @@ function Notices() {
                     <Td as="td">
                       <Ellipsis title={notice.title}>{notice.title}</Ellipsis>
                     </Td>
-                    <Td as="td">
+                    <Td as="td" style={{ textAlign: 'center' }}>
                       <Mono>{formatDate(notice.createdAt)}</Mono>
                     </Td>
                   </Tr>
@@ -160,66 +157,87 @@ function Notices() {
           />
         </PaginationBar>
       )}
-    </Wrap>
+    </PageContainer>
   );
-}
+};
 
-export default Notices;
+export default NoticeList;
 
-// styles
-const Wrap = styled.div`
-  display: grid;
-  gap: 12px;
+const PageContainer = styled.div`
+  min-height: 70vh;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+const BreadcrumbLink = styled(Link)`
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b; /* var(--muted) */
+  text-decoration: none;
+  margin-bottom: -12px; /* 헤더와의 간격 조정 */
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const PageHeader = styled.header`
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: #111827;
+  }
+  p {
+    font-size: 15px;
+    color: #6b7280;
+    margin: 0;
+  }
 `;
 
 const TableWrap = styled.div`
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   background: #fff;
   overflow: hidden;
 `;
 
 const StyledTable = styled.table`
   width: 100%;
-  border-collapse: separate;
+  border-collapse: collapse;
   border-spacing: 0;
 `;
 
 const Tr = styled.tr`
-  &:focus-within td {
-    outline: 2px solid #94a3b8;
-    outline-offset: -2px;
-  }
   cursor: pointer;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: #f8fafc;
+  }
 `;
 
 const Th = styled.th`
   text-align: left;
-  padding: 12px 14px;
+  padding: 12px 16px;
   font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-  background: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
-
-  &:first-child {
-    border-top-left-radius: 10px;
-  }
-  &:last-child {
-    border-top-right-radius: 10px;
-  }
+  font-weight: 600;
+  color: #64748b;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
 `;
 
 const Td = styled.td`
-  padding: 12px 14px;
-  color: #111827;
+  padding: 14px 16px;
+  color: #0f172a;
   font-size: 14px;
-  border-bottom: 1px solid #eef2f7;
 `;
 
 const Mono = styled.span`
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: #374151;
 `;
 
 const Ellipsis = styled.span`
@@ -232,11 +250,12 @@ const Ellipsis = styled.span`
 
 const TypeBadge = styled.span`
   display: inline-block;
-  padding: 4px 8px;
+  padding: 4px 10px;
   font-size: 12px;
-  font-weight: 800;
-  border-radius: 6px;
-  color: #fff;
+  font-weight: 500;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
 `;
 
 const PaginationBar = styled.div`
