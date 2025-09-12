@@ -2,30 +2,57 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import axios from '../../../api/axios';
 import { useNavigate } from 'react-router-dom';
+import Pagination from '../../Pagination';
 
 const ProductList = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 6,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
 
-  // 상품 목록 가져오기
-  const fetchItems = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get('/api/items/my-items');
-      setItems(res.data); // 서버에서 List<Item> 반환한다고 가정
-    } catch (err) {
-      console.error(err);
-      setError('상품 목록을 불러오는 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
+  const currentPage = pageInfo.page + 1;
+  const totalPages = pageInfo.totalPages;
+
+  const handlePageChange = (page1) => {
+    if (page1 < 1 || (totalPages > 0 && page1 > totalPages)) return;
+    setPageInfo((p) => ({ ...p, page: page1 - 1 }));
   };
 
+  // 상품 목록 가져오기
   useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get('/api/items/my-items', {
+          params: { page: pageInfo.page, size: pageInfo.size },
+        });
+        console.log(res.data);
+        setItems(res.data.content); // 서버에서 List<Item> 반환한다고 가정
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: res.data.totalPages,
+          totalElements: res.data.totalElements,
+          isFirst: res.data.first,
+          isLast: res.data.last,
+        }));
+      } catch (err) {
+        console.error(err);
+        setError('상품 목록을 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchItems();
-  }, []);
+  }, [pageInfo.page, pageInfo.size]);
 
   return (
     <Container>
@@ -40,59 +67,71 @@ const ProductList = () => {
       {error && <Message>{error}</Message>}
 
       {!loading && !error && (
-        <Table>
-          <thead>
-            <tr>
-              <th>이미지</th>
-              <th>상품명</th>
-              <th>가격</th>
-              <th>재고</th>
-              <th>배송방식</th>
-              <th>판매사</th>
-              <th>관리</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
+        <>
+          <Table>
+            <thead>
               <tr>
-                <td
-                  colSpan="7"
-                  style={{ textAlign: 'center', padding: '20px' }}
-                >
-                  등록된 상품이 없습니다.
-                </td>
+                <th>이미지</th>
+                <th>상품명</th>
+                <th>가격</th>
+                <th>재고</th>
+                <th>배송방식</th>
+                <th>판매사</th>
+                <th>관리</th>
               </tr>
-            ) : (
-              items.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <Thumb>
-                      {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.name} />
-                      ) : (
-                        <span>이미지 없음</span>
-                      )}
-                    </Thumb>
-                  </td>
-                  <td>{item.name}</td>
-                  <td>{item.price.toLocaleString()} 원</td>
-                  <td>{item.stockQuantity} 개</td>
-                  <td>{item.deliveryType}</td>
-                  <td>{item.company}</td>
-                  <td>
-                    <ActionBtn
-                      onClick={() =>
-                        navigate(`/sellerCenter/productList/${item.id}`)
-                      }
-                    >
-                      관리
-                    </ActionBtn>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="7"
+                    style={{ textAlign: 'center', padding: '20px' }}
+                  >
+                    등록된 상품이 없습니다.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </Table>
+              ) : (
+                items.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <Thumb>
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} />
+                        ) : (
+                          <span>이미지 없음</span>
+                        )}
+                      </Thumb>
+                    </td>
+                    <td>{item.name}</td>
+                    <td>{item.price.toLocaleString()} 원</td>
+                    <td>{item.stockQuantity} 개</td>
+                    <td>{item.deliveryType}</td>
+                    <td>{item.company}</td>
+                    <td>
+                      <ActionBtn
+                        onClick={() =>
+                          navigate(`/sellerCenter/productList/${item.id}`)
+                        }
+                      >
+                        관리
+                      </ActionBtn>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </Table>
+
+          {!loading && items.length > 0 && pageInfo.totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pageInfo.totalPages}
+              onPageChange={handlePageChange}
+              isFirst={pageInfo.isFirst}
+              isLast={pageInfo.isLast}
+            />
+          )}
+        </>
       )}
     </Container>
   );

@@ -1,10 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import NoticeBox from './NoticeBox';
 import axios from '../../../api/axios';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import TiptapEditor from './TiptapEditor';
 import Select from 'react-select';
+
+const categoryGroups = [
+  {
+    title: '콘솔 / 컨트롤러',
+    items: [
+      '게임 컨트롤러',
+      'umpc',
+      '플레이스테이션 액세서리',
+      'XBOX 액세서리',
+      '닌텐도 스위치',
+    ],
+  },
+  {
+    title: '게이밍 PC / 부품',
+    items: [
+      '그래픽카드',
+      'CPU',
+      'RAM',
+      'SSD / HDD',
+      '파워서플라이',
+      '메인보드',
+    ],
+  },
+  {
+    title: '게이밍 주변기기',
+    items: [
+      '마우스',
+      '키보드',
+      '헤드셋',
+      '모니터',
+      '스피커',
+      '마이크',
+      '레이싱 휠',
+    ],
+  },
+  {
+    title: '게이밍 환경',
+    items: [
+      '게이밍 체어',
+      '게이밍 데스크',
+      '노트북 쿨러 / 스탠드',
+      'RGB 조명',
+      '방음 패드',
+    ],
+  },
+  {
+    title: '악세서리 / 기타',
+    items: [
+      '마우스패드',
+      '손목 보호대',
+      '케이블 정리 용품',
+      '에어 블로워',
+      '멀티탭 / 허브',
+    ],
+  },
+];
 
 function UploadProduct() {
   const navigate = useNavigate();
@@ -17,18 +73,35 @@ function UploadProduct() {
     stockQuantity: '',
     company: '',
     companyNumber: '',
-    categoryIds: [],
+    categoryName: '',
     description: '',
   });
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  const categoryOptions = [
-    { value: '헤드셋', label: '헤드셋' },
-    { value: '마우스', label: '마우스' },
-    { value: '키보드', label: '키보드' },
-    { value: '모니터', label: '모니터' },
-  ];
+  const categoryOptions = useMemo(
+    () =>
+      categoryGroups.map((group) => ({
+        label: group.title,
+        options: group.items.map((item) => ({
+          value: item,
+          label: item,
+        })),
+      })),
+    []
+  );
+
+  const allCategoryItems = useMemo(
+    () => categoryOptions.flatMap((group) => group.options),
+    [categoryOptions]
+  );
+
+  const handleCategoryChange = (selectedOption) => {
+    setItem((prev) => ({
+      ...prev,
+      categoryName: selectedOption ? selectedOption.value : '',
+    }));
+  };
 
   const handleDescriptionChange = (html) => {
     setItem((prev) => ({
@@ -40,13 +113,6 @@ function UploadProduct() {
   // 입력 변경 처리
   const handleChange = (e) => {
     setItem({ ...item, [e.target.name]: e.target.value });
-  };
-
-  const handleCategoryChange = (selected) => {
-    setItem((prev) => ({
-      ...prev,
-      categoryIds: selected.map((s) => s.value),
-    }));
   };
 
   // 이미지 파일 선택 시
@@ -81,6 +147,10 @@ function UploadProduct() {
       alert('등록 실패: ' + err.response?.data?.message || err.message);
     }
   };
+
+  const selectedCategory = allCategoryItems.find(
+    (opt) => opt.value === item.categoryName
+  );
 
   return (
     <Container>
@@ -188,13 +258,11 @@ function UploadProduct() {
                 <InputGroup>
                   <Label>카테고리</Label>
                   <SelectStyled
-                    isMulti
-                    name="categoryIds"
+                    name="categoryName"
                     options={categoryOptions}
                     onChange={handleCategoryChange}
-                    value={categoryOptions.filter((opt) =>
-                      item.categoryIds.includes(opt.value)
-                    )}
+                    value={selectedCategory}
+                    placeholder="카테고리를 선택하세요"
                   />
                 </InputGroup>
               </Inputs>
