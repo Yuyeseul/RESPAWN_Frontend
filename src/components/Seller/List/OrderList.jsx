@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import axios from '../../../api/axios';
 import { useNavigate } from 'react-router-dom';
+import ItemSelector from './ItemSelector';
 
 function OrderList() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [items, setItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState('');
 
   const statusMap = {
     ORDERED: '주문접수',
@@ -17,12 +20,32 @@ function OrderList() {
   };
 
   useEffect(() => {
-    fetchOrders();
+    fetchItems();
   }, []);
 
-  const fetchOrders = async () => {
+  useEffect(() => {
+    fetchOrders(selectedItem);
+  }, [selectedItem]);
+
+  // 상품 목록 불러오기
+  const fetchItems = async () => {
     try {
-      const response = await axios.get('/api/orders/seller/orders'); // 예시 API
+      const res = await axios.get('/api/items/my-items');
+      console.log(res.data);
+      setItems(res.data.content);
+    } catch (err) {
+      console.error('상품 목록 불러오기 실패:', err);
+    }
+  };
+
+  const fetchOrders = async (itemId) => {
+    try {
+      let url = '/api/orders/seller/orders';
+      if (itemId) {
+        url += `?itemId=${itemId}`;
+      }
+      const response = await axios.get(url);
+      console.log(url);
       setOrders(response.data);
       console.log(response.data);
     } catch (error) {
@@ -36,7 +59,14 @@ function OrderList() {
 
   return (
     <Container>
-      <Title>주문 관리</Title>
+      <Header>
+        <Title>주문 관리</Title>
+        <ItemSelector
+          value={selectedItem}
+          onChange={setSelectedItem}
+          productList={items}
+        />
+      </Header>
       <Table>
         <thead>
           <tr>
@@ -91,6 +121,13 @@ const Container = styled.div`
   max-width: 1600px;
   margin: 60px auto;
   padding: 0 20px;
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  align-items: center;
 `;
 
 const Title = styled.h2`
