@@ -42,8 +42,10 @@ import AuthGate from './AuthGate';
 import ProfileComplete from './pages/ProfileComplete';
 import NoticeRegister from './components/Admin/NoticeRegister';
 import NoticeDetail from './components/Admin/NoticeDetail';
+import CustomerCenter from './components/CustomerCenter/CustomerCenter';
 import NoticeList from './components/CustomerCenter/NoticeList';
 import Notice from './components/CustomerCenter/Notice';
+import Faq from './components/CustomerCenter/Faq';
 
 function App() {
   return (
@@ -71,12 +73,12 @@ function App() {
           <Route path="/uploadproduct" element={<UploadProduct />} />
           <Route path="/productdetail/:id" element={<ProductDetailPage />} />
           <Route path="/productlist" element={<ProductListPage />} />
-          <Route path="/customerCenter" element={<CustomerCenterPage />} />
-          <Route path="/customerCenter/noticelist" element={<NoticeList />} />
-          <Route
-            path="/customerCenter/notices/:noticeId"
-            element={<Notice />}
-          />
+          <Route path="/customerCenter" element={<CustomerCenterPage />}>
+            <Route index element={<CustomerCenter />} />
+            <Route path="noticelist" element={<NoticeList />} />
+            <Route path="notices/:noticeId" element={<Notice />} />
+            <Route path="faq" element={<Faq />} />
+          </Route>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/order" element={<OrderPage />} />
           <Route path="/login" element={<LogInPage />} />

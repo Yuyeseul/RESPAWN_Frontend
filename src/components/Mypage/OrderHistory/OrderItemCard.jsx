@@ -174,6 +174,7 @@ const ButtonBase = styled.button`
 `;
 
 const RefundButton = styled(ButtonBase)`
+  min-width: 120px;
   border-color: rgb(105, 111, 148);
   color: rgb(105, 111, 148);
 
@@ -183,6 +184,7 @@ const RefundButton = styled(ButtonBase)`
 `;
 
 const ReviewButton = styled(ButtonBase)`
+  min-width: 120px;
   border-color: #4b5563;
   color: #4b5563;
 

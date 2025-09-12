@@ -26,6 +26,19 @@ const NoticeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [confirmInfo, setConfirmInfo] = useState({
+    isOpen: false,
+    title: '',
+    description: '',
+    confirmText: '확인',
+    onConfirm: () => {}, // 확인 버튼 클릭 시 실행될 함수
+    isDanger: false, // 삭제 버튼 등 위험한 작업일 경우 true
+  });
+
+  const closeConfirmModal = () => {
+    setConfirmInfo((prev) => ({ ...prev, isOpen: false }));
+  };
+
   const fetchNotice = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -34,7 +47,6 @@ const NoticeDetail = () => {
         `/api/notices/view?noticeId=${noticeId}`
       );
       setNotice(data);
-      // 폼 상태도 초기 데이터로 채워줌
       setForm({
         title: data.title,
         description: data.description,
@@ -61,36 +73,79 @@ const NoticeDetail = () => {
     setIsEditing(true);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setForm({
-      title: notice.title,
-      description: notice.description,
-      noticeType: notice.noticeType,
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.description.trim()) {
+      alert('제목과 설명을 모두 입력해주세요.');
+      return;
+    }
+
+    setConfirmInfo({
+      isOpen: true,
+      title: '공지사항 저장',
+      description: '수정한 내용을 저장하시겠습니까?',
+      confirmText: '저장',
+      isDanger: false,
+      onConfirm: async () => {
+        closeConfirmModal(); // 모달 먼저 닫기
+        setLoading(true);
+        try {
+          const payload = { ...form };
+          // await axios.put(`/api/notices/${noticeId}`, payload); // API 엔드포인트 예시
+          alert('성공적으로 수정되었습니다.');
+          await fetchNotice();
+          setIsEditing(false);
+        } catch (e) {
+          alert('수정 중 오류가 발생했습니다.');
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      },
     });
   };
 
-  // 수정 내용 저장
-  //   const handleSave = async () => {
-  //     // 간단한 유효성 검사
-  //     if (!form.title.trim() || !form.description.trim()) {
-  //       alert('제목과 설명을 모두 입력해주세요.');
-  //       return;
-  //     }
-  //     setLoading(true);
-  //     try {
-  //       const payload = { ...form };
-  //         await axios.put(``, payload);
-  //       alert('성공적으로 수정되었습니다.');
-  //       await fetchNotice();
-  //       setIsEditing(false);
-  //     } catch (e) {
-  //       alert('수정 중 오류가 발생했습니다.');
-  //       console.error(e);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+  const handleCancel = () => {
+    setConfirmInfo({
+      isOpen: true,
+      title: '수정 취소',
+      description: '변경사항이 저장되지 않습니다. 정말로 취소하시겠습니까?',
+      confirmText: '확인',
+      isDanger: false,
+      onConfirm: () => {
+        setIsEditing(false);
+        setForm({
+          title: notice.title,
+          description: notice.description,
+          noticeType: notice.noticeType,
+        });
+        closeConfirmModal();
+      },
+    });
+  };
+
+  const openDeleteModal = () => {
+    setConfirmInfo({
+      isOpen: true,
+      title: '공지사항 삭제',
+      description:
+        '정말로 이 공지사항을 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.',
+      confirmText: '삭제',
+      isDanger: true,
+      onConfirm: async () => {
+        closeConfirmModal();
+        setLoading(true);
+        try {
+          // await axios.delete(`/api/notices?noticeId=${noticeId}`);
+          alert('삭제되었습니다.');
+          navigate('/admin/notices');
+        } catch (e) {
+          alert('삭제 중 오류가 발생했습니다.');
+          console.error(e);
+          setLoading(false);
+        }
+      },
+    });
+  };
 
   if (loading) return <p>로딩 중...</p>;
   if (error) return <ErrorBox>{error}</ErrorBox>;
@@ -104,9 +159,7 @@ const NoticeDetail = () => {
           {isEditing ? (
             <>
               <GhostBtn onClick={handleCancel}>취소</GhostBtn>
-              <PrimaryBtn
-                /*onClick={handleSave}*/ style={{ marginLeft: '8px' }}
-              >
+              <PrimaryBtn onClick={handleSave} style={{ marginLeft: '8px' }}>
                 저장
               </PrimaryBtn>
             </>
@@ -118,6 +171,12 @@ const NoticeDetail = () => {
               <PrimaryBtn onClick={handleEdit} style={{ marginLeft: '8px' }}>
                 수정
               </PrimaryBtn>
+              <DeleteBtn
+                onClick={openDeleteModal}
+                style={{ marginLeft: '8px' }}
+              >
+                삭제
+              </DeleteBtn>
             </>
           )}
         </div>
@@ -180,6 +239,30 @@ const NoticeDetail = () => {
           )}
         </Field>
       </Card>
+
+      {confirmInfo.isOpen && (
+        <ModalOverlay onClick={closeConfirmModal}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <h3>{confirmInfo.title}</h3>
+            <p style={{ margin: '6px 0 18px 0', whiteSpace: 'pre-wrap' }}>
+              {confirmInfo.description}
+            </p>
+            <ModalActions>
+              <GhostBtn onClick={closeConfirmModal}>취소</GhostBtn>
+              {/* isDanger 값에 따라 삭제 버튼 또는 기본 확인 버튼을 표시 */}
+              {confirmInfo.isDanger ? (
+                <DeleteBtn onClick={confirmInfo.onConfirm}>
+                  {confirmInfo.confirmText}
+                </DeleteBtn>
+              ) : (
+                <PrimaryBtn onClick={confirmInfo.onConfirm}>
+                  {confirmInfo.confirmText}
+                </PrimaryBtn>
+              )}
+            </ModalActions>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Page>
   );
 };
@@ -291,6 +374,56 @@ const PrimaryBtn = styled.button`
     transform: none;
     box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
   }
+`;
+
+const DeleteBtn = styled(PrimaryBtn)`
+  background: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.22);
+
+  &:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.28);
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+
+  h3 {
+    margin-top: 0;
+    font-size: 20px;
+  }
+  p {
+    margin-bottom: 24px;
+    color: #4b5563;
+    line-height: 1.6;
+  }
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 `;
 
 const ContentView = styled.div`
