@@ -11,7 +11,7 @@ import ProductCard from './ProductCard';
 import { useLocation } from 'react-router-dom';
 import FilterBar from './FilterBar';
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 8;
 
 const ProductContainer = () => {
   const location = useLocation();
@@ -23,16 +23,13 @@ const ProductContainer = () => {
   }, [location.search]); // [7]
 
   const [products, setProducts] = useState([]);
-  const [offset, setOffset] = useState(0);
-  const [total, setTotal] = useState(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [initialLoading, setInitialLoading] = useState(false);
   const [pagingLoading, setPagingLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const hasMore = useMemo(
-    () => total === null || products.length < total,
-    [products, total]
-  );
+  const hasMore = useMemo(() => page < totalPages, [page, totalPages]);
 
   const inFlightRef = useRef(false);
   const ignoreRef = useRef(false);
@@ -54,7 +51,7 @@ const ProductContainer = () => {
 
   // 페이지 데이터 요청
   const fetchPage = useCallback(
-    async (nextOffset, isInitial = false) => {
+    async (nextPage, isInitial = false) => {
       if (inFlightRef.current) return;
 
       const controller = new AbortController();
@@ -84,40 +81,32 @@ const ProductContainer = () => {
         const res = await axios.get('/api/items', {
           params: {
             ...(category ? { category } : {}),
-            offset: nextOffset,
-            limit: PAGE_SIZE,
+            page: nextPage,
+            size: PAGE_SIZE,
           },
           signal: controller.signal,
         });
-
+        console.log(res.data);
         if (ignoreRef.current) return;
 
         const data = res?.data ?? {};
-        const pageItems = Array.isArray(data.items)
-          ? data.items
-          : Array.isArray(res.data)
-          ? res.data
-          : [];
+        const pageItems = data?.content ?? [];
 
         setProducts((prev) => {
-          const merged =
-            isInitial || nextOffset === 0 ? pageItems : [...prev, ...pageItems];
+          const merged = isInitial ? pageItems : [...prev, ...pageItems];
           const seen = new Set();
           return merged.filter((p) => {
-            const k = p?.id ?? p?.key ?? JSON.stringify(p);
+            const k = p?.id ?? JSON.stringify(p);
             if (seen.has(k)) return false;
             seen.add(k);
             return true;
           });
         });
 
-        setOffset(nextOffset + pageItems.length);
-
-        setTotal((prevTotal) =>
-          typeof data.total === 'number'
-            ? data.total
-            : prevTotal ?? nextOffset + pageItems.length
-        );
+        setPage(nextPage + 1);
+        if (typeof data.totalPages === 'number') {
+          setTotalPages(data.totalPages);
+        }
       } catch (e) {
         if (!ignoreRef.current)
           setError('상품을 불러오는 중 문제가 발생했습니다.');
@@ -152,8 +141,8 @@ const ProductContainer = () => {
   useEffect(() => {
     ignoreRef.current = false;
     setProducts([]);
-    setOffset(0);
-    setTotal(null);
+    setPage(0);
+    setTotalPages(1);
     setError(null);
     let controller;
     (async () => {
@@ -174,14 +163,14 @@ const ProductContainer = () => {
       (entries) => {
         const entry = entries[0];
         if (entry?.isIntersecting && hasMore && !inFlightRef.current) {
-          fetchPage(offset, false);
+          fetchPage(page, false);
         }
       },
       { root: null, rootMargin: '0px 0px 150px 0px', threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [offset, hasMore, initialLoading, fetchPage]);
+  }, [page, hasMore, initialLoading, fetchPage]);
 
   const handleAddToCart = useCallback(async (product) => {
     try {

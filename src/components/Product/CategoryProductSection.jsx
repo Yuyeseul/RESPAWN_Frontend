@@ -46,12 +46,15 @@ const CategoryProductSection = ({
         const res = await axios.get('/api/items', {
           params: {
             ...(apiCategoryParam ? { category: apiCategoryParam } : {}),
-            limit: maxItems,
-            offset: 0,
+            size: maxItems,
+            page: 0,
           },
         });
+        console.log(res.data);
         if (!ignore) {
-          const items = Array.isArray(res.data?.items) ? res.data.items : [];
+          const items = Array.isArray(res.data?.content)
+            ? res.data.content
+            : [];
           setProducts(items); // 덮어쓰기
         }
       } catch (e) {
