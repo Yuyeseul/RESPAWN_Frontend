@@ -69,6 +69,11 @@ function EditProduct() {
   const [item, setItem] = useState(null);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    message: '',
+    onConfirm: null,
+  });
 
   const categoryOptions = useMemo(
     () =>
@@ -93,7 +98,32 @@ function EditProduct() {
     STOPPED: 'STOPPED', // 판매중지(품절)
   };
 
-  const handleStatusChange = async (newStatus) => {
+  const openModal = (message, onConfirm) => {
+    setModal({
+      isOpen: true,
+      message,
+      onConfirm,
+    });
+  };
+
+  const closeModal = () => {
+    setModal({
+      isOpen: false,
+      message: '',
+      onConfirm: null,
+    });
+  };
+
+  const handleStatusChange = (newStatus) => {
+    const messages = {
+      PAUSED: "상태를 '일시 품절'로 변경하시겠습니까?",
+      STOPPED: "상태를 '품절'로 변경하시겠습니까?",
+      SALE: "상태를 '판매 재개'로 변경하시겠습니까?",
+    };
+    openModal(messages[newStatus], () => handleConfirmStatusChange(newStatus));
+  };
+
+  const handleConfirmStatusChange = async (newStatus) => {
     try {
       let endpoint;
       if (newStatus === STATUS.PAUSED) endpoint = `/api/items/${item.id}/pause`;
@@ -107,6 +137,8 @@ function EditProduct() {
       setItem((prev) => ({ ...prev, status: newStatus }));
     } catch (err) {
       alert('상태 변경 실패: ' + (err.response?.data?.message || err.message));
+    } finally {
+      closeModal();
     }
   };
 
@@ -157,16 +189,20 @@ function EditProduct() {
     }
   };
 
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm('정말로 삭제하시겠습니까?');
-    if (!confirmDelete) return;
+  //삭제
+  const handleDelete = () => {
+    openModal('정말로 삭제하시겠습니까?', handleConfirmDelete);
+  };
 
+  const handleConfirmDelete = async () => {
     try {
       await axios.delete(`/api/items/${item.id}`);
       alert('삭제 성공!');
       navigate('/sellerCenter');
     } catch (err) {
       alert('삭제 실패: ' + (err.response?.data?.error || err.message));
+    } finally {
+      closeModal();
     }
   };
 
@@ -214,21 +250,17 @@ function EditProduct() {
     navigate(-1);
   };
 
-  const handleSubmit = async (e) => {
+  // 수정
+  const handleSubmit = (e) => {
     e.preventDefault();
+    openModal('상품 정보를 수정하시겠습니까?', handleConfirmSubmit);
+  };
 
+  const handleConfirmSubmit = async () => {
     const formData = new FormData();
     formData.append(
       'itemDto',
-      new Blob(
-        [
-          JSON.stringify({
-            ...item,
-            category: item.categoryName,
-          }),
-        ],
-        { type: 'application/json' }
-      )
+      new Blob([JSON.stringify(item)], { type: 'application/json' })
     );
 
     // 이미지가 선택되어 있을 때만 formData에 append
@@ -248,8 +280,26 @@ function EditProduct() {
       navigate('/sellerCenter');
     } catch (err) {
       alert('수정 실패: ' + (err.response?.data?.message || err.message));
+    } finally {
+      closeModal();
     }
   };
+
+  function ConfirmationModal({ isOpen, message, onConfirm, onCancel }) {
+    if (!isOpen) return null;
+
+    return (
+      <ModalBackdrop>
+        <ModalContent onClick={(e) => e.stopPropagation()}>
+          <p>{message}</p> {/* 메시지를 props로 받아서 표시 */}
+          <ModalButtonContainer>
+            <ModalButton onClick={onCancel}>취소</ModalButton>
+            <ConfirmButton onClick={onConfirm}>확인</ConfirmButton>
+          </ModalButtonContainer>
+        </ModalContent>
+      </ModalBackdrop>
+    );
+  }
 
   if (!item) return <div>로딩 중...</div>;
 
@@ -400,6 +450,13 @@ function EditProduct() {
           </FormContainer>
         </ContentWrapper>
       </PageLayout>
+
+      <ConfirmationModal
+        isOpen={modal.isOpen}
+        message={modal.message}
+        onConfirm={modal.onConfirm}
+        onCancel={closeModal}
+      />
     </Container>
   );
 }
@@ -531,16 +588,16 @@ const CancelButton = styled.button`
 
 const SubmitButton = styled.button`
   background-color: #3b5998;
+  border: 1.8px solid #3b5998;
   color: white;
-  border: none;
-  padding: 12px 28px;
+  padding: 10px 26px;
   border-radius: 6px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(59, 89, 152, 0.6);
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
 
   &:hover {
+    border-color: #2d4373;
     background-color: #2d4373;
   }
 `;
@@ -576,10 +633,32 @@ const StatusButton = styled.button`
 const DeleteButton = styled.button`
   background: #ff4d4f;
   color: white;
-  border: none;
-  padding: 10px 20px;
+  border: 1.8px solid #ff4d4f;
+  padding: 10px 26px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #d84144ff;
+    background-color: #d84144ff;
+  }
+
+  &:disabled {
+    background: #e5e7eb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: default;
+    opacity: 1;
+    box-shadow: none;
+  }
+
+  &:disabled:hover {
+    background: #e5e7eb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+  }
 `;
 
 const NoticeMessage = styled.div`
@@ -610,4 +689,47 @@ const Label = styled.label`
 const SelectStyled = styled(Select)`
   width: 300px;
   font-size: 14px;
+`;
+
+const ModalBackdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 360px;
+`;
+
+const ModalButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+`;
+
+const ModalButton = styled.button`
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  cursor: pointer;
+`;
+
+const ConfirmButton = styled(ModalButton)`
+  background-color: rgb(105, 111, 148);
+  color: white;
+  border: none;
 `;

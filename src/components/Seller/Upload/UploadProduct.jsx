@@ -64,6 +64,7 @@ const categoryGroups = [
 
 function UploadProduct() {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [item, setItem] = useState({
     name: '',
@@ -127,10 +128,13 @@ function UploadProduct() {
   };
 
   // 폼 제출
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmSubmit = async () => {
     const formData = new FormData();
-    // React 객체를 JSON 문자열로 만든 후 Blob 형태로 FormData에 담는다
     formData.append(
       'itemDto',
       new Blob([JSON.stringify({ ...item })], { type: 'application/json' })
@@ -145,8 +149,26 @@ function UploadProduct() {
       navigate('/sellerCenter');
     } catch (err) {
       alert('등록 실패: ' + err.response?.data?.message || err.message);
+    } finally {
+      setIsModalOpen(false);
     }
   };
+
+  function ConfirmationModal({ isOpen, onConfirm, onCancel }) {
+    if (!isOpen) return null;
+
+    return (
+      <ModalBackdrop>
+        <ModalContent onClick={(e) => e.stopPropagation()}>
+          <p>상품을 등록하시겠습니까?</p>
+          <ModalButtonContainer>
+            <ModalButton onClick={onCancel}>취소</ModalButton>
+            <ConfirmButton onClick={onConfirm}>확인</ConfirmButton>
+          </ModalButtonContainer>
+        </ModalContent>
+      </ModalBackdrop>
+    );
+  }
 
   const selectedCategory = allCategoryItems.find(
     (opt) => opt.value === item.categoryName
@@ -252,6 +274,7 @@ function UploadProduct() {
                         },
                       })
                     }
+                    placeholder="배송방식을 선택하세요"
                   />
                 </InputGroup>
 
@@ -285,6 +308,12 @@ function UploadProduct() {
           </FormContainer>
         </ContentWrapper>
       </PageLayout>
+
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setIsModalOpen(false)}
+      />
     </Container>
   );
 }
@@ -363,6 +392,14 @@ const Input = styled.input`
   padding: 8px;
   border: 1px solid #ccc;
   width: 300px;
+  &[type='number'] {
+    -moz-appearance: textfield;
+  }
+  &[type='number']::-webkit-outer-spin-button,
+  &[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
 
 const Row = styled.div`
@@ -422,4 +459,47 @@ const Label = styled.label`
 const SelectStyled = styled(Select)`
   width: 300px;
   font-size: 14px;
+`;
+
+const ModalBackdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 360px;
+`;
+
+const ModalButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+`;
+
+const ModalButton = styled.button`
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  cursor: pointer;
+`;
+
+const ConfirmButton = styled(ModalButton)`
+  background-color: rgb(105, 111, 148);
+  color: white;
+  border: none;
 `;
