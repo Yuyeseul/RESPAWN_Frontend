@@ -5,19 +5,35 @@ import axios from '../../api/axios';
 import InquiryModal from './InquiryModal';
 
 const ITEMS_PER_PAGE = 5;
+const inquiryTypeMap = {
+  DELIVERY: '배송 문의',
+  PRODUCT: '상품 문의',
+  ETC: '기타',
+};
 
 const InquiryList = ({ itemId }) => {
   // 실제 서버 연동시, setInquiries로 갱신
   const [inquiries, setInquiries] = useState([]);
   const [showSecret, setShowSecret] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
-
   const [activeTab, setActiveTab] = useState('all');
+
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 5,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
 
   // 클릭한 항목 ID 저장
   const [expandedId, setExpandedId] = useState(null);
   const [expandedDetail, setExpandedDetail] = useState({});
+
+  const handlePageChange = (page) => {
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
+  };
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => {
@@ -28,13 +44,17 @@ const InquiryList = ({ itemId }) => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    setCurrentPage(1); // 탭 변경 시 페이지 초기화
+    setPageInfo((p) => ({ ...p, page: 0 })); // 탭 변경 시 페이지 초기화
     setExpandedId(null); // 탭 변경 시 확장 해제
+  };
+
+  const handleSecretChange = () => {
+    setShowSecret((prev) => !prev);
+    setPageInfo((p) => ({ ...p, page: 0 }));
   };
 
   const handleToggleExpand = async (id) => {
     if (expandedId === id) {
-      // 이미 열려있으면 닫기
       setExpandedId(null);
       return;
     }
@@ -43,6 +63,7 @@ const InquiryList = ({ itemId }) => {
     if (!expandedDetail[id]) {
       try {
         const response = await axios.get(`/api/inquiries/${id}/detail`);
+        console.log(response.data);
         setExpandedDetail((prev) => ({ ...prev, [id]: response.data }));
       } catch (error) {
         console.error('상세조회 실패:', error);
@@ -53,55 +74,52 @@ const InquiryList = ({ itemId }) => {
     setExpandedId(id);
   };
 
-  // 탭 + 비밀글 제외 필터링
-  const filtered = inquiries
-    .filter((item) => {
-      if (activeTab === 'all') {
-        return true; // '전체' 탭에서는 모든 항목을 통과
-      }
-      return activeTab === 'waiting'
-        ? item.status === 'WAITING'
-        : item.status === 'ANSWERED';
-    })
-    .filter((item) => (showSecret ? item.openToPublic : true));
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const indexOfLast = currentPage * ITEMS_PER_PAGE;
-  const indexOfFirst = indexOfLast - ITEMS_PER_PAGE;
-  const currentInquiries = filtered.slice(indexOfFirst, indexOfLast);
-
   const fetchInquiries = useCallback(async () => {
+    const params = {
+      page: pageInfo.page,
+      size: pageInfo.size,
+      openToPublic: showSecret ? true : null,
+    };
+    if (activeTab === 'waiting') {
+      params.status = 'WAITING';
+    } else if (activeTab === 'answered') {
+      params.status = 'ANSWERED';
+    }
     try {
-      const response = await axios.get(`/api/inquiries/${itemId}/titles`);
-      setInquiries(response.data); // 전체 문의 리스트 (간략 정보만)
+      const { data } = await axios.get(`/api/inquiries/${itemId}/titles`, {
+        params,
+      });
+      console.log(data);
+      setInquiries(data.content);
+      setPageInfo((prev) => ({
+        ...prev,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+        isFirst: data.first,
+        isLast: data.last,
+      }));
     } catch (error) {
       console.error('Failed to fetch inquiries:', error);
       setInquiries([]);
     }
-  }, [itemId]);
+  }, [itemId, pageInfo.page, pageInfo.size, activeTab, showSecret]);
 
   useEffect(() => {
-    fetchInquiries(); // 컴포넌트 로딩 시 실행
+    fetchInquiries();
   }, [fetchInquiries]);
-
-  // 비밀글 제외 체크 후 페이지 제한
-  useEffect(() => {
-    // 페이지 선택이 남은 데이터보다 크면 마지막 페이지로 강제 이동
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-  }, [filtered, currentPage, totalPages]);
 
   return (
     <Container>
       <TitleBox>
         <Title>
-          Q&amp;A <Count>({filtered.length})</Count>
+          Q&amp;A <Count>({pageInfo.totalElements})</Count>
         </Title>
         <Right>
           <label>
             <input
               type="checkbox"
               checked={showSecret}
-              onChange={() => setShowSecret((prev) => !prev)}
+              onChange={handleSecretChange}
             />{' '}
             비밀글 제외
           </label>
@@ -145,17 +163,17 @@ const InquiryList = ({ itemId }) => {
           </Tr>
         </thead>
         <tbody>
-          {currentInquiries.length === 0 ? (
+          {inquiries.length === 0 ? (
             <Tr>
               <Td colSpan={5} style={{ textAlign: 'center', color: '#bbb' }}>
                 문의 내역이 없습니다.
               </Td>
             </Tr>
           ) : (
-            currentInquiries.map((item) => (
+            inquiries.map((item) => (
               <React.Fragment key={item.id}>
                 <Tr onClick={() => handleToggleExpand(item.id)}>
-                  <Td>상품문의</Td>
+                  <Td>{inquiryTypeMap[item.inquiryType]}</Td>
                   <Td finish={item.status === 'ANSWERED'}>
                     {item.status === 'ANSWERED' ? '답변완료' : '답변대기'}
                   </Td>
@@ -202,15 +220,15 @@ const InquiryList = ({ itemId }) => {
           )}
         </tbody>
       </Table>
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={(page) => {
-          if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-          }
-        }}
-      />
+      {pageInfo.totalPages > 1 && (
+        <Pagination
+          currentPage={pageInfo.page + 1}
+          totalPages={pageInfo.totalPages}
+          onPageChange={handlePageChange}
+          isFirst={pageInfo.isFirst}
+          isLast={pageInfo.isLast}
+        />
+      )}
     </Container>
   );
 };

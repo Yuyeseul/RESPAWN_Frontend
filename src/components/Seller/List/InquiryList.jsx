@@ -1,26 +1,57 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../../api/axios';
 import styled from 'styled-components';
+import Pagination from '../../Pagination';
+
+const inquiryTypeMap = {
+  DELIVERY: '배송 문의',
+  PRODUCT: '상품 문의',
+  ETC: '기타',
+};
 
 const InquiryList = () => {
   const [inquiries, setInquiries] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [expandedDetail, setExpandedDetail] = useState({});
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 10,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
+
+  const handlePageChange = (page) => {
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
+  };
 
   // 문의 리스트 가져오기
   useEffect(() => {
     const fetchInquiries = async () => {
       try {
-        const res = await axios.get('/api/inquiries/seller');
-        setInquiries(res.data);
+        const res = await axios.get('/api/inquiries/seller', {
+          params: { page: pageInfo.page, size: pageInfo.size },
+        });
         console.log(res.data);
+        const data = res.data;
+        setInquiries(data.content);
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          isFirst: data.first,
+          isLast: data.last,
+        }));
       } catch (err) {
         console.error('문의 리스트 불러오기 실패:', err);
       }
     };
 
     fetchInquiries();
-  }, []);
+  }, [pageInfo.page]);
 
   // 상세 조회
   const handleToggleExpand = async (id) => {
@@ -68,23 +99,23 @@ const InquiryList = () => {
       <Table>
         <thead>
           <tr>
-            <th>번호</th>
             <th>상품명</th>
             <th>제목</th>
             <th>작성자</th>
             <th>작성일</th>
+            <th>문의유형</th>
             <th>상태</th>
           </tr>
         </thead>
         <tbody>
-          {inquiries.map((item, index) => (
+          {inquiries.map((item) => (
             <React.Fragment key={item.id}>
               <tr onClick={() => handleToggleExpand(item.id)}>
-                <td>{inquiries.length - index}</td>
                 <td>{item.itemName}</td>
                 <td>{item.question}</td>
                 <td>{item.buyerUsername}</td>
                 <td>{new Date(item.questionDate).toLocaleDateString()}</td>
+                <td>{inquiryTypeMap[item.inquiryType]}</td>
                 <td>{item.status === 'ANSWERED' ? '답변 완료' : '대기'}</td>
               </tr>
 
@@ -125,6 +156,15 @@ const InquiryList = () => {
           ))}
         </tbody>
       </Table>
+      {pageInfo.totalPages > 1 && (
+        <Pagination
+          currentPage={pageInfo.page + 1}
+          totalPages={pageInfo.totalPages}
+          onPageChange={handlePageChange}
+          isFirst={pageInfo.isFirst}
+          isLast={pageInfo.isLast}
+        />
+      )}
     </Container>
   );
 };

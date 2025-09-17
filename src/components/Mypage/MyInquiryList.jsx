@@ -1,22 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../api/axios';
 import styled from 'styled-components';
+import Pagination from '../Pagination';
+
+const inquiryTypeMap = {
+  DELIVERY: '배송 문의',
+  PRODUCT: '상품 문의',
+  ETC: '기타',
+};
 
 const MyInquiryList = () => {
   const [inquiries, setInquiries] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-  const [expandedDetail, setExpandedDetail] = useState({});
   const [loadingList, setLoadingList] = useState(true);
-  const [loadingDetailIds, setLoadingDetailIds] = useState(new Set());
-  const [errorDetail, setErrorDetail] = useState({});
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 10,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
+
+  const handlePageChange = (page) => {
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
+  };
 
   // 자신이 작성한 문의 리스트 조회
   useEffect(() => {
     const fetchInquiries = async () => {
       try {
-        const res = await axios.get('/api/inquiries/my');
+        const res = await axios.get('/api/inquiries/my', {
+          params: { page: pageInfo.page, size: pageInfo.size },
+        });
         console.log(res.data);
-        setInquiries(res.data);
+        const data = res.data;
+        setInquiries(data.content);
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          isFirst: data.first,
+          isLast: data.last,
+        }));
       } catch (err) {
         console.error('문의 리스트 불러오기 실패:', err);
       } finally {
@@ -25,46 +53,11 @@ const MyInquiryList = () => {
     };
 
     fetchInquiries();
-  }, []);
+  }, [pageInfo.page]);
 
   // 문의 상세 조회
   const handleToggleExpand = async (id) => {
-    // 닫기
-    if (expandedId === id) {
-      setExpandedId(null);
-      return;
-    }
-
-    // 이미 캐시가 있으면 즉시 열기
-    if (expandedDetail[id]) {
-      setExpandedId(id);
-      return;
-    }
-
-    // 로딩 표시
-    setLoadingDetailIds((prev) => new Set(prev).add(id));
-    setErrorDetail((prev) => ({ ...prev, [id]: '' }));
-
-    const currentId = id;
-
-    try {
-      const res = await axios.get(`/api/inquiries/${id}/detail`);
-      // 최신 클릭 확인(필수는 아님, 캐시만 채워도 됨)
-      setExpandedDetail((prev) => ({ ...prev, [id]: res.data }));
-      setExpandedId(id);
-    } catch (err) {
-      console.error('상세 조회 실패:', err);
-      setErrorDetail((prev) => ({
-        ...prev,
-        [id]: '상세를 불러오지 못했습니다.',
-      }));
-    } finally {
-      setLoadingDetailIds((prev) => {
-        const s = new Set(prev);
-        s.delete(currentId);
-        return s;
-      });
-    }
+    setExpandedId((prevId) => (prevId === id ? null : id));
   };
 
   return (
@@ -73,10 +66,10 @@ const MyInquiryList = () => {
       <Table>
         <thead>
           <tr>
-            <th>번호</th>
             <th>상품명</th>
             <th>제목</th>
             <th>작성일</th>
+            <th>문의유형</th>
             <th>상태</th>
           </tr>
         </thead>
@@ -93,10 +86,10 @@ const MyInquiryList = () => {
             inquiries.map((item, index) => (
               <React.Fragment key={item.id}>
                 <tr onClick={() => handleToggleExpand(item.id)}>
-                  <td>{inquiries.length - index}</td>
                   <td>{item.itemName}</td>
                   <td>{item.question}</td>
                   <td>{new Date(item.questionDate).toLocaleDateString()}</td>
+                  <td>{inquiryTypeMap[item.inquiryType]}</td>
                   <td>{item.status === 'ANSWERED' ? '답변 완료' : '대기'}</td>
                 </tr>
 
@@ -107,31 +100,22 @@ const MyInquiryList = () => {
                       style={{ background: '#f9f9f9', textAlign: 'left' }}
                     >
                       <DetailBox>
-                        {loadingDetailIds.has(item.id) && (
-                          <LoadingMsg>불러오는 중...</LoadingMsg>
-                        )}
-                        {errorDetail[item.id] && (
-                          <ErrorMsg>{errorDetail[item.id]}</ErrorMsg>
-                        )}
-
-                        {expandedDetail[item.id] && (
-                          <>
-                            <Row>
-                              <Label>문의 내용</Label>
-                              <ValueBox>
-                                {expandedDetail[item.id].questionDetail}
-                              </ValueBox>
-                            </Row>
-                            <Row>
-                              <Label>판매자 답변</Label>
-                              <ValueBox>
-                                {expandedDetail[item.id].answer || (
-                                  <NoAnswer>미등록</NoAnswer>
-                                )}
-                              </ValueBox>
-                            </Row>
-                          </>
-                        )}
+                        <Row>
+                          <Label>문의 내용</Label>
+                          <ValueBox>
+                            {item.questionDetail || '상세 내용 없음'}
+                          </ValueBox>
+                        </Row>
+                        <Row>
+                          <Label>판매자 답변</Label>
+                          <ValueBox>
+                            {item.answer ? (
+                              item.answer
+                            ) : (
+                              <NoAnswer>미등록</NoAnswer>
+                            )}
+                          </ValueBox>
+                        </Row>
                       </DetailBox>
                     </td>
                   </tr>
@@ -141,6 +125,15 @@ const MyInquiryList = () => {
           )}
         </tbody>
       </Table>
+      {pageInfo.totalPages > 1 && (
+        <Pagination
+          currentPage={pageInfo.page + 1}
+          totalPages={pageInfo.totalPages}
+          onPageChange={handlePageChange}
+          isFirst={pageInfo.isFirst}
+          isLast={pageInfo.isLast}
+        />
+      )}
     </Container>
   );
 };
@@ -214,14 +207,4 @@ const ValueBox = styled.div`
 const NoAnswer = styled.span`
   color: #999;
   font-style: italic;
-`;
-
-const LoadingMsg = styled.p`
-  margin: 0;
-  color: #666;
-`;
-
-const ErrorMsg = styled.p`
-  margin: 0;
-  color: red;
 `;
