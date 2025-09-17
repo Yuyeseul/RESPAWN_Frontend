@@ -97,11 +97,6 @@ const FAQSection = ({ items, onQuick }) => {
     setOpenId((prevOpenId) => (prevOpenId === id ? null : id));
   };
 
-  React.useEffect(() => {
-    if (items.length > 0) setOpenId(items[0].id);
-    else setOpenId(null);
-  }, [items]);
-
   return (
     <section>
       <Stack>
@@ -155,7 +150,7 @@ const Faq = () => {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="궁금한 점을 검색해보세요..."
+            placeholder="궁금한 점을 검색해보세요."
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleSearch();

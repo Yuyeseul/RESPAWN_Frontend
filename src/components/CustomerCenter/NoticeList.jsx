@@ -40,29 +40,14 @@ const NoticeList = () => {
         const { data } = await axios.get('/api/notices/summaries', {
           params: { page, size },
         });
-        const content = data.content || [];
-        const meta = data.page || data || {};
+        const content = data.content;
         setNotices(content);
         setPageInfo((prev) => ({
           ...prev,
-          page: typeof meta.page === 'number' ? meta.page : prev.page,
-          size: typeof meta.size === 'number' ? meta.size : prev.size,
-          totalPages:
-            typeof meta.totalPages === 'number'
-              ? meta.totalPages
-              : prev.totalPages,
-          totalElements:
-            typeof meta.totalElements === 'number'
-              ? meta.totalElements
-              : content.length,
-          isFirst:
-            typeof meta.first === 'boolean'
-              ? meta.first
-              : (meta.number ?? 0) === 0,
-          isLast:
-            typeof meta.last === 'boolean'
-              ? meta.last
-              : (meta.number ?? 0) + 1 >= (meta.totalPages ?? 1),
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          isFirst: data.first,
+          isLast: data.last,
         }));
       } catch (error) {
         console.error('Failed to fetch notices:', error);

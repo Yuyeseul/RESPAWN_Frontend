@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from '../../api/axios';
 
 const FAQS = [
@@ -120,21 +120,14 @@ const ContactCard = () => {
 };
 
 // FAQ
-const FAQSection = ({ items, keyword, onQuick }) => {
+const FAQSection = ({ items, onQuick }) => {
   const [openId, setOpenId] = useState(null);
 
   const handleToggle = (id) => {
     setOpenId((prevOpenId) => (prevOpenId === id ? null : id));
   };
-  const filtered = useMemo(() => {
-    const kw = keyword.trim().toLowerCase();
-    return items.filter(
-      (i) =>
-        !kw || i.q.toLowerCase().includes(kw) || i.a.toLowerCase().includes(kw)
-    );
-  }, [items, keyword]);
 
-  const displayedFaqs = filtered.slice(0, 4);
+  const displayedFaqs = items.slice(0, 4);
   return (
     <section>
       <SectionHeader>
@@ -153,8 +146,6 @@ const FAQSection = ({ items, keyword, onQuick }) => {
           />
         ))}
       </Stack>
-
-      {filtered.length === 0 && <EmptyBox>검색 결과가 없습니다.</EmptyBox>}
     </section>
   );
 };
@@ -222,16 +213,18 @@ const ContactSection = () => {
 };
 
 const CustomerCenter = () => {
+  const navigate = useNavigate();
   const [inputValue, setInputValue] = useState('');
-
-  const [filterKeyword, setFilterKeyword] = useState('');
-
   const [notices, setNotices] = useState([]);
   const [noticesLoading, setNoticesLoading] = useState(true);
 
   const handleSearch = (term) => {
-    const finalTerm = typeof term === 'string' ? term : inputValue;
-    setFilterKeyword(finalTerm);
+    const finalTerm = (typeof term === 'string' ? term : inputValue).trim();
+    if (!finalTerm) {
+      alert('검색어를 입력해주세요.');
+      return;
+    }
+    navigate(`/customerCenter/search?q=${finalTerm}`);
   };
 
   useEffect(() => {
@@ -271,7 +264,6 @@ const CustomerCenter = () => {
 
         <FAQSection
           items={FAQS}
-          keyword={filterKeyword}
           onQuick={(action, item) => console.log('FAQ Action:', action, item)}
         />
 
