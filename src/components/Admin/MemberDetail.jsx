@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from '../../api/axios';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const MemberDetail = () => {
   const { userType, userId } = useParams();
@@ -430,11 +431,20 @@ const MemberDetail = () => {
           <Divider style={{ marginTop: 12 }} />
 
           <CardTitle style={{ marginTop: 8 }}>메모</CardTitle>
-          <TextArea
+          <TextareaAutosize
             name="memo"
             value={form.memo}
             onChange={onChange}
             placeholder="내부 참고용 메모를 입력하세요."
+            minRows={5}
+            style={{
+              width: '100%',
+              padding: 12,
+              border: '1px solid rgba(15, 23, 42, 0.12)',
+              borderRadius: 8,
+              resize: 'none',
+              fontSize: '16px',
+            }}
           />
         </Card>
       </Grid>
@@ -655,16 +665,6 @@ const StatLabel = styled.div`
 const Label = styled.label`
   color: #6b7280;
   font-size: 13px;
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  min-height: 180px;
-  padding: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 8px;
-  outline: none;
-  resize: vertical;
 `;
 
 const FooterBar = styled.div`

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../../api/axios';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const RefundPage = () => {
   const navigate = useNavigate();
@@ -157,12 +158,21 @@ const RefundPage = () => {
 
           <FormRow>
             <Label htmlFor="detail">상세 내용</Label>
-            <Textarea
+            <TextareaAutosize
               id="detail"
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
               placeholder="상세 사유를 작성해 주세요 (선택)"
+              minRows={10}
               maxLength={499}
+              style={{
+                width: '100%',
+                padding: 12,
+                border: '1px solid #e5e7eb',
+                borderRadius: 8,
+                resize: 'none',
+                fontSize: '16px',
+              }}
             />
             <Hint>{detail.length}/500</Hint>
           </FormRow>
@@ -306,18 +316,6 @@ const Select = styled.select`
   border-radius: 8px;
   outline: none;
   background: #fff;
-  &:focus {
-    border-color: #111827;
-  }
-`;
-
-const Textarea = styled.textarea`
-  min-height: 96px;
-  padding: 10px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  outline: none;
-  resize: vertical;
   &:focus {
     border-color: #111827;
   }

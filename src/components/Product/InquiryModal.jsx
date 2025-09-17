@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from '../../api/axios';
+import TextareaAutosize from 'react-textarea-autosize';
 
 function InquiryModal({ itemId, onClose }) {
   const [formData, setFormData] = useState({
@@ -50,8 +51,8 @@ function InquiryModal({ itemId, onClose }) {
               required
             >
               <option value="">선택하세요</option>
-              <option value="DELIVERY">배송 관련</option>
-              <option value="PRODUCT">상품 관련</option>
+              <option value="DELIVERY">배송 문의</option>
+              <option value="PRODUCT">상품 문의</option>
               <option value="ETC">기타</option>
             </Select>
           </FormRow>
@@ -69,12 +70,21 @@ function InquiryModal({ itemId, onClose }) {
 
           <FormRow>
             <Label>내용</Label>
-            <Textarea
+            <TextareaAutosize
               name="questionDetail"
               placeholder="문의 내용"
               value={formData.questionDetail}
               onChange={handleChange}
+              minRows={5}
               required
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                border: '1px solid #ccc',
+                borderRadius: 6,
+                resize: 'none',
+                fontSize: '16px',
+              }}
             />
           </FormRow>
 
@@ -172,22 +182,6 @@ const Input = styled.input`
   border-radius: 6px;
   font-size: 16px;
   box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: rgb(105, 111, 148);
-  }
-`;
-
-const Textarea = styled.textarea`
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
-  box-sizing: border-box;
-  height: 100px;
-  resize: vertical;
 
   &:focus {
     outline: none;
