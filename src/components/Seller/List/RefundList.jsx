@@ -82,20 +82,30 @@ const RefundList = () => {
           </tr>
         </thead>
         <tbody>
-          {refundsToDisplay.map((item) => (
-            <tr
-              key={item.orderItemId}
-              onClick={() => handleClick(item.orderItemId)}
-            >
-              <td>{item.orderItemId}</td>
-              <td>{item.itemName}</td>
-              <td>
-                {new Date(item.refundInfo.requestedAt).toLocaleDateString()}
-              </td>
-              <td>{item.orderPrice?.toLocaleString()}원</td>
-              <td>{item.count}</td>
+          {refundsToDisplay.length > 0 ? (
+            refundsToDisplay.map((item) => (
+              <tr
+                key={item.orderItemId}
+                onClick={() => handleClick(item.orderItemId)}
+              >
+                <td>{item.orderItemId}</td>
+                <td>{item.itemName}</td>
+                <td>
+                  {new Date(item.refundInfo.requestedAt).toLocaleDateString()}
+                </td>
+                <td>{item.orderPrice?.toLocaleString()}원</td>
+                <td>{item.count}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <NoDataCell colSpan="5">
+                {activeTab === 'requested'
+                  ? '환불 요청 내역이 없습니다.'
+                  : '환불 완료 내역이 없습니다.'}
+              </NoDataCell>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
     </Container>
@@ -162,4 +172,11 @@ const Table = styled.table`
   tr:hover {
     background: #f5f7fa;
   }
+`;
+
+const NoDataCell = styled.td`
+  padding: 50px 0 !important;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
 `;
