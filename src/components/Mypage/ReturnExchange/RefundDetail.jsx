@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../../api/axios';
 import styled from 'styled-components';
+import Pagination from '../../Pagination';
 
 const RefundDetail = () => {
   const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 5,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
 
   const getKoreanStatus = (status) => {
     switch (status) {
       case 'REQUESTED':
-        return '환불 요청됨';
+        return '환불 요청';
       case 'REFUNDED':
         return '환불 완료';
       default:
@@ -18,24 +27,42 @@ const RefundDetail = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchRefunds = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('/api/orders/refund-requests');
-        setRefunds(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError(
-          err.response?.data?.error ||
-            '환불 내역을 불러오는 중 오류가 발생했습니다.'
-        );
-        setLoading(false);
-      }
-    };
+  const handlePageChange = (page) => {
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
+  };
 
+  const fetchRefunds = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/orders/refund-requests', {
+        params: { page: pageInfo.page, size: pageInfo.size },
+      });
+
+      const data = response.data;
+      console.log(data);
+      setRefunds(data.content);
+      setPageInfo((prev) => ({
+        ...prev,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+        isFirst: data.first,
+        isLast: data.last,
+      }));
+      setLoading(false);
+    } catch (err) {
+      setError(
+        err.response?.data?.error ||
+          '환불 내역을 불러오는 중 오류가 발생했습니다.'
+      );
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchRefunds();
-  }, []);
+  }, [pageInfo.page]);
 
   if (loading) return <Container>로딩중...</Container>;
   if (error) return <Container>에러: {error}</Container>;
@@ -87,6 +114,15 @@ const RefundDetail = () => {
           ))}
         </div>
       ))}
+      {pageInfo.totalPages > 1 && (
+        <Pagination
+          currentPage={pageInfo.page + 1}
+          totalPages={pageInfo.totalPages}
+          onPageChange={handlePageChange}
+          isFirst={pageInfo.isFirst}
+          isLast={pageInfo.isLast}
+        />
+      )}
     </Container>
   );
 };
