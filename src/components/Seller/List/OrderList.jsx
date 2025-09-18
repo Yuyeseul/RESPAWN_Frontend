@@ -3,12 +3,21 @@ import styled from 'styled-components';
 import axios from '../../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import ItemSelector from './ItemSelector';
+import Pagination from '../../Pagination';
 
 function OrderList() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState('');
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 10,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
 
   const statusMap = {
     ORDERED: '주문접수',
@@ -17,6 +26,12 @@ function OrderList() {
     RETURNED: '반품',
     REFUND_REQUESTED: '환불신청',
     REFUNDED: '환불',
+  };
+
+  const handlePageChange = (page) => {
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
 
   useEffect(() => {
@@ -30,9 +45,9 @@ function OrderList() {
   // 상품 목록 불러오기
   const fetchItems = async () => {
     try {
-      const res = await axios.get('/api/items/my-items');
+      const res = await axios.get('/api/items/my-items/summary');
       console.log(res.data);
-      setItems(res.data.content);
+      setItems(res.data);
     } catch (err) {
       console.error('상품 목록 불러오기 실패:', err);
     }
@@ -40,14 +55,19 @@ function OrderList() {
 
   const fetchOrders = async (itemId) => {
     try {
-      let url = '/api/orders/seller/orders';
-      if (itemId) {
-        url += `?itemId=${itemId}`;
-      }
-      const response = await axios.get(url);
-      console.log(url);
-      setOrders(response.data);
-      console.log(response.data);
+      const response = await axios.get('/api/orders/seller/orders', {
+        params: { page: pageInfo.page, size: pageInfo.size, itemId },
+      });
+      const data = response.data;
+      console.log(data);
+      setOrders(data.content);
+      setPageInfo((prev) => ({
+        ...prev,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+        isFirst: data.first,
+        isLast: data.last,
+      }));
     } catch (error) {
       console.error('주문 목록 가져오기 실패:', error);
     }
@@ -55,7 +75,7 @@ function OrderList() {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [pageInfo.page]);
 
   return (
     <Container>
@@ -70,7 +90,6 @@ function OrderList() {
       <Table>
         <thead>
           <tr>
-            <th>번호</th>
             <th>주문번호</th>
             <th>상품명</th>
             <th>구매자</th>
@@ -81,7 +100,7 @@ function OrderList() {
           </tr>
         </thead>
         <tbody>
-          {orders.map((order, index) => (
+          {orders.map((order) => (
             <tr
               key={order.orderId}
               onClick={() =>
@@ -89,7 +108,6 @@ function OrderList() {
               }
               style={{ cursor: 'pointer' }}
             >
-              <td>{orders.length - index}</td>
               <td>{order.orderId}</td>
               <td>{order.itemName}</td>
               <td>{order.buyerName}</td>
@@ -111,6 +129,17 @@ function OrderList() {
           ))}
         </tbody>
       </Table>
+      {pageInfo.totalPages > 1 && (
+        <PaginationWrapper>
+          <Pagination
+            currentPage={pageInfo.page + 1}
+            totalPages={pageInfo.totalPages}
+            onPageChange={handlePageChange}
+            isFirst={pageInfo.isFirst}
+            isLast={pageInfo.isLast}
+          />
+        </PaginationWrapper>
+      )}
     </Container>
   );
 }
@@ -159,4 +188,10 @@ const Table = styled.table`
   tr:hover {
     background: #f5f7fa;
   }
+`;
+
+const PaginationWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
 `;

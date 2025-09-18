@@ -21,8 +21,9 @@ const ReviewList = () => {
   // 상품 목록 불러오기
   const fetchItems = async () => {
     try {
-      const res = await axios.get('/api/items/my-items');
-      setItems(res.data.content);
+      const res = await axios.get('/api/items/my-items/summary');
+      console.log(res.data);
+      setItems(res.data);
     } catch (err) {
       console.error('상품 목록 불러오기 실패:', err);
     }
