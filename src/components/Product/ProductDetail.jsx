@@ -5,8 +5,11 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import ReviewList from './ReviewList';
 import InquiryList from './InquiryList';
+import { useAuth } from '../../AuthContext';
 
 function ProductDetail() {
+  const { user } = useAuth();
+  const isSeller = user?.role === 'ROLE_SELLER';
   const { id } = useParams();
   const [item, setItem] = useState(null);
   const [count, setCount] = useState(1);
@@ -85,32 +88,36 @@ function ProductDetail() {
             <Title>{item.name}</Title>
             <Price>{item.price.toLocaleString()} 원</Price>
 
-            <InfoRow>
+            <InfoRow $isSeller={isSeller}>
               <Value>
                 {item.deliveryType} / {item.deliveryFee.toLocaleString()} 원
               </Value>
             </InfoRow>
 
-            <CountRow>
-              <span>수량</span>
-              <CountControls>
-                <QtyButton onClick={handleDecrease}>-</QtyButton>
-                <QtyDisplay>{count}</QtyDisplay>
-                <QtyButton onClick={handleIncrease}>+</QtyButton>
-              </CountControls>
-            </CountRow>
+            {!isSeller && (
+              <>
+                <CountRow>
+                  <span>수량</span>
+                  <CountControls>
+                    <QtyButton onClick={handleDecrease}>-</QtyButton>
+                    <QtyDisplay>{count}</QtyDisplay>
+                    <QtyButton onClick={handleIncrease}>+</QtyButton>
+                  </CountControls>
+                </CountRow>
 
-            <TotalRow>
-              <span>총 상품 금액</span>
-              <TotalPrice>
-                총 수량 {count}개 | {totalPrice.toLocaleString()} 원
-              </TotalPrice>
-            </TotalRow>
+                <TotalRow>
+                  <span>총 상품 금액</span>
+                  <TotalPrice>
+                    총 수량 {count}개 | {totalPrice.toLocaleString()} 원
+                  </TotalPrice>
+                </TotalRow>
 
-            <ButtonRow>
-              <BuyButton onClick={handleBuyNow}>바로 구매</BuyButton>
-              <CartButton onClick={handleAddToCart}>장바구니</CartButton>
-            </ButtonRow>
+                <ButtonRow>
+                  <BuyButton onClick={handleBuyNow}>바로 구매</BuyButton>
+                  <CartButton onClick={handleAddToCart}>장바구니</CartButton>
+                </ButtonRow>
+              </>
+            )}
           </DetailBox>
         </TopSection>
 
@@ -237,7 +244,7 @@ const InfoRow = styled.div`
   display: flex;
   gap: 16px;
   font-size: 16px;
-  margin-top: 80px;
+  margin-top: ${({ $isSeller }) => ($isSeller ? '20px' : '80px')};
 `;
 
 const Value = styled.div`

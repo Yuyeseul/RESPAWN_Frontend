@@ -3,16 +3,15 @@ import styled from 'styled-components';
 import axios from '../../../api/axios';
 import ResetPasswordModal from '../../ResetPasswordModal';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../../../AuthContext';
 
 function UserInfo() {
+  const { user: authUser } = useAuth();
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] =
     useState(false);
-
-  const userData = JSON.parse(sessionStorage.getItem('userData'));
-  const username = userData?.username;
 
   const [seePassword, setSeePassword] = useState(false);
 
@@ -58,10 +57,10 @@ function UserInfo() {
       }
     };
 
-    if (username) {
+    if (authUser) {
       fetchUserDetails();
     }
-  }, [username]);
+  }, [authUser]);
 
   const handleOpenResetPasswordModal = () => {
     setIsResetPasswordModalOpen(true);
@@ -78,7 +77,7 @@ function UserInfo() {
           <SectionTitle>내 정보 확인</SectionTitle>
           <UserDetail>
             <Label>아이디</Label>
-            <Value>{userData?.username || '-'}</Value>
+            <Value>{authUser?.username || '-'}</Value>
           </UserDetail>
           <UserDetail>
             <Label>비밀번호</Label>

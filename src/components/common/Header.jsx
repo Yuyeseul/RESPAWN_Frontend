@@ -4,10 +4,11 @@ import Logo from './Logo';
 import categoryIcon from '../../assets/category_icon.png';
 import closeIcon from '../../assets/close_icon.png';
 import Search from './Search';
-import axios from '../../api/axios';
 import { Link, useNavigate, createSearchParams } from 'react-router-dom';
+import { useAuth } from '../../AuthContext';
 
 const Header = () => {
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState(0);
@@ -81,10 +82,6 @@ const Header = () => {
     '이벤트',
   ];
 
-  const userData = JSON.parse(sessionStorage.getItem('userData'));
-  const authorities = userData?.authorities;
-  const role = userData?.role;
-
   const goToCategory = (name) => {
     navigate({
       pathname: '/productlist',
@@ -94,9 +91,7 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/logout');
-      sessionStorage.removeItem('userData');
-      localStorage.setItem('auth:updated', String(Date.now()));
+      await logout();
       alert('로그아웃 완료');
       navigate('/');
     } catch (error) {
@@ -124,7 +119,7 @@ const Header = () => {
     <HeaderContainer>
       <TopBar>
         <TopMenu>
-          {authorities ? (
+          {user ? (
             <>
               <TopTextButton onClick={handleLogout}>로그아웃</TopTextButton>
             </>
@@ -132,15 +127,15 @@ const Header = () => {
             <TopTextLink to="/login">로그인</TopTextLink>
           )}
 
-          {role === 'ROLE_USER' && (
+          {user?.role === 'ROLE_USER' && (
             <TopTextLink to="/mypage">마이페이지</TopTextLink>
           )}
 
-          {role === 'ROLE_USER' && (
+          {user?.role === 'ROLE_USER' && (
             <TopTextLink to="/cart">장바구니</TopTextLink>
           )}
 
-          {role === 'ROLE_SELLER' && (
+          {user?.role === 'ROLE_SELLER' && (
             <TopTextLink to="/sellerCenter">판매자센터</TopTextLink>
           )}
           <TopTextLink to="/customerCenter">고객센터</TopTextLink>

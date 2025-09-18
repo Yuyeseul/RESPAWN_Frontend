@@ -7,8 +7,10 @@ import naver_icon from '../assets/login_naver.png';
 import google_icon from '../assets/login_google.png';
 import kakao_icon from '../assets/login_kakao.png';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../AuthContext';
 
 const LoginPage = (e) => {
+  const { login } = useAuth();
   const [failCount, setFailCount] = useState(0);
   const [user, setUser] = useState({
     username: '',
@@ -46,8 +48,7 @@ const LoginPage = (e) => {
       formData.append('password', user.password);
 
       const response = await axios.post('/loginProc', formData);
-      sessionStorage.setItem('userData', JSON.stringify(response.data));
-      localStorage.setItem('auth:updated', String(Date.now())); // 브로드캐스트
+      login(response.data);
       console.log('일반 로그인 성공', response.data);
 
       setFailCount(0);
@@ -106,8 +107,7 @@ const LoginPage = (e) => {
       if (data.type === 'LOGIN_SUCCESS') {
         try {
           const res = await axios.get('/loginOk');
-          sessionStorage.setItem('userData', JSON.stringify(res.data));
-          localStorage.setItem('auth:updated', String(Date.now()));
+          login(res.data);
           console.log('소셜 로그인 성공');
           navigate('/');
         } catch (err) {
@@ -160,7 +160,7 @@ const LoginPage = (e) => {
       window.removeEventListener('message', handleMessage);
       window.removeEventListener('storage', onStorage);
     };
-  }, [navigate]);
+  }, [navigate, login]);
 
   // 팝업창 닫힘 감지용 effect
   useEffect(() => {

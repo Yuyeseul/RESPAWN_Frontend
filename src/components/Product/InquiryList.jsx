@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import Pagination from '../Pagination';
 import axios from '../../api/axios';
 import InquiryModal from './InquiryModal';
+import { useAuth } from '../../AuthContext';
 
-const ITEMS_PER_PAGE = 5;
 const inquiryTypeMap = {
   DELIVERY: '배송 문의',
   PRODUCT: '상품 문의',
@@ -12,7 +12,8 @@ const inquiryTypeMap = {
 };
 
 const InquiryList = ({ itemId }) => {
-  // 실제 서버 연동시, setInquiries로 갱신
+  const { user } = useAuth();
+  const isSeller = user?.role === 'ROLE_SELLER';
   const [inquiries, setInquiries] = useState([]);
   const [showSecret, setShowSecret] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -123,7 +124,9 @@ const InquiryList = ({ itemId }) => {
             />{' '}
             비밀글 제외
           </label>
-          <Button onClick={handleOpenModal}>상품 Q&amp;A 작성하기</Button>
+          {!isSeller && (
+            <Button onClick={handleOpenModal}>상품 Q&amp;A 작성하기</Button>
+          )}
           {showModal && (
             <InquiryModal itemId={itemId} onClose={handleCloseModal} />
           )}

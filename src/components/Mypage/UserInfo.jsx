@@ -4,14 +4,13 @@ import axios from '../../api/axios';
 import AddressListModal from '../AddressListModal';
 import ResetPasswordModal from '../ResetPasswordModal';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../../AuthContext';
 
 function UserInfo() {
+  const { user: authUser } = useAuth();
   const [password, setPassword] = useState('');
   const [seePassword, setSeePassword] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const userData = JSON.parse(sessionStorage.getItem('userData'));
-  const username = userData?.username;
 
   const [user, setUser] = useState({
     name: '',
@@ -74,10 +73,10 @@ function UserInfo() {
       }
     };
 
-    if (username) {
+    if (authUser) {
       fetchUserDetails();
     }
-  }, [username]);
+  }, [authUser]);
 
   useEffect(() => {
     if (timer > 0) {
@@ -257,11 +256,11 @@ function UserInfo() {
           <SectionTitle>내 정보 확인</SectionTitle>
           <UserDetail>
             <Label>아이디</Label>
-            <Value>{userData?.username || '-'}</Value>
+            <Value>{authUser?.username || '-'}</Value>
             <Input
               type={'text'}
               autoComplete="username"
-              value={userData?.username || '-'}
+              value={authUser?.username || '-'}
               style={{
                 position: 'absolute',
                 width: '1px',

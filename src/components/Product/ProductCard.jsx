@@ -1,23 +1,29 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../AuthContext';
 
 const ProductCard = ({ product, onAddToCart }) => {
+  const { user } = useAuth();
+  const isBuyer = user?.role === 'ROLE_USER';
+
   return (
     <CardContainer>
       <StyledLink to={`/ProductDetail/${product.id}`}>
         <ImageWrapper>
           <ProductImg src={`${product.imageUrl}`} alt={product.name} />
-          <Overlay>
-            <AddToCartButton
-              onClick={(e) => {
-                e.preventDefault();
-                onAddToCart(product);
-              }}
-            >
-              장바구니
-            </AddToCartButton>
-          </Overlay>
+          {isBuyer && (
+            <Overlay>
+              <AddToCartButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  onAddToCart(product);
+                }}
+              >
+                장바구니
+              </AddToCartButton>
+            </Overlay>
+          )}
         </ImageWrapper>
         <Info>
           <ProductStoreName>{product.company}</ProductStoreName>
