@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../../api/axios';
 import styled from 'styled-components';
+import ItemSelector from './ItemSelector';
 import Pagination from '../../Pagination';
 
 const inquiryTypeMap = {
@@ -10,6 +11,8 @@ const inquiryTypeMap = {
 };
 
 const InquiryList = () => {
+  const [items, setItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState('');
   const [inquiries, setInquiries] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [expandedDetail, setExpandedDetail] = useState({});
@@ -28,30 +31,44 @@ const InquiryList = () => {
     setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
 
-  // 문의 리스트 가져오기
   useEffect(() => {
-    const fetchInquiries = async () => {
-      try {
-        const res = await axios.get('/api/inquiries/seller', {
-          params: { page: pageInfo.page, size: pageInfo.size },
-        });
-        console.log(res.data);
-        const data = res.data;
-        setInquiries(data.content);
-        setPageInfo((prev) => ({
-          ...prev,
-          totalPages: data.totalPages,
-          totalElements: data.totalElements,
-          isFirst: data.first,
-          isLast: data.last,
-        }));
-      } catch (err) {
-        console.error('문의 리스트 불러오기 실패:', err);
-      }
-    };
+    fetchItems();
+  }, []);
 
-    fetchInquiries();
-  }, [pageInfo.page]);
+  useEffect(() => {
+    fetchInquiries(selectedItem);
+  }, [selectedItem, pageInfo.page]);
+
+  const fetchItems = async () => {
+    try {
+      const res = await axios.get('/api/items/my-items/summary');
+      console.log(res.data);
+      setItems(res.data);
+    } catch (err) {
+      console.error('상품 목록 불러오기 실패:', err);
+    }
+  };
+
+  // 문의 리스트 가져오기
+  const fetchInquiries = async (itemId) => {
+    try {
+      const res = await axios.get('/api/inquiries/seller', {
+        params: { page: pageInfo.page, size: pageInfo.size, itemId },
+      });
+      console.log(res.data);
+      const data = res.data;
+      setInquiries(data.content);
+      setPageInfo((prev) => ({
+        ...prev,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+        isFirst: data.first,
+        isLast: data.last,
+      }));
+    } catch (err) {
+      console.error('문의 리스트 불러오기 실패:', err);
+    }
+  };
 
   // 상세 조회
   const handleToggleExpand = async (id) => {
@@ -95,7 +112,14 @@ const InquiryList = () => {
 
   return (
     <Container>
-      <Title>판매자 문의 관리</Title>
+      <Header>
+        <Title>판매자 문의 관리</Title>
+        <ItemSelector
+          value={selectedItem}
+          onChange={setSelectedItem}
+          productList={items}
+        />
+      </Header>
       <Table>
         <thead>
           <tr>
@@ -108,52 +132,58 @@ const InquiryList = () => {
           </tr>
         </thead>
         <tbody>
-          {inquiries.map((item) => (
-            <React.Fragment key={item.id}>
-              <tr onClick={() => handleToggleExpand(item.id)}>
-                <td>{item.itemName}</td>
-                <td>{item.question}</td>
-                <td>{item.buyerUsername}</td>
-                <td>{new Date(item.questionDate).toLocaleDateString()}</td>
-                <td>{inquiryTypeMap[item.inquiryType]}</td>
-                <td>{item.status === 'ANSWERED' ? '답변 완료' : '대기'}</td>
-              </tr>
-
-              {expandedId === item.id && expandedDetail[item.id] && (
-                <tr>
-                  <td colSpan={6} style={{ background: '#f9f9f9' }}>
-                    <DetailBox>
-                      <p>
-                        <strong>문의 내용:</strong>{' '}
-                        {expandedDetail[item.id].questionDetail}
-                      </p>
-
-                      <p>
-                        <strong>답변:</strong>{' '}
-                        {expandedDetail[item.id].answer || '미등록'}
-                      </p>
-
-                      <AnswerForm
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const answer = e.target.answer.value;
-                          handleAnswerSubmit(item.id, answer);
-                          e.target.answer.value = '';
-                        }}
-                      >
-                        <AnswerInput
-                          name="answer"
-                          placeholder="답변을 입력하세요"
-                          defaultValue={expandedDetail[item.id].answer || ''}
-                        />
-                        <AnswerButton type="submit">등록</AnswerButton>
-                      </AnswerForm>
-                    </DetailBox>
-                  </td>
+          {inquiries.length > 0 ? (
+            inquiries.map((item) => (
+              <React.Fragment key={item.id}>
+                <tr onClick={() => handleToggleExpand(item.id)}>
+                  <td>{item.itemName}</td>
+                  <td>{item.question}</td>
+                  <td>{item.buyerUsername}</td>
+                  <td>{new Date(item.questionDate).toLocaleDateString()}</td>
+                  <td>{inquiryTypeMap[item.inquiryType]}</td>
+                  <td>{item.status === 'ANSWERED' ? '답변 완료' : '대기'}</td>
                 </tr>
-              )}
-            </React.Fragment>
-          ))}
+
+                {expandedId === item.id && expandedDetail[item.id] && (
+                  <tr>
+                    <td colSpan={6} style={{ background: '#f9f9f9' }}>
+                      <DetailBox>
+                        <p>
+                          <strong>문의 내용:</strong>{' '}
+                          {expandedDetail[item.id].questionDetail}
+                        </p>
+
+                        <p>
+                          <strong>답변:</strong>{' '}
+                          {expandedDetail[item.id].answer || '미등록'}
+                        </p>
+
+                        <AnswerForm
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const answer = e.target.answer.value;
+                            handleAnswerSubmit(item.id, answer);
+                            e.target.answer.value = '';
+                          }}
+                        >
+                          <AnswerInput
+                            name="answer"
+                            placeholder="답변을 입력하세요"
+                            defaultValue={expandedDetail[item.id].answer || ''}
+                          />
+                          <AnswerButton type="submit">등록</AnswerButton>
+                        </AnswerForm>
+                      </DetailBox>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))
+          ) : (
+            <tr>
+              <NoDataCell colSpan="6">{'문의 내역이 없습니다.'}</NoDataCell>
+            </tr>
+          )}
         </tbody>
       </Table>
       {pageInfo.totalPages > 1 && (
@@ -175,6 +205,13 @@ const Container = styled.div`
   max-width: 1600px;
   margin: 60px auto;
   padding: 0 20px;
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  align-items: center;
 `;
 
 const Title = styled.h2`
@@ -239,4 +276,11 @@ const AnswerButton = styled.button`
   &:hover {
     background: #444;
   }
+`;
+
+const NoDataCell = styled.td`
+  padding: 50px 0 !important;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
 `;

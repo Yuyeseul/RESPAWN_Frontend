@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import axios from '../../../api/axios';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +18,16 @@ const ProductList = () => {
     isLast: true,
   });
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('latest');
+
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: '',
+    sort: 'latest',
+  });
+
+  const isInitialMount = useRef(true);
+
   const currentPage = pageInfo.page + 1;
   const totalPages = pageInfo.totalPages;
 
@@ -26,16 +36,53 @@ const ProductList = () => {
     setPageInfo((p) => ({ ...p, page: page1 - 1 }));
   };
 
+  const handleSearchApply = () => {
+    setPageInfo((p) => ({ ...p, page: 0 }));
+    setAppliedFilters({ search: searchTerm, sort: sortBy });
+  };
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    setPageInfo((p) => ({ ...p, page: 0 }));
+    setAppliedFilters((prevFilters) => ({
+      ...prevFilters,
+      sort: sortBy,
+    }));
+  }, [sortBy]);
+
   // 상품 목록 가져오기
   useEffect(() => {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const res = await axios.get('/api/items/my-items', {
-          params: { page: pageInfo.page, size: pageInfo.size },
-        });
+
+        let sortField = '_id';
+        let sortDir = 'desc';
+
+        if (appliedFilters.sort !== 'latest') {
+          const [field, dir] = appliedFilters.sort.split('_');
+          sortField = field;
+          sortDir = dir;
+        }
+
+        const params = {
+          page: pageInfo.page,
+          size: pageInfo.size,
+          search: appliedFilters.search,
+          sort: sortField,
+          dir: sortDir,
+        };
+
+        if (!params.search) delete params.search;
+
+        const res = await axios.get('/api/items/my-items', { params });
+
         console.log(res.data);
-        setItems(res.data.content); // 서버에서 List<Item> 반환한다고 가정
+        setItems(res.data.content);
         setPageInfo((prev) => ({
           ...prev,
           totalPages: res.data.totalPages,
@@ -52,7 +99,7 @@ const ProductList = () => {
     };
 
     fetchItems();
-  }, [pageInfo.page, pageInfo.size]);
+  }, [pageInfo.page, pageInfo.size, appliedFilters]);
 
   return (
     <Container>
@@ -62,6 +109,26 @@ const ProductList = () => {
           상품 등록
         </AddButton>
       </TopBar>
+
+      <FilterBar>
+        <SearchContainer>
+          <SearchInput
+            type="text"
+            placeholder="상품명으로 검색"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchApply()}
+          />
+          <SearchButton onClick={handleSearchApply}>검색</SearchButton>
+        </SearchContainer>
+        <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="latest">최신순</option>
+          <option value="price_asc">가격 낮은순</option>
+          <option value="price_desc">가격 높은순</option>
+          <option value="stockQuantity_asc">재고 적은순</option>
+          <option value="stockQuantity_desc">재고 많은순</option>
+        </Select>
+      </FilterBar>
 
       {loading && <Message>로딩중...</Message>}
       {error && <Message>{error}</Message>}
@@ -81,16 +148,7 @@ const ProductList = () => {
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="7"
-                    style={{ textAlign: 'center', padding: '20px' }}
-                  >
-                    등록된 상품이 없습니다.
-                  </td>
-                </tr>
-              ) : (
+              {items.length > 0 ? (
                 items.map((item) => (
                   <tr key={item.id}>
                     <td>
@@ -118,6 +176,12 @@ const ProductList = () => {
                     </td>
                   </tr>
                 ))
+              ) : (
+                <tr>
+                  <NoDataCell colSpan="7">
+                    {'등록된 상품이 없습니다.'}
+                  </NoDataCell>
+                </tr>
               )}
             </tbody>
           </Table>
@@ -168,6 +232,60 @@ const AddButton = styled.button`
 
   &:hover {
     background: #4a4e70;
+  }
+`;
+
+const FilterBar = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  gap: 10px;
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+`;
+
+const SearchInput = styled.input`
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px 0 0 6px;
+  outline: none;
+  font-size: 14px;
+  width: 250px;
+
+  &:focus {
+    border-color: #555a82;
+  }
+`;
+
+const SearchButton = styled.button`
+  padding: 8px 16px;
+  border: none;
+  background: #555a82;
+  color: white;
+  cursor: pointer;
+  border-radius: 0 6px 6px 0;
+
+  &:hover {
+    background: #4a4e70;
+  }
+`;
+
+const Select = styled.select`
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+
+  &:focus {
+    border-color: #555a82;
+    outline: none;
   }
 `;
 
@@ -223,6 +341,13 @@ const ActionBtn = styled.button`
   &:hover {
     background: ${(props) => (props.$danger ? '#d9363e' : '#3e4263')};
   }
+`;
+
+const NoDataCell = styled.td`
+  padding: 50px 0 !important;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
 `;
 
 const Message = styled.div`
