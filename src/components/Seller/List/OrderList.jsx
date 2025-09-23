@@ -40,7 +40,7 @@ function OrderList() {
 
   useEffect(() => {
     fetchOrders(selectedItem);
-  }, [selectedItem]);
+  }, [selectedItem, pageInfo.page]);
 
   // 상품 목록 불러오기
   const fetchItems = async () => {
@@ -73,10 +73,6 @@ function OrderList() {
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, [pageInfo.page]);
-
   return (
     <Container>
       <Header>
@@ -100,33 +96,39 @@ function OrderList() {
           </tr>
         </thead>
         <tbody>
-          {orders.map((order) => (
-            <tr
-              key={order.orderId}
-              onClick={() =>
-                navigate(`/sellerCenter/orderList/${order.orderItemId}`)
-              }
-              style={{ cursor: 'pointer' }}
-            >
-              <td>{order.orderId}</td>
-              <td>{order.itemName}</td>
-              <td>{order.buyerName}</td>
-              <td>{order.count}</td>
-              <td>{order.totalPrice.toLocaleString()}원</td>
-              <td>
-                {order.orderDate
-                  ? new Date(order.orderDate).toLocaleString('ko-KR', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : '-'}
-              </td>
-              <td>{statusMap[order.orderStatus]}</td>
+          {orders.length > 0 ? (
+            orders.map((order) => (
+              <tr
+                key={order.orderId}
+                onClick={() =>
+                  navigate(`/sellerCenter/orderList/${order.orderItemId}`)
+                }
+                style={{ cursor: 'pointer' }}
+              >
+                <td>{order.orderId}</td>
+                <td>{order.itemName}</td>
+                <td>{order.buyerName}</td>
+                <td>{order.count}</td>
+                <td>{order.totalPrice.toLocaleString()}원</td>
+                <td>
+                  {order.orderDate
+                    ? new Date(order.orderDate).toLocaleString('ko-KR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '-'}
+                </td>
+                <td>{statusMap[order.orderStatus]}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <NoDataCell colSpan="7">{'주문 내역이 없습니다.'}</NoDataCell>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
       {pageInfo.totalPages > 1 && (
@@ -194,4 +196,11 @@ const PaginationWrapper = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 30px;
+`;
+
+const NoDataCell = styled.td`
+  padding: 50px 0 !important;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
 `;

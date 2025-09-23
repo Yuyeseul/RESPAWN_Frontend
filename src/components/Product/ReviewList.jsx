@@ -3,27 +3,46 @@ import axios from '../../api/axios';
 import styled from 'styled-components';
 import Pagination from '../Pagination';
 
-const ITEMS_PER_PAGE = 10;
-
 const ReviewList = ({ itemId }) => {
   const [reviews, setReviews] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 10,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
+
+  const handlePageChange = (page) => {
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
+  };
 
   useEffect(() => {
-    if (!itemId) return;
-
-    const fetchReviews = async () => {
-      try {
-        const res = await axios.get(`api/reviews/items/${itemId}`);
-        setReviews(res.data || []);
-        setCurrentPage(1);
-      } catch (err) {
-        console.error('리뷰 불러오기 실패:', err);
-      }
-    };
-
     fetchReviews();
-  }, [itemId]);
+  }, [pageInfo.page]);
+
+  const fetchReviews = async () => {
+    try {
+      const res = await axios.get(`api/reviews/items/${itemId}`, {
+        params: { page: pageInfo.page, size: pageInfo.size },
+      });
+      const data = res.data;
+      console.log(data);
+      setReviews(data.content);
+      setPageInfo((prev) => ({
+        ...prev,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+        isFirst: data.first,
+        isLast: data.last,
+      }));
+    } catch (err) {
+      console.error('리뷰 불러오기 실패:', err);
+    }
+  };
 
   const getRatingStats = (reviews) => {
     const stats = [0, 0, 0, 0, 0]; // index 0 → 1점, index 4 → 5점
@@ -36,20 +55,13 @@ const ReviewList = ({ itemId }) => {
   };
 
   const ratingStats = getRatingStats(reviews);
-  const totalReviews = reviews.length;
+  const totalReviews = pageInfo.totalElements;
   const averageRating =
     totalReviews > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(
           1
         )
       : 0;
-
-  // 현재 페이지에 보여줄 리뷰 목록 (10개씩)
-  const indexOfLast = currentPage * ITEMS_PER_PAGE;
-  const indexOfFirst = indexOfLast - ITEMS_PER_PAGE;
-  const currentReviews = reviews.slice(indexOfFirst, indexOfLast);
-
-  const totalPages = Math.ceil(reviews.length / ITEMS_PER_PAGE);
 
   return (
     <Container>
@@ -82,7 +94,7 @@ const ReviewList = ({ itemId }) => {
         <NoReview>리뷰가 없습니다.</NoReview>
       ) : (
         <>
-          {currentReviews.map((review) => (
+          {reviews.map((review) => (
             <ReviewCard key={review.reviewId}>
               <Header>
                 <Reviewer>{review.maskedUsername}</Reviewer>
@@ -94,15 +106,15 @@ const ReviewList = ({ itemId }) => {
               <Content>{review.content}</Content>
             </ReviewCard>
           ))}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => {
-              if (page >= 1 && page <= totalPages) {
-                setCurrentPage(page);
-              }
-            }}
-          />
+          {pageInfo.totalPages > 1 && (
+            <Pagination
+              currentPage={pageInfo.page + 1}
+              totalPages={pageInfo.totalPages}
+              onPageChange={handlePageChange}
+              isFirst={pageInfo.isFirst}
+              isLast={pageInfo.isLast}
+            />
+          )}
         </>
       )}
     </Container>

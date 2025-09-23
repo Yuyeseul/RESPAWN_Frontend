@@ -15,7 +15,7 @@ const RefundList = () => {
   const [refunds, setRefunds] = useState([]);
   const [pageInfo, setPageInfo] = useState({
     page: 0,
-    size: 1,
+    size: 10,
     totalPages: 0,
     totalElements: 0,
     isFirst: true,
@@ -47,6 +47,7 @@ const RefundList = () => {
         });
 
         const data = res.data;
+        console.log(data);
         setRefunds(data.content);
         setPageInfo((prev) => ({
           ...prev,
