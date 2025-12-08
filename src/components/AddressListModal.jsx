@@ -27,6 +27,7 @@ function AddressListModal({ onClose, onConfirm, preSelectedId }) {
     try {
       const response = await axios.get('/api/addresses');
       const data = Array.isArray(response.data) ? response.data : [];
+      console.log(response.data);
       setAddresses(data);
       if (preSelectedId) {
         setSelectedAddressId(preSelectedId);
@@ -92,9 +93,10 @@ function AddressListModal({ onClose, onConfirm, preSelectedId }) {
                     onChange={() => setSelectedAddressId(item.id)}
                   />
                 </td>
-                <td>
+                <TdAddressName>
                   {item.addressName} / {item.recipient}
-                </td>
+                  {item.basic && <DefaultBadge>기본</DefaultBadge>}
+                </TdAddressName>
                 <td>
                   {item.baseAddress} {item.detailAddress}
                 </td>
@@ -200,6 +202,22 @@ const Table = styled.table`
     cursor: pointer;
     padding: 0;
   }
+`;
+
+const TdAddressName = styled.td`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const DefaultBadge = styled.span`
+  background-color: #333;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
 `;
 
 const AddButton = styled.button`
