@@ -185,7 +185,7 @@ const PaginationWrapper = styled.div`
 `;
 
 const NoOrderText = styled.p`
-  color: #999;
+  color: #666;
   text-align: center;
   font-size: 16px;
 `;

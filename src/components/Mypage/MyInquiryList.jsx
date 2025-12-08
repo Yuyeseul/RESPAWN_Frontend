@@ -80,7 +80,7 @@ const MyInquiryList = () => {
             </tr>
           ) : inquiries.length === 0 ? (
             <tr>
-              <td colSpan={5}>문의 내역이 없습니다.</td>
+              <Message colSpan={5}>문의 내역이 없습니다.</Message>
             </tr>
           ) : (
             inquiries.map((item, index) => (
@@ -172,6 +172,13 @@ const Table = styled.table`
   tr:hover {
     background: #f5f7fa;
   }
+`;
+
+const Message = styled.td`
+  font-size: 16px;
+  color: #666;
+  text-align: center;
+  padding: 32px 0;
 `;
 
 const DetailBox = styled.div`

@@ -362,12 +362,10 @@ const ReviewDate = styled.p`
 `;
 
 const Message = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 300px;
-  color: #888;
+  text-align: center;
+  color: #666;
   font-size: 16px;
+  padding: 32px 0;
 `;
 
 const Sentinel = styled.div`

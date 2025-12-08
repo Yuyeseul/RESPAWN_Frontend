@@ -69,7 +69,7 @@ const RefundDetail = () => {
 
   return (
     <Container>
-      <Title>환불 요청 내역</Title>
+      <Title>환불 내역</Title>
       {refunds.length === 0 && <NoData>환불 요청 내역이 없습니다.</NoData>}
       {refunds.map((order) => (
         <div key={order.orderId}>
@@ -134,15 +134,15 @@ const Container = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 30px;
+  font-size: 32px;
   font-weight: bold;
-  margin-bottom: 32px;
-  text-align: center;
+  margin-bottom: 30px;
 `;
 
 const NoData = styled.p`
   text-align: center;
   color: #666;
+  text-size: 16px;
 `;
 
 const RefundCard = styled.div`

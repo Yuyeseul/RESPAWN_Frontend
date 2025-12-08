@@ -369,10 +369,10 @@ const Chip = styled.button`
 `;
 
 const Empty = styled.div`
-  padding: 40px 0;
+  padding: 32px 0;
   text-align: center;
-  color: #98a1a8;
-  font-size: 14px;
+  color: #666;
+  font-size: 16px;
 `;
 
 const CardList = styled.div`

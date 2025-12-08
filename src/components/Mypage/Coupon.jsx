@@ -222,10 +222,10 @@ const Count = styled.span`
 `;
 
 const Message = styled.div`
-  font-size: 1rem;
+  font-size: 16px;
   color: #666;
   text-align: center;
-  padding: 2rem 0;
+  padding: 32px 0;
 `;
 
 const CouponList = styled.div`

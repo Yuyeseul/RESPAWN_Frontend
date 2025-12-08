@@ -89,8 +89,8 @@ const Title = styled.h2`
 `;
 
 const EmptyMessage = styled.div`
-  font-size: 18px;
-  color: #6b7280;
+  font-size: 16px;
+  color: #666;
   text-align: center;
-  padding: 40px 0;
+  padding: 32px 0;
 `;
