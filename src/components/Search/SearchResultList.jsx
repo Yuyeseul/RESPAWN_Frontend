@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import ProductCard from '../Product/ProductCard';
 import axios from '../../api/axios';
 
-const SearchResultList = ({ query, items, loading }) => {
+const SearchResultList = ({ query, items, resultsCount, loading }) => {
   const handleAddToCart = async (product) => {
     try {
       const res = await axios.post('/api/cart/add', {
@@ -34,7 +34,7 @@ const SearchResultList = ({ query, items, loading }) => {
             '전체 상품'
           )}
         </Title>
-        <ResultCount>총 {items.length}개</ResultCount>
+        <ResultCount>총 {resultsCount}개</ResultCount>
       </Header>
 
       {loading ? (
@@ -76,7 +76,7 @@ const Title = styled.h2`
   font-weight: bold;
 
   span {
-    color: #0077ff;
+    color: rgb(105, 111, 148);
   }
 `;
 
