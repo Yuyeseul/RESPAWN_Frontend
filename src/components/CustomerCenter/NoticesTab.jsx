@@ -38,7 +38,10 @@ const NoticesTab = () => {
         <>
           <ul>
             {notices.map((n) => (
-              <li key={n.id} onClick={() => navigate(`/notices/${n.id}`)}>
+              <li
+                key={n.id}
+                onClick={() => navigate(`/customerCenter/notices/${n.id}`)}
+              >
                 <span className="title">{n.title}</span>
                 <span className="date">{formatDate(n.createdAt)}</span>
               </li>

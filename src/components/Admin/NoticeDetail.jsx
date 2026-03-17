@@ -90,7 +90,7 @@ const NoticeDetail = () => {
         setLoading(true);
         try {
           const payload = { ...form };
-          // await axios.put(`/api/notices/${noticeId}`, payload); // API 엔드포인트 예시
+          await axios.post(`/api/notices/${noticeId}/update`, payload); // API 엔드포인트 예시
           alert('성공적으로 수정되었습니다.');
           await fetchNotice();
           setIsEditing(false);
@@ -135,7 +135,7 @@ const NoticeDetail = () => {
         closeConfirmModal();
         setLoading(true);
         try {
-          // await axios.delete(`/api/notices?noticeId=${noticeId}`);
+          await axios.delete(`/api/notices/${noticeId}`);
           alert('삭제되었습니다.');
           navigate('/admin/notices');
         } catch (e) {
@@ -345,7 +345,9 @@ const GhostBtn = styled.button`
   background: #eef2f7;
   color: #1f2937;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  transition: background 0.12s ease, transform 0.06s ease;
+  transition:
+    background 0.12s ease,
+    transform 0.06s ease;
   &:hover {
     background: #e5eaf1;
   }
@@ -363,7 +365,9 @@ const PrimaryBtn = styled.button`
   background: #25324d;
   color: #fff;
   box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
-  transition: transform 0.06s ease, box-shadow 0.12s ease;
+  transition:
+    transform 0.06s ease,
+    box-shadow 0.12s ease;
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(37, 50, 77, 0.22);

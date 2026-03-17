@@ -161,7 +161,7 @@ const NoticeSection = ({ items, onShowAll }) => {
       <ul>
         {items.map((n) => (
           <li key={n.id}>
-            <Link to={`/notices/${n.id}`}>
+            <Link to={`/customerCenter/notices/${n.id}`}>
               <span className="title">{n.title}</span>
               <span className="date">{n.createdAt?.substring(0, 10)}</span>
             </Link>
