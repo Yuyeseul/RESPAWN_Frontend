@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from '../../api/axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import StepProgress from '../common/StepProgress';
 import PaymentComponent from './PaymentComponent';
 import AddressManager from './AddressManager';
@@ -9,6 +9,8 @@ import DiscountManager from './DiscountManager';
 
 const OrderList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isCompleting = React.useRef(false);
   const { orderId } = useParams();
   const [orderData, setOrderData] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -68,6 +70,7 @@ const OrderList = () => {
 
   // PaymentComponent에서 결제 완료 시 호출될 함수
   const handlePaymentComplete = () => {
+    isCompleting.current = true;
     setShowPaymentComponent(false);
 
     // 결제 완료 후 주문 완료 처리
@@ -82,6 +85,7 @@ const OrderList = () => {
         navigate(`/order/${orderId}/complete`);
       })
       .catch((err) => {
+        isCompleting.current = false;
         alert(err.response?.data?.error || '주문 처리 중 오류가 발생했습니다.');
       });
   };
@@ -112,36 +116,40 @@ const OrderList = () => {
   };
 
   useEffect(() => {
-    const isRefresh = () => {
-      const navEntries = performance.getEntriesByType('navigation');
-      return navEntries.length > 0 && navEntries[0].type === 'reload';
-    };
-
+    const currentOrderId = orderId;
     const sendDeleteRequest = () => {
+      if (isCompleting.current || !currentOrderId) return;
       fetch('/api/orders/temporary', {
         method: 'DELETE',
-        keepalive: true, // 페이지가 닫혀도 요청을 보냄
+        keepalive: true,
       });
     };
 
     const handleBeforeUnload = (event) => {
-      if (!isRefresh()) {
+      const navEntries = performance.getEntriesByType('navigation');
+      const isRefresh =
+        navEntries.length > 0 && navEntries[0].type === 'reload';
+      if (!isRefresh) {
         sendDeleteRequest();
       }
     };
 
-    const handlePopState = () => {
-      sendDeleteRequest();
-    };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
+
+      const targetPath = window.location.pathname;
+      const isStayingOnOrderPage = targetPath.includes(
+        `/order/${currentOrderId}`
+      );
+      const isGoingToComplete = targetPath.includes('/complete');
+
+      if (!isStayingOnOrderPage && !isGoingToComplete) {
+        sendDeleteRequest();
+      }
     };
-  }, []);
+  }, [orderId]);
 
   useEffect(() => {
     if (!orderId) return;
