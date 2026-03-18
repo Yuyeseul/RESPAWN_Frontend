@@ -10,7 +10,7 @@ import banner2 from '../../assets/banner2.png';
 
 const Banner = () => {
   return (
-    <Swiper
+    <StyledSwiper
       modules={[Navigation, Pagination, Autoplay]}
       slidesPerView={1}
       navigation
@@ -24,11 +24,24 @@ const Banner = () => {
       <SwiperSlide>
         <ImgBanner src={banner2} alt="banner2" />
       </SwiperSlide>
-    </Swiper>
+    </StyledSwiper>
   );
 };
 
 export default Banner;
+
+const StyledSwiper = styled(Swiper)`
+  --swiper-navigation-color: #222;
+  --swiper-pagination-color: #222;
+
+  .swiper-button-next,
+  .swiper-button-prev {
+    transition: opacity 0.3s;
+    &:hover {
+      opacity: 0.5;
+    }
+  }
+`;
 
 const ImgBanner = styled.img`
   width: 100%;
