@@ -47,6 +47,7 @@ import NoticeList from './components/CustomerCenter/NoticeList';
 import Notice from './components/CustomerCenter/Notice';
 import Faq from './components/CustomerCenter/Faq';
 import { AuthProvider } from './AuthContext';
+import ChatbotContainer from './components/Chatbot/ChatbotContainer';
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
       <GlobalStyle />
       <AuthGate>
         <AuthProvider>
+          <ChatbotContainer />
           <Routes>
             <Route path="/" element={<MainPage />} />
             <Route path="/profile/complete" element={<ProfileComplete />} />
