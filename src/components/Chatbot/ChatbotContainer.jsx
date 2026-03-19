@@ -5,7 +5,25 @@ import Chatbot from './Chatbot';
 
 function ChatbotContainer() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
+
+  const [messages, setMessages] = useState([
+    {
+      role: 'bot',
+      text: '안녕하세요! Respawn 입니다. 무엇을 도와드릴까요?',
+    },
+  ]);
+
+  const initialMessage = [
+    { role: 'bot', text: '안녕하세요! Respawn 입니다. 무엇을 도와드릴까요?' },
+  ];
+
+  const handleCloseAndReset = () => {
+    setIsOpen(false);
+    setMessages(initialMessage);
+    setIsLoading(false);
+  };
 
   if (location.pathname !== '/') {
     return null;
@@ -15,7 +33,13 @@ function ChatbotContainer() {
     <FloatingWrapper>
       {isOpen && (
         <ChatbotWindow>
-          <Chatbot />
+          <Chatbot
+            messages={messages}
+            setMessages={setMessages}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            onClose={handleCloseAndReset}
+          />
         </ChatbotWindow>
       )}
       <ToggleButton onClick={() => setIsOpen(!isOpen)} isOpen={isOpen}>

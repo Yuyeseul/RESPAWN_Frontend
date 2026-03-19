@@ -2,22 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import axios from '../../api/axios';
 
-function Chatbot() {
-  const [messages, setMessages] = useState([
-    {
-      role: 'bot',
-      text: '안녕하세요! Respawn 입니다. 무엇을 도와드릴까요?',
-    },
-  ]);
+function Chatbot({ messages, setMessages, isLoading, setIsLoading, onClose }) {
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef();
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -35,13 +28,9 @@ function Chatbot() {
       };
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error('Chatbot Error:', error);
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'bot',
-          text: '죄송합니다. 서비스 연결이 원활하지 않습니다. 고객센터로 문의해주세요.',
-        },
+        { role: 'bot', text: '죄송합니다. 서비스 연결이 원활하지 않습니다.' },
       ]);
     } finally {
       setIsLoading(false);
@@ -50,7 +39,10 @@ function Chatbot() {
 
   return (
     <Container>
-      <ChatHeader>Respawn AI 상담원</ChatHeader>
+      <ChatHeader>
+        <span>Respawn AI 상담원</span>
+        <CloseButton onClick={onClose}>종료</CloseButton>
+      </ChatHeader>
 
       <ChatBox ref={scrollRef}>
         {messages.map((msg, index) => (
@@ -78,7 +70,9 @@ function Chatbot() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="문의하실 내용을 입력하세요"
+          placeholder={
+            isLoading ? '답변을 기다리는 중...' : '문의하실 내용을 입력하세요'
+          }
           disabled={isLoading}
         />
         <SendButton onClick={handleSend} disabled={isLoading}>
@@ -102,9 +96,26 @@ const ChatHeader = styled.div`
   background: #222;
   color: #fff;
   padding: 15px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const CloseButton = styled.button`
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const ChatBox = styled.div`
