@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from '../../api/axios';
+import { openKakaoChat } from '../../utils/kakaoChat';
 
 const FAQS = [
   {
@@ -222,12 +223,14 @@ const ContactSection = ({ onContactClick }) => {
             items={QUICK_LINKS}
             onClick={(key) => {
               const link = QUICK_LINKS.find((l) => l.key === key);
-              onContactClick(link.label);
+              onContactClick(key, link.label);
             }}
           />
         </div>
         <aside>
-          <ContactCard onCall={() => onContactClick('전화 상담 서비스')} />
+          <ContactCard
+            onCall={() => onContactClick('call', '전화 상담 서비스')}
+          />
         </aside>
       </TwoColumn>
     </section>
@@ -258,6 +261,14 @@ const CustomerCenter = () => {
       title: label,
       content: '현재 서비스 준비 중입니다. 빠른 시일 내에 제공해 드리겠습니다.',
     });
+
+  const handleContactClick = (key, label) => {
+    if (key === 'chat') {
+      openKakaoChat(); // 카카오톡 실행
+    } else {
+      openPendingModal(label); // 나머지는 기존처럼 '준비중' 모달
+    }
+  };
 
   useEffect(() => {
     const fetchNotices = async () => {
@@ -312,7 +323,7 @@ const CustomerCenter = () => {
 
         <SectionSpacer />
 
-        <ContactSection onContactClick={openPendingModal} />
+        <ContactSection onContactClick={handleContactClick} />
       </Main>
 
       <FooterNote>
