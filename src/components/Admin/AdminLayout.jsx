@@ -1,18 +1,44 @@
-import React from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
+import { useAuth } from '../../AuthContext';
 
 function AdminLayout() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [isCheck, setIsCheck] = useState(false);
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem('userData');
+
+    if (!userData) {
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/login', { replace: true });
+    } else {
+      setIsCheck(true);
+    }
+  }, [navigate]);
 
   const titleMap = {
-    '/admin': '대시보드',
     '/admin/members': '회원 관리',
     '/admin/notices': '공지',
     '/admin/inquiries': '문의',
-    '/admin/settings': '설정',
   };
   const headerTitle = titleMap[pathname] || '관리자';
+
+  const handleLogout = async () => {
+    if (window.confirm('로그아웃 하시겠습니까?')) {
+      try {
+        await logout();
+        navigate('/adminLogin');
+      } catch (error) {
+        console.error('로그아웃 에러:', error);
+      }
+    }
+  };
+
+  if (!isCheck) return null;
 
   return (
     <>
@@ -21,13 +47,9 @@ function AdminLayout() {
         <Sidebar>
           <Logo>RESPAWN Admin</Logo>
           <Nav>
-            <NavItem to="/admin" end>
-              대시보드
-            </NavItem>
             <NavItem to="/admin/members">회원 관리</NavItem>
             <NavItem to="/admin/notices">공지</NavItem>
             <NavItem to="/admin/inquiries">문의</NavItem>
-            <NavItem to="/admin/settings">설정</NavItem>
           </Nav>
           <SideFooter>RESPAWN</SideFooter>
         </Sidebar>
@@ -35,16 +57,12 @@ function AdminLayout() {
         <Main>
           <Header>
             <Title>{headerTitle}</Title>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Search>
-                <input placeholder="검색 ( / )" />
-              </Search>
-              <Avatar />
-            </div>
+            <HeaderRight>
+              <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+            </HeaderRight>
           </Header>
 
           <Content>
-            {/* 여기서 자식 라우트가 바뀌며 화면이 전환됩니다 */}
             <Outlet />
           </Content>
         </Main>
@@ -55,7 +73,6 @@ function AdminLayout() {
 
 export default AdminLayout;
 
-/* 기존 스타일 재사용 + NavLink 스타일 추가 */
 const colors = {
   pageBg: '#F5F7FA',
   sidebarBg: '#EEF2F7',
@@ -113,7 +130,6 @@ const Nav = styled.nav`
   margin-top: 8px;
 `;
 
-/* NavItem을 NavLink로 바꾼 스타일 */
 const StyledNavLink = styled(NavLink)`
   all: unset;
   display: flex;
@@ -141,7 +157,6 @@ const StyledNavLink = styled(NavLink)`
   }
 `;
 
-// end prop으로 /admin과 /admin/* 구분
 function NavItem({ to, end, children }) {
   return (
     <StyledNavLink
@@ -185,34 +200,27 @@ const Title = styled.h1`
   letter-spacing: 0.2px;
 `;
 
-const Search = styled.div`
+const HeaderRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
-  input {
-    width: 280px;
-    background: ${colors.cardAlt};
-    border: 1px solid ${colors.border};
-    color: ${colors.text};
-    padding: 10px 12px;
-    border-radius: 10px;
-    outline: none;
-    transition: 160ms ease;
-  }
-  input::placeholder {
-    color: ${colors.textMute};
-  }
-  input:focus {
-    border-color: ${colors.accentBorder};
-    box-shadow: 0 0 0 3px rgba(37, 50, 77, 0.12);
-  }
+  gap: 15px;
 `;
 
-const Avatar = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: ${colors.accent};
+const LogoutButton = styled.button`
+  background: none;
+  border: 1px solid ${colors.border};
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: ${colors.textMute};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${colors.danger};
+    color: white;
+    border-color: ${colors.danger};
+  }
 `;
 
 const Content = styled.div`

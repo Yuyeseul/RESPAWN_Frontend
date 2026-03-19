@@ -46,7 +46,7 @@ const Login = (e) => {
 
       sessionStorage.setItem('userData', JSON.stringify(response.data));
       setFailCount(0);
-      navigate('/admin');
+      navigate('/admin/members');
     } catch (error) {
       if (error.response && error.response.data) {
         const { error: errorCode, failedLoginAttempts } = error.response.data;
