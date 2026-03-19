@@ -37,6 +37,27 @@ const QUICK_LINKS = [
   { key: 'callback', label: '콜백예약', icon: '⏱️' },
 ];
 
+const GUIDE_DATA = {
+  return: {
+    icon: '📦',
+    title: '반품/교환 가이드',
+    content:
+      '• 접수 기간: 상품 수령 후 7일 이내 신청 가능합니다.\n• 접수 방법: [마이페이지 > 주문내역]에서 반품 신청 버튼을 눌러주세요.\n• 주의 사항: 단순 변심의 경우 왕복 배송비가 차감될 수 있습니다.',
+  },
+  tax: {
+    icon: '📄',
+    title: '세금계산서 발급 안내',
+    content:
+      "• 신청 방법: 결제 단계에서 '사업자 증빙'을 선택해주세요.\n• 사후 발급: 결제 완료 후 1:1 문의를 통해 사업자등록증 사본을 보내주시면 담당 부서에서 발급해 드립니다.\n• 확인 위치: 국세청 홈택스 또는 입력하신 이메일로 발송됩니다.",
+  },
+  as: {
+    icon: '🛠️',
+    title: 'A/S 접수 절차',
+    content:
+      '• 1단계: 고장 부위 사진 또는 영상을 촬영합니다.\n• 2단계: 1:1 문의에 첨부하여 접수합니다.\n• 3단계: 담당자 확인 후 수거 또는 방문 일정을 안내드립니다.\n• 비용: 보증기간 이내 과실 없는 고장은 무상으로 진행됩니다.',
+  },
+};
+
 // 상단 검색
 const CommandBar = ({ value, onChange, onSearch, suggestions }) => {
   return (
@@ -108,13 +129,13 @@ const ActionStack = ({ items, onClick }) => {
   );
 };
 
-const ContactCard = () => {
+const ContactCard = ({ onCall }) => {
   return (
     <Contact>
       <div className="title">대표 상담센터</div>
       <div className="num">1588-8377</div>
       <div className="time">평일 09:00~18:00 · 점심 12:00~13:00</div>
-      <CallBtn>즉시 전화</CallBtn>
+      <CallBtn onClick={onCall}>즉시 전화</CallBtn>
     </Contact>
   );
 };
@@ -135,7 +156,7 @@ const FAQSection = ({ items, onQuick }) => {
         <ViewAllLink to="/customerCenter/faq">전체보기 &gt;</ViewAllLink>
       </SectionHeader>
 
-      <Stack>
+      <VerticalStack>
         {displayedFaqs.map((f) => (
           <FAQCard
             key={f.id}
@@ -145,13 +166,13 @@ const FAQSection = ({ items, onQuick }) => {
             onToggle={() => handleToggle(f.id)}
           />
         ))}
-      </Stack>
+      </VerticalStack>
     </section>
   );
 };
 
 // 공지
-const NoticeSection = ({ items, onShowAll }) => {
+const NoticeSection = ({ items }) => {
   return (
     <NoticeListSection>
       <header>
@@ -173,39 +194,40 @@ const NoticeSection = ({ items, onShowAll }) => {
 };
 
 // 가이드
-const GuideSection = () => {
+const GuideSection = ({ onGuideClick }) => {
+  const guides = Object.values(GUIDE_DATA);
   return (
     <section>
       <SectionTitle>이용 가이드</SectionTitle>
       <Stack>
-        <StackBtn>
-          <div className="label">반품/교환 가이드</div>
-        </StackBtn>
-        <StackBtn>
-          <div className="label">세금계산서 발급 안내</div>
-        </StackBtn>
-        <StackBtn>
-          <div className="label">A/S 접수 절차</div>
-        </StackBtn>
+        {guides.map((guide) => (
+          <StackBtn key={guide.title} onClick={() => onGuideClick(guide)}>
+            <div className="icon">{guide.icon}</div>
+            <div className="label">{guide.title}</div>
+          </StackBtn>
+        ))}
       </Stack>
     </section>
   );
 };
 
 // 문의/연락
-const ContactSection = () => {
+const ContactSection = ({ onContactClick }) => {
   return (
     <section>
+      <SectionTitle>상담 및 문의</SectionTitle>
       <TwoColumn>
         <div>
-          <SectionTitle>문의 채널</SectionTitle>
           <ActionStack
             items={QUICK_LINKS}
-            onClick={(k) => console.log('Contact action:', k)}
+            onClick={(key) => {
+              const link = QUICK_LINKS.find((l) => l.key === key);
+              onContactClick(link.label);
+            }}
           />
         </div>
         <aside>
-          <ContactCard />
+          <ContactCard onCall={() => onContactClick('전화 상담 서비스')} />
         </aside>
       </TwoColumn>
     </section>
@@ -218,6 +240,8 @@ const CustomerCenter = () => {
   const [notices, setNotices] = useState([]);
   const [noticesLoading, setNoticesLoading] = useState(true);
 
+  const [modal, setModal] = useState({ open: false, title: '', content: '' });
+
   const handleSearch = (term) => {
     const finalTerm = (typeof term === 'string' ? term : inputValue).trim();
     if (!finalTerm) {
@@ -227,16 +251,23 @@ const CustomerCenter = () => {
     navigate(`/customerCenter/search?q=${finalTerm}`);
   };
 
+  const openModal = (data) => setModal({ open: true, ...data });
+  const openPendingModal = (label) =>
+    setModal({
+      open: true,
+      title: label,
+      content: '현재 서비스 준비 중입니다. 빠른 시일 내에 제공해 드리겠습니다.',
+    });
+
   useEffect(() => {
     const fetchNotices = async () => {
-      setNoticesLoading(true);
       try {
-        const response = await axios.get('/api/notices/summaries', {
+        const res = await axios.get('/api/notices/summaries', {
           params: { page: 0, size: 5 },
         });
-        setNotices(response.data.content || []);
-      } catch (error) {
-        console.error('Failed to fetch notices:', error);
+        setNotices(res.data.content || []);
+      } catch (e) {
+        console.error(e);
       } finally {
         setNoticesLoading(false);
       }
@@ -262,6 +293,14 @@ const CustomerCenter = () => {
         </SearchContainer>
         <SectionSpacer />
 
+        {noticesLoading ? (
+          <LoadingWrapper>공지사항을 불러오는 중입니다...</LoadingWrapper>
+        ) : (
+          <NoticeSection items={notices} />
+        )}
+
+        <SectionSpacer />
+
         <FAQSection
           items={FAQS}
           onQuick={(action, item) => console.log('FAQ Action:', action, item)}
@@ -269,21 +308,29 @@ const CustomerCenter = () => {
 
         <SectionSpacer />
 
-        <NoticeSection items={notices} />
+        <GuideSection onGuideClick={openModal} />
 
         <SectionSpacer />
 
-        <GuideSection />
-
-        <SectionSpacer />
-
-        <ContactSection />
+        <ContactSection onContactClick={openPendingModal} />
       </Main>
 
       <FooterNote>
         더 도움이 필요하면 1:1 문의를 남겨주세요. 평일 기준 24시간 내
         응답합니다.
       </FooterNote>
+
+      {modal.open && (
+        <ModalOverlay onClick={() => setModal({ ...modal, open: false })}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <h3>{modal.title}</h3>
+            <div className="body">{modal.content}</div>
+            <button onClick={() => setModal({ ...modal, open: false })}>
+              확인
+            </button>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Page>
   );
 };
@@ -322,6 +369,16 @@ const Header = styled.header`
 
 const SectionSpacer = styled.div`
   margin-top: 32px;
+`;
+
+const LoadingWrapper = styled.div`
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
 `;
 
 const SearchContainer = styled.div`
@@ -382,10 +439,8 @@ const Chip = styled.button`
 const TwoColumn = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 18px;
-  @media (min-width: 980px) {
-    grid-template-columns: 1fr 320px;
-  }
+  gap: 20px;
+  align-items: stretch;
 `;
 
 const NoticeListSection = styled.section`
@@ -546,78 +601,109 @@ const Quick = styled.button`
   }
 `;
 
+const VerticalStack = styled.div`
+  display: grid;
+  grid-template-columns: 1fr; /* 무조건 한 줄에 하나씩 */
+  gap: 12px;
+`;
+
 const Stack = styled.div`
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 `;
 
 const StackBtn = styled.button`
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 10px;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  text-align: left;
+  gap: 10px;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease-in-out;
+
   &:hover {
-    border-color: #cbd5e1;
+    background: #fcfcff;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(78, 70, 229, 0.08);
+
+    .icon {
+      background: var(--indigo);
+      color: #fff;
+    }
   }
+
   .icon {
-    font-size: 18px;
+    font-size: 24px;
+    width: 48px;
+    height: 48px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
   }
+
   .label {
     font-weight: 600;
+    font-size: 14px;
+    color: var(--ink);
   }
 `;
 
 const Contact = styled.div`
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  height: 100%;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px;
+  border-radius: 20px;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
   .title {
     color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
   }
   .num {
-    font-size: 22px;
-    font-weight: 800;
-    margin: 6px 0;
+    font-size: 28px;
+    font-weight: 850;
+    margin: 12px 0;
+    letter-spacing: -0.5px;
   }
   .time {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 20px;
   }
 `;
 
 const CallBtn = styled.button`
-  margin-top: 10px;
   width: 100%;
+  max-width: 200px;
   background: var(--green);
   color: #fff;
   border: 0;
-  border-radius: 10px;
-  padding: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-const EmptyBox = styled.div`
-  grid-column: 1 / -1;
-  background: #fff;
-  border: 1px dashed var(--line);
   border-radius: 12px;
-  padding: 24px 18px;
-  text-align: center;
-  color: var(--muted);
+  padding: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #1e293b;
+    transform: scale(1.02);
+  }
 `;
 
 const FooterNote = styled.footer`
@@ -627,4 +713,61 @@ const FooterNote = styled.footer`
   padding: 0 20px;
   text-align: center;
   font-size: 14px;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const ModalContent = styled.div`
+  background: #fff;
+  padding: 32px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  h3 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    color: var(--ink);
+  }
+
+  .body {
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 28px;
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    background: var(--indigo);
+    color: #fff;
+    border: 0;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    &:hover {
+      opacity: 0.9;
+    }
+  }
 `;
