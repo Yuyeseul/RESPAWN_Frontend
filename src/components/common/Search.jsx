@@ -64,7 +64,7 @@ const SearchContainer = styled.header`
 const SearchInput = styled.input`
   width: 100%;
   height: 50px;
-  padding: 0 20px;
+  padding: 0 60px 0 20px;
   border-radius: 30px;
   border: 2.5px solid;
   font-size: 18px;

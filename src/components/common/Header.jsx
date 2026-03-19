@@ -4,7 +4,7 @@ import Logo from './Logo';
 import categoryIcon from '../../assets/category_icon.png';
 import closeIcon from '../../assets/close_icon.png';
 import Search from './Search';
-import { Link, useNavigate, createSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 
 const Header = () => {
@@ -71,22 +71,27 @@ const Header = () => {
   ];
 
   const menuItems = [
-    '모니터',
-    '헤드셋',
-    '키보드',
-    '마우스',
-    '스피커',
-    '신상품',
-    '베스트셀러',
-    '브랜드',
-    '이벤트',
+    { name: '모니터', type: 'search' },
+    { name: '헤드셋', type: 'search' },
+    { name: '키보드', type: 'search' },
+    { name: '마우스', type: 'search' },
+    { name: '스피커', type: 'search' },
+    { name: '신상품', type: 'link', path: '/new-products' },
+    { name: '베스트셀러', type: 'link', path: '/best-seller' },
+    { name: '브랜드', type: 'link', path: '/brands' },
+    { name: '이벤트', type: 'link', path: '/events' },
   ];
 
   const goToCategory = (name) => {
-    navigate({
-      pathname: '/productlist',
-      search: `?${createSearchParams({ category: name }).toString()}`,
-    });
+    navigate(`/search?query=${encodeURIComponent(name)}`);
+  };
+
+  const handleMenuClick = (item) => {
+    if (item.type === 'search') {
+      navigate(`/search?query=${encodeURIComponent(item.name)}`);
+    } else if (item.type === 'link') {
+      navigate(item.path);
+    }
   };
 
   const handleLogout = async () => {
@@ -175,7 +180,6 @@ const Header = () => {
                     <CategoryItem
                       key={idx}
                       onMouseEnter={() => setActiveGroup(idx)}
-                      onClick={() => goToCategory(categoryGroups[idx].title)}
                       isActive={activeGroup === idx}
                       role="menuitem"
                       tabIndex={0}
@@ -205,13 +209,11 @@ const Header = () => {
           </Category>
           <Menu>
             <ul>
-              {menuItems.map((item, idx) =>
-                typeof item === 'string' ? (
-                  <li key={idx}>{item}</li>
-                ) : (
-                  <MenuItem key={idx}>{item.name}</MenuItem>
-                )
-              )}
+              {menuItems.map((item, idx) => (
+                <li key={idx} onClick={() => handleMenuClick(item)}>
+                  {item.name}
+                </li>
+              ))}
             </ul>
           </Menu>
         </CateGoryMenu>
@@ -338,12 +340,6 @@ const Menu = styled.div`
   }
 `;
 
-const MenuItem = styled.li`
-  &:hover > ul {
-    display: block;
-  }
-`;
-
 const DropdownWrapper = styled.div`
   display: flex;
   position: absolute;
@@ -366,7 +362,6 @@ const CategoryList = styled.div`
 
 const CategoryItem = styled.div`
   padding: 12px 20px;
-  cursor: pointer;
   background: ${({ isActive }) => (isActive ? '#fff' : 'transparent')};
   font-weight: ${({ isActive }) => (isActive ? 'bold' : 'normal')};
   color: ${({ isActive }) => (isActive ? 'rgb(85, 90, 130)' : '#666')};

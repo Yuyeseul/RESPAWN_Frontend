@@ -77,7 +77,6 @@ const CategoryProductSection = ({
         <Body>
           <Side>
             <Title>{categoryName}</Title>
-            <MoreBtn disabled>전체보기</MoreBtn>
             <SubTitle>HOT 키워드</SubTitle>
             <KeywordList>
               {keywords.map((k) => (
@@ -101,7 +100,6 @@ const CategoryProductSection = ({
       <Body>
         <Side>
           <Title>{categoryName}</Title>
-          <MoreBtn onClick={handleClickMore}>전체보기</MoreBtn>
           <SubTitle>HOT 키워드</SubTitle>
           <KeywordList>
             {keywords.map((k) => (
@@ -160,19 +158,6 @@ const Title = styled.h3`
   font-size: 20px;
   font-weight: 700;
   margin: 0; /* 외부 여백은 부모가 책임 */
-`;
-
-const MoreBtn = styled.button`
-  border: 1px solid #ddd;
-  background: #f7f7f7;
-  border-radius: 16px;
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  justify-self: start; /* 사이드 내 좌측 정렬 */
-  &:hover {
-    background: #eee;
-  }
 `;
 
 const SubTitle = styled.div`
