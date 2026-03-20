@@ -3,7 +3,12 @@ import styled from 'styled-components';
 import DeliveryModal from './DeliveryModal';
 import axios from '../api/axios';
 
-function AddressListModal({ onClose, onConfirm, preSelectedId }) {
+function AddressListModal({
+  onClose,
+  onConfirm,
+  preSelectedId,
+  mode = 'order',
+}) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [addresses, setAddresses] = useState([]);
@@ -75,7 +80,7 @@ function AddressListModal({ onClose, onConfirm, preSelectedId }) {
         <Table>
           <thead>
             <tr>
-              <th></th>
+              {mode === 'order' && <th>선택</th>}
               <th>배송지명 / 수령인</th>
               <th>주소</th>
               <th>연락처</th>
@@ -84,15 +89,17 @@ function AddressListModal({ onClose, onConfirm, preSelectedId }) {
           <tbody>
             {addresses.map((item) => (
               <tr key={item.id}>
-                <td>
-                  <input
-                    type="radio"
-                    name="selectedAddress"
-                    value={item.id}
-                    checked={selectedAddressId === item.id}
-                    onChange={() => setSelectedAddressId(item.id)}
-                  />
-                </td>
+                {mode === 'order' && (
+                  <td>
+                    <input
+                      type="radio"
+                      name="selectedAddress"
+                      value={item.id}
+                      checked={selectedAddressId === item.id}
+                      onChange={() => setSelectedAddressId(item.id)}
+                    />
+                  </td>
+                )}
                 <TdAddressName>
                   {item.addressName} / {item.recipient}
                   {item.basic && <DefaultBadge>기본</DefaultBadge>}
@@ -119,7 +126,7 @@ function AddressListModal({ onClose, onConfirm, preSelectedId }) {
           <Right>
             <ModifyButton
               onClick={() => {
-                if (!selectedAddress) {
+                if (!selectedAddressId) {
                   alert('수정할 주소를 선택해주세요.');
                   return;
                 }
@@ -130,7 +137,9 @@ function AddressListModal({ onClose, onConfirm, preSelectedId }) {
               수정
             </ModifyButton>
             <DeleteButton onClick={deleteAddresses}>삭제</DeleteButton>
-            <ConfirmButton onClick={handleConfirm}>확인</ConfirmButton>
+            {mode === 'order' && (
+              <ConfirmButton onClick={handleConfirm}>확인</ConfirmButton>
+            )}
           </Right>
         </ButtonWrapper>
         {isAddModalOpen && (
