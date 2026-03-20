@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from './api/axios';
 
-export default function AppAuthGate({ children }) {
+const AuthGate = ({ children }) => {
   const [ready, setReady] = useState(false);
   const didSyncRef = useRef(false);
 
@@ -25,4 +25,6 @@ export default function AppAuthGate({ children }) {
   if (!ready) return null;
 
   return children;
-}
+};
+
+export default AuthGate;

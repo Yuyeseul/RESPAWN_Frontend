@@ -180,7 +180,7 @@ const LoginPage = (e) => {
 
   const handleSocialLogin = (provider) => {
     const win = window.open(
-      `http://localhost:8080/oauth2/authorization/${provider}`,
+      `http://respawnstore.shop:8080/oauth2/authorization/${provider}`,
       '_blank',
       'width=600,height=700,resizable=yes,scrollbars=yes'
     );
