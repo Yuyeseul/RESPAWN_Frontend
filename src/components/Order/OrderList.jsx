@@ -116,6 +116,20 @@ const OrderList = () => {
   };
 
   useEffect(() => {
+    if (showPaymentComponent) {
+      const preventGoBack = () => {
+        window.history.pushState(null, '', window.location.href);
+        alert('결제 진행 중에는 페이지를 이동할 수 없습니다.');
+      };
+
+      window.history.pushState(null, '', window.location.href);
+      window.addEventListener('popstate', preventGoBack);
+
+      return () => window.removeEventListener('popstate', preventGoBack);
+    }
+  }, [showPaymentComponent]);
+
+  useEffect(() => {
     const currentOrderId = orderId;
     const sendDeleteRequest = () => {
       if (isCompleting.current || !currentOrderId) return;
@@ -203,6 +217,14 @@ const OrderList = () => {
 
   return (
     <Container>
+      {(showPaymentComponent || isCompleting.current) && (
+        <LoadingOverlay>
+          <Spinner />
+          <p style={{ fontSize: '18px', fontWeight: 'bold' }}>
+            결제가 진행 중입니다. 잠시만 기다려 주세요...
+          </p>
+        </LoadingOverlay>
+      )}
       <Section>
         <StepProgressWrapper>
           <StepProgress currentStep={2} />
@@ -427,4 +449,38 @@ const NoticeBox = styled.div`
   border-radius: 6px;
   font-size: 14px;
   color: #856404;
+`;
+
+const LoadingOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); // 반투명 검정
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; // 최상단 배치
+  color: white;
+  gap: 20px;
+`;
+
+const Spinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 `;
