@@ -37,6 +37,17 @@ function ProductDetail() {
   }, [id]);
 
   const handleBuyNow = async () => {
+    if (!user) {
+      if (
+        window.confirm(
+          '로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?'
+        )
+      ) {
+        navigate('/login');
+      }
+      return;
+    }
+
     try {
       const res = await axios.post('/api/orders/prepare', {
         itemId: item.id,
@@ -51,6 +62,17 @@ function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
+    if (!user) {
+      if (
+        window.confirm(
+          '로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?'
+        )
+      ) {
+        navigate('/login');
+      }
+      return;
+    }
+
     try {
       await axios.post('/api/cart/add', {
         itemId: item.id,

@@ -16,20 +16,22 @@ const CategoryProductSection = ({
 
   const requestedRef = useRef(false);
 
-  const handleClickMore = () => {
-    const url = `/productlist?category=${encodeURIComponent(
-      apiCategoryParam || ''
-    )}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const handleAddToCart = useCallback(async (product) => {
     try {
-      await axios.post('/api/cart/add', { itemId: product.id, count: 1 });
+      await axios.post('/api/cart/add', {
+        itemId: product.id,
+        count: 1,
+      });
+
       alert(`${product.name}이(가) 장바구니에 담겼습니다.`);
     } catch (err) {
       console.error('장바구니 담기 실패:', err);
-      alert('장바구니 담기 실패');
+
+      const serverErrorMessage = err.response?.data?.message;
+
+      alert(
+        serverErrorMessage || '장바구니 담기에 실패했습니다. 다시 시도해주세요.'
+      );
     }
   }, []);
 
