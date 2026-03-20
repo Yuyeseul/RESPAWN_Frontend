@@ -32,7 +32,6 @@ import AdminLayout from './components/Admin/AdminLayout';
 import Members from './components/Admin/Members';
 import MemberDetail from './components/Admin/MemberDetail';
 import Notices from './components/Admin/Notices';
-import Inquiries from './components/Admin/Inquiries';
 import Login from './components/Admin/Login';
 import SearchResultListPage from './pages/SearchResultListPage';
 import AuthGate from './AuthGate';
@@ -65,7 +64,6 @@ function App() {
                 element={<MemberDetail />}
               />
               <Route path="notices" element={<Notices />} />
-              <Route path="inquiries" element={<Inquiries />} />
               <Route path="noticeRegister" element={<NoticeRegister />} />
               <Route path="notices/:noticeId" element={<NoticeDetail />} />
             </Route>

@@ -251,7 +251,7 @@ const CustomerCenter = () => {
       alert('검색어를 입력해주세요.');
       return;
     }
-    navigate(`/customerCenter/search?q=${finalTerm}`);
+    navigate(`/customerCenter/faq?q=${encodeURIComponent(finalTerm)}`);
   };
 
   const openModal = (data) => setModal({ open: true, ...data });
@@ -299,7 +299,16 @@ const CustomerCenter = () => {
             value={inputValue}
             onChange={setInputValue}
             onSearch={handleSearch}
-            suggestions={['배송조회', '세금계산서', '반품비', 'A/S 신청']}
+            suggestions={[
+              '배송조회',
+              '세금계산서',
+              '반품비',
+              'A/S 신청',
+              '비밀번호',
+              '주문취소',
+              '환불문의',
+              '영수증',
+            ]}
           />
         </SearchContainer>
         <SectionSpacer />
@@ -314,7 +323,17 @@ const CustomerCenter = () => {
 
         <FAQSection
           items={FAQS}
-          onQuick={(action, item) => console.log('FAQ Action:', action, item)}
+          onQuick={(action) => {
+            if (action === 'inquiry') {
+              openKakaoChat();
+            } else {
+              const labelMap = {
+                'return-guide': '교환/반품 가이드',
+                call: '전화 상담',
+              };
+              openPendingModal(labelMap[action] || '알림');
+            }
+          }}
         />
 
         <SectionSpacer />

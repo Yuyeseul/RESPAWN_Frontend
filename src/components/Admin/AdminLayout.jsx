@@ -23,7 +23,6 @@ function AdminLayout() {
   const titleMap = {
     '/admin/members': '회원 관리',
     '/admin/notices': '공지',
-    '/admin/inquiries': '문의',
   };
   const headerTitle = titleMap[pathname] || '관리자';
 
@@ -49,7 +48,6 @@ function AdminLayout() {
           <Nav>
             <NavItem to="/admin/members">회원 관리</NavItem>
             <NavItem to="/admin/notices">공지</NavItem>
-            <NavItem to="/admin/inquiries">문의</NavItem>
           </Nav>
           <SideFooter>RESPAWN</SideFooter>
         </Sidebar>

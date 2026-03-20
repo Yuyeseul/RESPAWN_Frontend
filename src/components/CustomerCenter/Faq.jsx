@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import Fuse from 'fuse.js';
+import { openKakaoChat } from '../../utils/kakaoChat';
 
 const FAQS = [
   {
@@ -116,25 +118,62 @@ const FAQSection = ({ items, onQuick }) => {
 };
 
 const Faq = () => {
-  const [inputValue, setInputValue] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+
+  const [inputValue, setInputValue] = useState(initialQuery);
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const filteredFaqs = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    return FAQS.filter((faq) => {
-      const isCategoryMatch =
-        selectedCategory === 'all' || faq.cat === selectedCategory;
-      if (!isCategoryMatch) return false;
-      if (!term) return true;
-      return (
-        faq.q.toLowerCase().includes(term) || faq.a.toLowerCase().includes(term)
-      );
+  const [modal, setModal] = useState({ open: false, title: '', content: '' });
+
+  const handleQuickAction = (action) => {
+    if (action === 'inquiry') {
+      openKakaoChat();
+      return;
+    }
+
+    const labels = {
+      'return-guide': '교환/반품 가이드',
+      call: '전화 상담',
+    };
+
+    setModal({
+      open: true,
+      title: labels[action] || '알림',
+      content:
+        '현재 서비스 준비 중입니다.\n빠른 시일 내에 제공해 드리겠습니다.',
     });
+  };
+
+  useEffect(() => {
+    const query = searchParams.get('q') || '';
+    setInputValue(query);
+    setSearchTerm(query);
+  }, [searchParams]);
+
+  const filteredFaqs = useMemo(() => {
+    const categoryFiltered = FAQS.filter(
+      (f) => selectedCategory === 'all' || f.cat === selectedCategory
+    );
+
+    if (!searchTerm.trim()) return categoryFiltered;
+
+    const fuse = new Fuse(categoryFiltered, {
+      keys: ['q', 'a'],
+      threshold: 0.4,
+      distance: 200,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+    });
+
+    const results = fuse.search(searchTerm).map((result) => result.item);
+    return results;
   }, [searchTerm, selectedCategory]);
 
   const handleSearch = () => {
     setSearchTerm(inputValue);
+    setSearchParams({ q: inputValue });
   };
 
   return (
@@ -172,10 +211,18 @@ const Faq = () => {
         </FilterGroup>
       </Toolbar>
 
-      <FAQSection
-        items={filteredFaqs}
-        onQuick={(action, item) => console.log('FAQ Action:', action, item)}
-      />
+      <FAQSection items={filteredFaqs} onQuick={handleQuickAction} />
+      {modal.open && (
+        <ModalOverlay onClick={() => setModal({ ...modal, open: false })}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <h3>{modal.title}</h3>
+            <div className="body">{modal.content}</div>
+            <button onClick={() => setModal({ ...modal, open: false })}>
+              확인
+            </button>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </PageContainer>
   );
 };
@@ -381,4 +428,61 @@ const EmptyBox = styled.div`
 const Stack = styled.div`
   display: grid;
   gap: 10px;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const ModalContent = styled.div`
+  background: #fff;
+  padding: 32px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  h3 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    color: #0f172a;
+  }
+
+  .body {
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 28px;
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #4e46e5ad;
+    color: #fff;
+    border: 0;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    &:hover {
+      opacity: 0.9;
+    }
+  }
 `;
