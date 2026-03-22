@@ -12,12 +12,27 @@ function AdminLayout() {
   useEffect(() => {
     const userData = sessionStorage.getItem('userData');
 
+    // 1. 로그인 여부 확인
     if (!userData) {
       alert('로그인이 필요한 서비스입니다.');
       navigate('/login', { replace: true });
-    } else {
-      setIsCheck(true);
+      return;
     }
+
+    // 2. 관리자 권한 확인 (추가된 로직)
+    const user = JSON.parse(userData);
+    if (user.role !== 'ROLE_ADMIN') {
+      alert('관리자 권한이 없습니다.');
+
+      // 일반 유저라면 세션을 비우고 메인으로 보냅니다.
+      // (보안을 위해 로그아웃 처리까지 연동하면 더 좋습니다)
+      sessionStorage.removeItem('userData');
+      navigate('/', { replace: true });
+      return;
+    }
+
+    // 모든 조건 통과 시 화면 렌더링 허용
+    setIsCheck(true);
   }, [navigate]);
 
   const titleMap = {
