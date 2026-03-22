@@ -8,6 +8,7 @@ import google_icon from '../assets/login_google.png';
 import kakao_icon from '../assets/login_kakao.png';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
+import { BASE_URL } from '../api/axios';
 
 const LoginPage = (e) => {
   const { login } = useAuth();
@@ -180,7 +181,7 @@ const LoginPage = (e) => {
 
   const handleSocialLogin = (provider) => {
     const win = window.open(
-      `http://respawnstore.shop:8080/oauth2/authorization/${provider}`,
+      `http://${BASE_URL}/oauth2/authorization/${provider}`,
       '_blank',
       'width=600,height=700,resizable=yes,scrollbars=yes'
     );
@@ -397,7 +398,9 @@ const SocialButton = styled.button`
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 

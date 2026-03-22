@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import ReviewList from './ReviewList';
 import InquiryList from './InquiryList';
 import { useAuth } from '../../AuthContext';
+import { BASE_URL } from '../../api/axios';
 
 function ProductDetail() {
   const { user } = useAuth();
@@ -103,7 +104,11 @@ function ProductDetail() {
         <TopSection>
           {item.imageUrl && (
             <ImageBox>
-              <ProductImage src={item.imageUrl} width={300} alt={item.name} />
+              <ProductImage
+                src={`${BASE_URL}${item.imageUrl}`}
+                width={300}
+                alt={item.name}
+              />
             </ImageBox>
           )}
           <DetailBox>

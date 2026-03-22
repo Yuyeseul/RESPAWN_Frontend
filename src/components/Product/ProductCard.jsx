@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
+import { BASE_URL } from '../../api/axios';
 
 const ProductCard = ({ product, onAddToCart }) => {
   const { user } = useAuth();
@@ -11,7 +12,10 @@ const ProductCard = ({ product, onAddToCart }) => {
     <CardContainer>
       <StyledLink to={`/ProductDetail/${product.id}`}>
         <ImageWrapper>
-          <ProductImg src={`${product.imageUrl}`} alt={product.name} />
+          <ProductImg
+            src={`${BASE_URL}${product.imageUrl}`}
+            alt={product.name}
+          />
           {isBuyer && (
             <Overlay>
               <AddToCartButton
@@ -93,7 +97,9 @@ const AddToCartButton = styled.button`
   cursor: pointer;
   font-weight: bold;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
 
   &:hover {
     background-color: #e0e0e0;
