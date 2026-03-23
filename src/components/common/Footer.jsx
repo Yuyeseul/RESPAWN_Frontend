@@ -8,26 +8,32 @@ const Footer = () => {
         <Brand>RESPAWN</Brand>
         <Info>
           <InfoRow>
-            <InfoLabel>대표</InfoLabel>
-            <InfoValue>ooo</InfoValue>
+            <InfoItem>
+              <InfoLabel>대표</InfoLabel>
+              <InfoValue>ooo</InfoValue>
+            </InfoItem>
             <Separator>|</Separator>
-            <InfoLabel>사업자등록번호</InfoLabel>
-            <InfoValue>123-45-67890</InfoValue>
+            <InfoItem>
+              <InfoLabel>사업자등록번호</InfoLabel>
+              <InfoValue>123-45-67890</InfoValue>
+            </InfoItem>
           </InfoRow>
           <InfoRow>
-            <InfoLabel>주소</InfoLabel>
-            <InfoValue>서울특별시 어디구 어디동 123</InfoValue>
+            <InfoItem>
+              <InfoLabel>주소</InfoLabel>
+              <InfoValue>서울특별시 어디구 어디동 123</InfoValue>
+            </InfoItem>
           </InfoRow>
           <InfoRow>
-            <InfoLabel>고객센터</InfoLabel>
-            <InfoValue>
+            <InfoItem>
+              <InfoLabel>고객센터</InfoLabel>
               <InfoValue>0000-0000</InfoValue>
-            </InfoValue>
+            </InfoItem>
             <Separator>|</Separator>
-            <InfoLabel>이메일</InfoLabel>
-            <InfoValue>
+            <InfoItem>
+              <InfoLabel>이메일</InfoLabel>
               <InfoValue>hello@respawn.com</InfoValue>
-            </InfoValue>
+            </InfoItem>
           </InfoRow>
         </Info>
         <Copyright>ⓒ 2025 RESPAWN. All rights reserved.</Copyright>
@@ -39,56 +45,68 @@ const Footer = () => {
 export default Footer;
 
 const Container = styled.footer`
-  background-color: #f8f8f8;
-  border-top: 1px solid #e0e0e0;
-  padding: 40px 20px;
-  font-size: 14px;
-  color: #555;
+  background-color: ${({ theme }) => theme.colors.gray[50]};
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  padding: 60px 20px;
+  @media ${({ theme }) => theme.mobile} {
+    padding: 40px 20px;
+  }
 `;
 
 const Content = styled.div`
-  max-width: 1200px;
+  max-width: ${({ theme }) => theme.maxWidth};
   margin: 0 auto;
-  text-align: left;
 `;
 
 const Brand = styled.h2`
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  color: #222;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  letter-spacing: 1px;
 `;
 
 const Info = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
-  font-size: 14px;
-  line-height: 1.7;
+  gap: 6px;
+  margin-bottom: 24px;
 `;
 
 const InfoRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 10px;
-  align-items: baseline;
+  align-items: center;
+  gap: 0 12px;
+  / @media ${({ theme }) => theme.mobile} {
+    gap: 4px 10px;
+  }
+`;
+
+const InfoItem = styled.div`
+  display: flex;
+  gap: 8px;
 `;
 
 const InfoLabel = styled.span`
-  color: #000;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-weight: 500;
 `;
 
 const InfoValue = styled.span`
-  color: #000;
+  color: ${({ theme }) => theme.colors.gray[800]};
 `;
 
 const Separator = styled.span`
-  color: #000;
-  margin: 0 4px;
+  color: ${({ theme }) => theme.colors.gray[300]};
+  font-size: 12px;
+  @media ${({ theme }) => theme.mobile} {
+    display: none;
+  }
 `;
 
 const Copyright = styled.div`
   font-size: 12px;
-  color: #999;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin-top: 20px;
 `;

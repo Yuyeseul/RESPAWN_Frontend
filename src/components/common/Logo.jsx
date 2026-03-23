@@ -21,5 +21,9 @@ const LogoContainer = styled.div`
   img {
     height: 60px;
     object-fit: contain;
+
+    @media ${({ theme }) => theme.mobile} {
+      height: 35px;
+    }
   }
 `;
