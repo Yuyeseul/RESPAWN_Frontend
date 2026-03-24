@@ -107,6 +107,10 @@ const SignupPage = () => {
   const [emailCountdown, setEmailCountdown] = useState(0);
   const [emailTimerActive, setEmailTimerActive] = useState(false);
 
+  const handleBackToMain = () => {
+    navigate('/login');
+  };
+
   // 아이디 중복 검사 (응답값 false -> 중복X)
   const checkId = async () => {
     try {
@@ -601,6 +605,9 @@ const SignupPage = () => {
 
   return (
     <Container>
+      <TopBar>
+        <BackButton onClick={() => navigate(-1)}>← 뒤로가기</BackButton>
+      </TopBar>
       <LogoWrapper>
         <Logo />
       </LogoWrapper>
@@ -704,7 +711,7 @@ const SignupPage = () => {
             <CheckInput
               name="phoneNumber"
               type="text"
-              placeholder="전화번호 (예: 01012345678 )"
+              placeholder="전화번호 (숫자만 입력)"
               value={phoneNumber.phoneNumber}
               onChange={onChangeHandler('phoneNumber')}
               required
@@ -750,54 +757,58 @@ const SignupPage = () => {
             </>
           )}
 
-          <CheckWrapper>
-            <CheckInput
-              type="text"
-              placeholder="이메일 아이디"
-              value={emailId}
-              onChange={(e) => setEmailId(e.target.value)}
-              required
-              disabled={email.isValidEmail}
-            />
-            <AtSymbol>@</AtSymbol>
-            <DomainSelect
-              value={isCustomDomain ? 'custom' : emailDomain}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === 'custom') {
-                  setIsCustomDomain(true);
-                  setEmailDomain('');
-                  setCustomDomain('');
-                } else {
-                  setIsCustomDomain(false);
-                  setEmailDomain(value);
-                  setCustomDomain(''); // <- 혹시 모를 이전 값 초기화
-                }
-              }}
-              disabled={email.isValidEmail}
-            >
-              <option value="">도메인 선택</option>
-              <option value="gmail.com">gmail.com</option>
-              <option value="naver.com">naver.com</option>
-              <option value="daum.net">daum.net</option>
-              <option value="nate.com">nate.com</option>
-              <option value="kakao.com">kakao.com</option>
-              <option value="custom">직접입력</option>
-            </DomainSelect>
-
-            {/* 인증 버튼 또는 완료 메시지 */}
-            {email.isValidEmail ? (
-              <SuccessText>이메일 인증 완료</SuccessText>
-            ) : (
-              <CheckButton
-                type="button"
-                onClick={verifyEmail}
-                disabled={!emailId}
+          <EmailWrapper>
+            <div className="id-row">
+              <CheckInput
+                type="text"
+                placeholder="이메일 아이디"
+                value={emailId}
+                onChange={(e) => setEmailId(e.target.value)}
+                required
+                disabled={email.isValidEmail}
+              />
+              <AtSymbol>@</AtSymbol>
+            </div>
+            <div className="domain-row">
+              <DomainSelect
+                value={isCustomDomain ? 'custom' : emailDomain}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === 'custom') {
+                    setIsCustomDomain(true);
+                    setEmailDomain('');
+                    setCustomDomain('');
+                  } else {
+                    setIsCustomDomain(false);
+                    setEmailDomain(value);
+                    setCustomDomain(''); // <- 혹시 모를 이전 값 초기화
+                  }
+                }}
+                disabled={email.isValidEmail}
               >
-                인증하기
-              </CheckButton>
-            )}
-          </CheckWrapper>
+                <option value="">도메인 선택</option>
+                <option value="gmail.com">gmail.com</option>
+                <option value="naver.com">naver.com</option>
+                <option value="daum.net">daum.net</option>
+                <option value="nate.com">nate.com</option>
+                <option value="kakao.com">kakao.com</option>
+                <option value="custom">직접입력</option>
+              </DomainSelect>
+
+              {/* 인증 버튼 또는 완료 메시지 */}
+              {email.isValidEmail ? (
+                <SuccessTextInRow>이메일 인증 완료</SuccessTextInRow>
+              ) : (
+                <CheckButton
+                  type="button"
+                  onClick={verifyEmail}
+                  disabled={!emailId}
+                >
+                  인증하기
+                </CheckButton>
+              )}
+            </div>
+          </EmailWrapper>
           {email.error && <ErrorText>{email.error}</ErrorText>}
 
           {/* 직접입력란 추가 표시 (선택된 경우만!) */}
@@ -853,8 +864,31 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #fafafa;
+  background: ${({ theme }) => theme.colors.gray[50]};
   padding: 40px 20px;
+`;
+
+const TopBar = styled.div`
+  width: 100%;
+  max-width: 480px;
+  padding: 10px 0 5px 10px;
+  display: flex;
+  align-items: center;
+`;
+
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: rgb(105, 111, 148);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(105, 111, 148, 0.15);
+  }
 `;
 
 const LogoWrapper = styled.div`
@@ -864,11 +898,15 @@ const LogoWrapper = styled.div`
   & > div img {
     height: 80px;
     object-fit: contain;
+
+    @media ${({ theme }) => theme.mobile} {
+      height: 56px;
+    }
   }
 `;
 
 const SignupBox = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.white};
   padding: 32px;
   border-radius: 12px;
   box-sizing: border-box;
@@ -876,7 +914,14 @@ const SignupBox = styled.div`
   max-width: 500px;
   margin-top: 40px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    border: none;
+    box-shadow: none;
+    margin-top: 20px;
+    background: ${({ theme }) => theme.colors.gray[50]};
+  }
 `;
 
 const TabHeader = styled.div`
@@ -887,13 +932,28 @@ const TabHeader = styled.div`
 const Tab = styled.button`
   flex: 1;
   padding: 12px 0;
-  background: ${({ active }) => (active ? '#fff' : '#f1f1f1')};
+  background: ${({ active, theme }) =>
+    active ? theme.colors.white : theme.colors.gray[300]};
   border: none;
-  border-bottom: ${({ active }) =>
-    active ? '2px solid rgb(105, 111, 148)' : '1px solid #ddd'};
+  border-bottom: ${({ active, theme }) =>
+    active
+      ? `2px solid ${theme.colors.secondary}`
+      : `1px solid ${theme.colors.gray[300]}`};
   font-weight: ${({ active }) => (active ? 'bold' : 'normal')};
+  color: ${({ active, theme }) =>
+    active ? theme.colors.gray[900] : theme.colors.gray[600]};
   border-radius: 8px 8px 0 0;
   cursor: pointer;
+  transition: all 0.2s ease;
+
+  @media ${({ theme }) => theme.mobile} {
+    background: ${({ theme }) => theme.colors.gray[50]};
+    border-radius: 0;
+    border-bottom: ${({ active, theme }) =>
+      active
+        ? `3px solid ${theme.colors.secondary}`
+        : `1px solid ${theme.colors.gray[300]}`};
+  }
 `;
 
 const Input = styled.input`
@@ -904,14 +964,32 @@ const Input = styled.input`
   padding: 12px;
   margin-bottom: 16px;
   border: none;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   font-size: 16px;
   background: transparent;
 
   &:focus {
     outline: none;
-    border-bottom: 2px solid rgb(105, 111, 148);
+    border-bottom: 2px solid ${({ theme }) => theme.colors.secondary};
   }
+`;
+
+const SuccessText = styled.p`
+  color: ${({ theme }) => theme.colors.success};
+  font-size: 12px;
+  margin-top: -12px;
+  margin-bottom: 12px;
+  word-break: keep-all;
+  white-space: pre-line;
+`;
+
+const ErrorText = styled.p`
+  color: ${({ theme }) => theme.colors.danger};
+  font-size: 12px;
+  margin-top: -12px;
+  margin-bottom: 12px;
+  word-break: keep-all;
+  white-space: pre-line;
 `;
 
 const CheckWrapper = styled.div`
@@ -929,6 +1007,77 @@ const CheckInput = styled(Input)`
   min-width: 0;
 `;
 
+const CheckButton = styled.button`
+  min-width: 80px;
+  height: 44px;
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
+  padding: 0 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[500]};
+    cursor: not-allowed;
+  }
+`;
+
+const TimerText = styled.p`
+  font-size: 12px;
+  text-align: right;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin-bottom: 8px;
+  white-space: nowrap;
+`;
+
+const EmailWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  .id-row,
+  .domain-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .id-row {
+    flex: 1;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .id-row,
+    .domain-row {
+      width: 100%;
+    }
+
+    .domain-row {
+      margin-top: 4px;
+    }
+
+    select {
+      flex: 1;
+      width: auto;
+    }
+
+    button {
+      flex-shrink: 0;
+    }
+  }
+`;
+
 const AtSymbol = styled.span`
   display: flex;
   align-items: center;
@@ -936,7 +1085,8 @@ const AtSymbol = styled.span`
   white-space: nowrap;
   user-select: none;
   font-weight: 600;
-  flex-shrink: 0; /* 줄어들지 않도록 고정 */
+  color: ${({ theme }) => theme.colors.gray[700]};
+  flex-shrink: 0;
 `;
 
 const DomainSelect = styled.select`
@@ -944,70 +1094,38 @@ const DomainSelect = styled.select`
   font-size: 14px;
   border-radius: 6px;
   padding: 0 12px;
-  border: 1px solid #ccc;
-  width: 140px; /* 고정 너비 */
-  flex-shrink: 0; /* 줄어들지 않도록 */
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  width: 140px;
+  flex-shrink: 0;
+  background-color: ${({ theme }) => theme.colors.white};
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 110px;
+    padding: 0 8px;
+  }
 `;
 
-const CheckButton = styled.button`
-  margin-left: 12px;
-  min-width: 80px;
-  height: 44px;
-  background: rgb(105, 111, 148);
-  color: white;
-  padding: 0 16px;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+const SuccessTextInRow = styled(SuccessText)`
+  margin: 0;
+  display: flex;
+  align-items: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  &:hover {
-    background: rgb(85, 90, 130);
-  }
 `;
 
 const JoinButton = styled.button`
   margin-top: 16px;
   width: 100%;
-  background: rgb(105, 111, 148);
-  color: white;
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
   padding: 14px;
   font-size: 16px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   box-sizing: border-box;
+  font-weight: bold;
 
   &:hover {
-    background: rgb(85, 90, 130);
+    background: ${({ theme }) => theme.colors.primary};
   }
-`;
-
-const ErrorText = styled.p`
-  color: red;
-  font-size: 12px;
-  margin-top: -12px;
-  margin-bottom: 12px;
-  word-break: keep-all;
-  white-space: pre-line;
-`;
-
-const SuccessText = styled.p`
-  color: green;
-  font-size: 12px;
-  margin-top: -12px;
-  margin-bottom: 12px;
-  word-break: keep-all;
-  white-space: pre-line;
-`;
-
-const TimerText = styled.p`
-  font-size: 12px;
-  text-align: right;
-  color: #888;
-  margin-bottom: 8px;
-  white-space: nowrap;
 `;

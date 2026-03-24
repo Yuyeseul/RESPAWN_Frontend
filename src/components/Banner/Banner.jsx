@@ -34,7 +34,7 @@ const StyledSwiper = styled(Swiper)`
   --swiper-navigation-color: ${({ theme }) => theme.colors.primary};
   --swiper-pagination-color: ${({ theme }) => theme.colors.primary};
   --swiper-pagination-bullet-inactive-color: ${({ theme }) =>
-    theme.colors.gray[300]};
+    theme.colors.gray[500]};
   --swiper-pagination-bullet-inactive-opacity: 0.7;
 
   .swiper-button-next,

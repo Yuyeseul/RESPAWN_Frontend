@@ -78,7 +78,7 @@ const InfoRow = styled.div`
   flex-wrap: wrap;
   align-items: center;
   gap: 0 12px;
-  / @media ${({ theme }) => theme.mobile} {
+  @media ${({ theme }) => theme.mobile} {
     gap: 4px 10px;
   }
 `;
