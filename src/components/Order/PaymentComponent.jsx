@@ -90,7 +90,7 @@ const PaymentComponent = ({ orderInfo, onPaymentComplete, onClose }) => {
         async (response) => {
           if (response.success) {
             try {
-              const { data } = await axios.post('/api/payments/verify', {
+              const { data } = await axios.post('/payments/verify', {
                 impUid: response.imp_uid,
                 merchantUid: response.merchant_uid,
                 orderId,

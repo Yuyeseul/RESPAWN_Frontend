@@ -6,7 +6,7 @@ import axios from '../../api/axios';
 const SearchResultList = ({ query, items, resultsCount, loading }) => {
   const handleAddToCart = async (product) => {
     try {
-      await axios.post('/api/cart/add', {
+      await axios.post('/cart/add', {
         itemId: product.id,
         count: 1,
       });

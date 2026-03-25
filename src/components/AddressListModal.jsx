@@ -30,7 +30,7 @@ function AddressListModal({
 
   const fetchAddresses = async () => {
     try {
-      const response = await axios.get('/api/addresses');
+      const response = await axios.get('/addresses');
       const data = Array.isArray(response.data) ? response.data : [];
       console.log(response.data);
       setAddresses(data);
@@ -49,7 +49,7 @@ function AddressListModal({
       return;
     }
     try {
-      await axios.delete(`/api/addresses/${selectedAddressId}`);
+      await axios.delete(`/addresses/${selectedAddressId}`);
       fetchAddresses();
     } catch (error) {
       console.error('주소 목록 불러오기 실패:', error);

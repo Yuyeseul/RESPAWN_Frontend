@@ -45,7 +45,7 @@ function OrderList() {
   // 상품 목록 불러오기
   const fetchItems = async () => {
     try {
-      const res = await axios.get('/api/items/my-items/summary');
+      const res = await axios.get('/items/my-items/summary');
       console.log(res.data);
       setItems(res.data);
     } catch (err) {
@@ -55,7 +55,7 @@ function OrderList() {
 
   const fetchOrders = async (itemId) => {
     try {
-      const response = await axios.get('/api/orders/seller/orders', {
+      const response = await axios.get('/orders/seller/orders', {
         params: { page: pageInfo.page, size: pageInfo.size, itemId },
       });
       const data = response.data;

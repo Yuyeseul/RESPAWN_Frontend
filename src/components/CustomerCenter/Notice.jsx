@@ -21,9 +21,7 @@ const Notice = () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.get(
-        `/api/notices/view?noticeId=${noticeId}`
-      );
+      const { data } = await axios.get(`/notices/view?noticeId=${noticeId}`);
       setNotice(data);
     } catch (e) {
       setError('공지사항을 불러오는 중 오류가 발생했습니다.');

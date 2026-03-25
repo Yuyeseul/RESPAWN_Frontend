@@ -75,7 +75,7 @@ const OrderList = () => {
 
     // 결제 완료 후 주문 완료 처리
     axios
-      .post(`/api/orders/${orderId}/complete`, {
+      .post(`/orders/${orderId}/complete`, {
         addressId: selectedAddressId,
         couponCode: discountInfo.couponCode,
       })
@@ -133,7 +133,7 @@ const OrderList = () => {
     const currentOrderId = orderId;
     const sendDeleteRequest = () => {
       if (isCompleting.current || !currentOrderId) return;
-      fetch('/api/orders/temporary', {
+      fetch('/orders/temporary', {
         method: 'DELETE',
         keepalive: true,
       });
@@ -169,7 +169,7 @@ const OrderList = () => {
     if (!orderId) return;
 
     axios
-      .get(`/api/orders/${orderId}`)
+      .get(`/orders/${orderId}`)
       .then((res) => {
         const data = res.data;
         console.log('orderList', data);

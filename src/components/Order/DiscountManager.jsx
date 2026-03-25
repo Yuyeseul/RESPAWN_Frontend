@@ -56,7 +56,7 @@ const DiscountManager = ({ orderData, onUpdate, onPaymentRequest }) => {
   useEffect(() => {
     const fetchAvailablePoints = async () => {
       try {
-        const response = await axios.get('/api/points/total/active');
+        const response = await axios.get('/points/total/active');
         setAvailablePoints(Number(response.data) || 0);
       } catch (err) {
         console.error('포인트 조회 실패', err);
@@ -107,7 +107,7 @@ const DiscountManager = ({ orderData, onUpdate, onPaymentRequest }) => {
       formData.append('usePointAmount', String(clampedClient));
 
       // 서버가 문자열을 반환하므로, 응답 본문은 사용하지 않음
-      await axios.post('/api/points/apply', formData, {
+      await axios.post('/points/apply', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
           Accept: 'application/json',
@@ -131,7 +131,7 @@ const DiscountManager = ({ orderData, onUpdate, onPaymentRequest }) => {
     try {
       setCancelLoading(true);
       // 1) 서버 호출: 필요 시 method/바디 수정
-      await axios.post(`/api/coupons/cancel?orderId=${orderData.orderId}`);
+      await axios.post(`/coupons/cancel?orderId=${orderData.orderId}`);
 
       // 2) 성공 시 기존 로직 실행
       setCouponCode(null);

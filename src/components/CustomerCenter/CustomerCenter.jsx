@@ -273,7 +273,7 @@ const CustomerCenter = () => {
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        const res = await axios.get('/api/notices/summaries', {
+        const res = await axios.get('/notices/summaries', {
           params: { page: 0, size: 5 },
         });
         setNotices(res.data.content || []);
