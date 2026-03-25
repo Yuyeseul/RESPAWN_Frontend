@@ -36,7 +36,7 @@ function Notices() {
       setLoading(true);
       try {
         const { page, size } = pageInfo;
-        const { data } = await axios.get('/api/notices/summaries', {
+        const { data } = await axios.get('/notices/summaries', {
           params: { page, size },
         });
         console.log(data);

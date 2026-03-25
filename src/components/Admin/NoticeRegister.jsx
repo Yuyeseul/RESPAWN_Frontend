@@ -55,7 +55,7 @@ const NoticeRegister = () => {
       };
 
       // FormData 대신 JSON 객체를 body로 전송
-      await axios.post('/api/notices/register', payload);
+      await axios.post('/notices/register', payload);
 
       setToast('공지사항이 게시되었습니다.');
       // 게시 완료 후 폼 초기화
@@ -261,7 +261,9 @@ const GhostBtn = styled.button`
   background: #eef2f7;
   color: #1f2937;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  transition: background 0.12s ease, transform 0.06s ease;
+  transition:
+    background 0.12s ease,
+    transform 0.06s ease;
   &:hover {
     background: #e5eaf1;
   }
@@ -279,7 +281,9 @@ const PrimaryBtn = styled.button`
   background: #25324d;
   color: #fff;
   box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
-  transition: transform 0.06s ease, box-shadow 0.12s ease;
+  transition:
+    transform 0.06s ease,
+    box-shadow 0.12s ease;
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(37, 50, 77, 0.22);
