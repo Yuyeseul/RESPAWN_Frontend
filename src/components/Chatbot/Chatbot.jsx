@@ -21,7 +21,7 @@ function Chatbot({ messages, setMessages, isLoading, setIsLoading, onClose }) {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('/api/chatbot/ask', { message: input });
+      const response = await axios.post('/api/chat/ask', { message: input });
       const botMessage = {
         role: 'bot',
         text: response.data.message || response.data,
