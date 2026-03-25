@@ -37,8 +37,8 @@ const RefundList = () => {
     const fetchRefunds = async () => {
       const endpoint =
         activeTab === 'requested'
-          ? '/api/orders/seller/refund-requests'
-          : '/api/orders/seller/refund-completed';
+          ? '/orders/seller/refund-requests'
+          : '/orders/seller/refund-completed';
 
       try {
         const res = await axios.get(endpoint, {

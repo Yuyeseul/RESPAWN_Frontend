@@ -36,7 +36,7 @@ const ReviewList = () => {
   // 상품 목록 불러오기
   const fetchItems = async () => {
     try {
-      const res = await axios.get('/api/items/my-items/summary');
+      const res = await axios.get('/items/my-items/summary');
       console.log(res.data);
       setItems(res.data);
     } catch (err) {
@@ -46,7 +46,7 @@ const ReviewList = () => {
 
   const fetchReviews = async (itemId) => {
     try {
-      const res = await axios.get('/api/reviews/seller/my-reviews', {
+      const res = await axios.get('/reviews/seller/my-reviews', {
         params: { page: pageInfo.page, size: pageInfo.size, itemId },
       });
       const data = res.data;

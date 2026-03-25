@@ -36,9 +36,7 @@ function OrderComplete() {
     if (!orderId) return;
     const fetchOrderInfo = async () => {
       try {
-        const response = await axios.get(
-          `/api/orders/${orderId}/complete-info`
-        );
+        const response = await axios.get(`/orders/${orderId}/complete-info`);
         console.log(response.data);
         setOrderInfo(response.data);
       } catch {

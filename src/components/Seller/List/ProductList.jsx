@@ -79,7 +79,7 @@ const ProductList = () => {
 
         if (!params.search) delete params.search;
 
-        const res = await axios.get('/api/items/my-items', { params });
+        const res = await axios.get('/items/my-items', { params });
 
         console.log(res.data);
         setItems(res.data.content);

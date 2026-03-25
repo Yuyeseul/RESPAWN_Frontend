@@ -67,12 +67,9 @@ const SearchResultListPage = () => {
         sp.set('page', String(nextPage));
         sp.set('size', String(PAGE_SIZE));
 
-        const res = await axios.get(
-          `/api/items/search/advanced?${sp.toString()}`,
-          {
-            signal: controller.signal,
-          }
-        );
+        const res = await axios.get(`/items/search/advanced?${sp.toString()}`, {
+          signal: controller.signal,
+        });
         console.log('검색 결과:', res.data);
         if (ignoreRef.current) return;
 

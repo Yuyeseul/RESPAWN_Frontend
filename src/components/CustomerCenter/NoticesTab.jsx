@@ -12,7 +12,7 @@ const NoticesTab = () => {
     const fetchNotices = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('/api/notices/summaries', {
+        const response = await axios.get('/notices/summaries', {
           params: { page: 0, size: 5 },
         });
         setNotices(response.data.content || []);

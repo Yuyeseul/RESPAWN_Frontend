@@ -29,7 +29,7 @@ function OrderDetail() {
     const fetchOrderDetail = async () => {
       try {
         const response = await axios.get(
-          `/api/orders/seller/orders/${orderItemId}`
+          `/orders/seller/orders/${orderItemId}`
         );
         setOrder(response.data);
       } catch (error) {

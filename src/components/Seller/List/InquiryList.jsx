@@ -41,7 +41,7 @@ const InquiryList = () => {
 
   const fetchItems = async () => {
     try {
-      const res = await axios.get('/api/items/my-items/summary');
+      const res = await axios.get('/items/my-items/summary');
       console.log(res.data);
       setItems(res.data);
     } catch (err) {
@@ -52,7 +52,7 @@ const InquiryList = () => {
   // 문의 리스트 가져오기
   const fetchInquiries = async (itemId) => {
     try {
-      const res = await axios.get('/api/inquiries/seller', {
+      const res = await axios.get('/inquiries/seller', {
         params: { page: pageInfo.page, size: pageInfo.size, itemId },
       });
       console.log(res.data);
@@ -79,7 +79,7 @@ const InquiryList = () => {
 
     if (!expandedDetail[id]) {
       try {
-        const res = await axios.get(`/api/inquiries/${id}/detail`);
+        const res = await axios.get(`/inquiries/${id}/detail`);
         setExpandedDetail((prev) => ({ ...prev, [id]: res.data }));
       } catch (err) {
         console.error('상세 조회 실패:', err);
@@ -93,7 +93,7 @@ const InquiryList = () => {
   // 답변 등록
   const handleAnswerSubmit = async (id, answer) => {
     try {
-      const res = await axios.post(`/api/inquiries/${id}/answer`, { answer });
+      const res = await axios.post(`/inquiries/${id}/answer`, { answer });
       setExpandedDetail((prev) => ({
         ...prev,
         [id]: res.data.inquiry,

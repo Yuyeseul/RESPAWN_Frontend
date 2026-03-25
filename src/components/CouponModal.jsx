@@ -19,7 +19,7 @@ const CouponModal = ({ onClose, onApply, orderSummary }) => {
     const controller = new AbortController();
     (async () => {
       try {
-        const { data } = await axios.get('/api/coupons/view', {
+        const { data } = await axios.get('/coupons/view', {
           params: {
             orderId: orderSummary.orderId,
           },
@@ -59,7 +59,7 @@ const CouponModal = ({ onClose, onApply, orderSummary }) => {
 
     try {
       // 백엔드의 /check API 호출
-      const res = await axios.get('/api/coupons/check', {
+      const res = await axios.get('/coupons/check', {
         params: {
           orderId: orderSummary.orderId,
           code: coupon.coupon.code,

@@ -126,11 +126,10 @@ function EditProduct() {
   const handleConfirmStatusChange = async (newStatus) => {
     try {
       let endpoint;
-      if (newStatus === STATUS.PAUSED) endpoint = `/api/items/${item.id}/pause`;
+      if (newStatus === STATUS.PAUSED) endpoint = `/items/${item.id}/pause`;
       else if (newStatus === STATUS.STOPPED)
-        endpoint = `/api/items/${item.id}/stop`;
-      else if (newStatus === STATUS.SALE)
-        endpoint = `/api/items/${item.id}/resume`;
+        endpoint = `/items/${item.id}/stop`;
+      else if (newStatus === STATUS.SALE) endpoint = `/items/${item.id}/resume`;
 
       await axios.post(endpoint);
       alert('상태 변경 성공!');
@@ -196,7 +195,7 @@ function EditProduct() {
 
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`/api/items/${item.id}`);
+      await axios.delete(`/items/${item.id}`);
       alert('삭제 성공!');
       navigate('/sellerCenter');
     } catch (err) {
@@ -210,7 +209,7 @@ function EditProduct() {
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const res = await axios.get(`/api/items/${id}`);
+        const res = await axios.get(`/items/${id}`);
         console.log(res.data);
         setItem(res.data);
         setPreview(res.data.imageUrl);
@@ -273,7 +272,7 @@ function EditProduct() {
     }
 
     try {
-      await axios.put(`/api/items/${item.id}`, formData, {
+      await axios.put(`/items/${item.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       alert('수정 성공!');

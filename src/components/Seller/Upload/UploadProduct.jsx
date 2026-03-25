@@ -142,7 +142,7 @@ function UploadProduct() {
     if (image) formData.append('image', image);
 
     try {
-      await axios.post('/api/items/register', formData, {
+      await axios.post('/items/register', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       alert('등록 성공!');

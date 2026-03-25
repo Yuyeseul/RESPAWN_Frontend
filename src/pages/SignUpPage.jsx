@@ -234,7 +234,7 @@ const SignupPage = () => {
       }
 
       // 중복이 아니면 인증 요청 시작
-      const response = await axios.get('/api/email/auth', {
+      const response = await axios.get('/email/auth', {
         params: {
           address: email.email,
         },
@@ -268,7 +268,7 @@ const SignupPage = () => {
   // 이메일 인증코드 확인
   const confirmEmailVerificationCode = async () => {
     try {
-      const response = await axios.post('/api/email/auth', null, {
+      const response = await axios.post('/email/auth', null, {
         params: {
           address: email.email,
           authCode: confirmEmail.confirmEmail,
