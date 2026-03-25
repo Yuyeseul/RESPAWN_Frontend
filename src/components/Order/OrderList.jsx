@@ -6,6 +6,7 @@ import StepProgress from '../common/StepProgress';
 import PaymentComponent from './PaymentComponent';
 import AddressManager from './AddressManager';
 import DiscountManager from './DiscountManager';
+import { BASE_URL } from '../../api/axios';
 
 const OrderList = () => {
   const navigate = useNavigate();
@@ -244,7 +245,10 @@ const OrderList = () => {
               <tr key={item.orderItemId}>
                 <td>
                   <ProductInfo>
-                    <img src={item.imageUrl} alt={item.itemName} />
+                    <img
+                      src={`${BASE_URL}${item.imageUrl}`}
+                      alt={item.itemName}
+                    />
                     <div>{item.itemName}</div>
                   </ProductInfo>
                 </td>

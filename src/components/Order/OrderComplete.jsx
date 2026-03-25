@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../../api/axios';
 import StepProgress from '../common/StepProgress';
+import { BASE_URL } from '../../api/axios';
 
 function OrderComplete() {
   const { orderId } = useParams();
@@ -100,7 +101,11 @@ function OrderComplete() {
               return (
                 <tr key={item.orderItemId}>
                   <td style={{ textAlign: 'center' }}>
-                    <img src={item.imageUrl} alt="" width={64} />
+                    <img
+                      src={`${BASE_URL}${item.imageUrl}`}
+                      alt=""
+                      width={64}
+                    />
                   </td>
                   <td>{item.itemName ?? '-'}</td>
                   <td style={{ textAlign: 'center' }}>{qty ?? 0}</td>

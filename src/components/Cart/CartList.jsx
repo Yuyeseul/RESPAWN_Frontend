@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import axios from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import StepProgress from '../common/StepProgress';
+import { BASE_URL } from '../../api/axios';
 
 const CartList = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -202,7 +203,10 @@ const CartList = () => {
               </td>
               <td>
                 <ProductInfo>
-                  <img src={item.imageUrl} alt={item.itemName} />
+                  <img
+                    src={`${BASE_URL}${item.imageUrl}`}
+                    alt={item.itemName}
+                  />
                   <span>{item.itemName}</span>
                 </ProductInfo>
               </td>
