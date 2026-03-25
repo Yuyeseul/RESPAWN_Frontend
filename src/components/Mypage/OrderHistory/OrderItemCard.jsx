@@ -11,9 +11,7 @@ const OrderItemCard = ({ item, orderId, orderStatus }) => {
   useEffect(() => {
     const checkReview = async () => {
       try {
-        const res = await axios.get(
-          `/api/reviews/order-items/${item.orderItemId}`
-        );
+        const res = await axios.get(`/reviews/order-items/${item.orderItemId}`);
         setReviewExists(res.data.reviewExists);
       } catch (error) {
         console.error('리뷰 존재 여부 확인 실패', error);

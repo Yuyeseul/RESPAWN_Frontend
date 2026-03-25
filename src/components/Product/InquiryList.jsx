@@ -63,7 +63,8 @@ const InquiryList = ({ itemId }) => {
     // 상세 데이터가 없으면 API 호출
     if (!expandedDetail[id]) {
       try {
-        const response = await axios.get(`/api/inquiries/${id}/detail`);
+        const response = await axios.get(`/inquiries/${id}/detail`);
+        console.log(response.data);
         setExpandedDetail((prev) => ({ ...prev, [id]: response.data }));
       } catch (error) {
         console.error('상세조회 실패:', error);
@@ -86,7 +87,7 @@ const InquiryList = ({ itemId }) => {
       params.status = 'ANSWERED';
     }
     try {
-      const { data } = await axios.get(`/api/inquiries/${itemId}/titles`, {
+      const { data } = await axios.get(`/inquiries/${itemId}/titles`, {
         params,
       });
       console.log(data);

@@ -32,7 +32,7 @@ const MyInquiryList = () => {
   useEffect(() => {
     const fetchInquiries = async () => {
       try {
-        const res = await axios.get('/api/inquiries/my', {
+        const res = await axios.get('/inquiries/my', {
           params: { page: pageInfo.page, size: pageInfo.size },
         });
         console.log(res.data);

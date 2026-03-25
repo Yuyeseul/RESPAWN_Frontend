@@ -54,7 +54,7 @@ const OrderDetailModal = ({ open, onClose, orderId, triggerRef }) => {
       setError('');
       setData(null);
       try {
-        const res = await axios.get(`/api/orders/${orderId}/complete-info`, {
+        const res = await axios.get(`/orders/${orderId}/complete-info`, {
           signal: controller.signal,
         });
         console.log(res.data);

@@ -25,7 +25,7 @@ const OrderHistory = () => {
 
   const fetchOrderHistory = async () => {
     try {
-      const response = await axios.get('/api/orders/history', {
+      const response = await axios.get('/orders/history', {
         params: { page: pageInfo.page, size: pageInfo.size },
       });
       console.log(response.data);

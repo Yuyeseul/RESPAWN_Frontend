@@ -17,7 +17,7 @@ const RefundPage = () => {
     // 주문 단건 조회 API 호출
     (async () => {
       try {
-        const res = await axios.get(`/api/orders/history/${orderId}`);
+        const res = await axios.get(`/orders/history/${orderId}`);
         setOrder(res.data);
       } catch (err) {
         console.error('주문 정보 불러오기 실패:', err);
@@ -56,7 +56,7 @@ const RefundPage = () => {
 
     try {
       await axios.post(
-        `/api/orders/${orderId}/items/${selectedItem.orderItemId}/refund`,
+        `/orders/${orderId}/items/${selectedItem.orderItemId}/refund`,
         payload
       );
       alert('환불 요청이 접수되었습니다.');
