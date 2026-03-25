@@ -36,7 +36,7 @@ const RefundDetail = () => {
   const fetchRefunds = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/orders/refund-requests', {
+      const response = await axios.get('/orders/refund-requests', {
         params: { page: pageInfo.page, size: pageInfo.size },
       });
 

@@ -23,7 +23,7 @@ function InquiryModal({ itemId, onClose }) {
     e.preventDefault();
 
     try {
-      await axios.post(`/api/inquiries`, {
+      await axios.post(`/inquiries`, {
         ...formData,
         itemId,
       });

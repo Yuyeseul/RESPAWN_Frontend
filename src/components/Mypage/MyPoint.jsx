@@ -54,14 +54,14 @@ function PointsPage() {
           usesRes,
           expireRes,
         ] = await Promise.all([
-          axios.get(`/api/points/total/active`, { params: { year, month: m } }),
-          axios.get(`/api/points/expire/this-month/total`, {
+          axios.get(`/points/total/active`, { params: { year, month: m } }),
+          axios.get(`/points/expire/this-month/total`, {
             params: { year, month: m },
           }),
-          axios.get(`/api/points/history`, { params: { year, month: m } }),
-          axios.get(`/api/points/saves`, { params: { year, month: m } }),
-          axios.get(`/api/points/uses`, { params: { year, month: m } }),
-          axios.get(`/api/points/expire/list`, { params: { year, month: m } }),
+          axios.get(`/points/history`, { params: { year, month: m } }),
+          axios.get(`/points/saves`, { params: { year, month: m } }),
+          axios.get(`/points/uses`, { params: { year, month: m } }),
+          axios.get(`/points/expire/list`, { params: { year, month: m } }),
         ]);
 
         setTotalPoints(totalRes.data ?? 0);

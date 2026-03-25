@@ -33,7 +33,7 @@ function MainInfo() {
       try {
         const [userRes, orderRes] = await Promise.allSettled([
           axios.get('/myPage/summary', { signal: controller.signal }),
-          axios.get('/api/orders/history/recent-month', {
+          axios.get('/orders/history/recent-month', {
             params: { page: pageInfo.page, size: pageInfo.size },
             signal: controller.signal,
           }),

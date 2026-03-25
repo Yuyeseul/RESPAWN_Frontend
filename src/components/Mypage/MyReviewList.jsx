@@ -29,7 +29,7 @@ const MyReviewList = () => {
 
   const fetchCounts = async () => {
     try {
-      const response = await axios.get(`/api/reviews/count`);
+      const response = await axios.get(`/reviews/count`);
       setCounts({
         writable: response.data.writableCount || 0,
         written: response.data.writtenCount || 0,
@@ -55,7 +55,7 @@ const MyReviewList = () => {
           page: currentPage,
           size: PAGE_SIZE,
         };
-        const res = await axios.get(`/api/reviews/${activeTab}`, { params });
+        const res = await axios.get(`/reviews/${activeTab}`, { params });
         console.log(res.data);
 
         const newItems = res.data.content || [];

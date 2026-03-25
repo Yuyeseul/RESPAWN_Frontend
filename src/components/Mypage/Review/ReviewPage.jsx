@@ -14,7 +14,7 @@ const ReviewPage = () => {
 
     (async () => {
       try {
-        const res = await axios.get(`/api/orders/history/${orderId}`);
+        const res = await axios.get(`/orders/history/${orderId}`);
         setOrder(res.data);
       } catch (err) {
         console.error('주문 정보 불러오기 실패:', err);
@@ -73,7 +73,7 @@ const ReviewPage = () => {
 
     try {
       await axios.post(
-        `/api/reviews/order-items/${selectedItem.orderItemId}`,
+        `/reviews/order-items/${selectedItem.orderItemId}`,
         review
       );
       alert('리뷰가 작성되었습니다.');

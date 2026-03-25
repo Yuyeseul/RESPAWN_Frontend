@@ -19,7 +19,7 @@ const Coupon = () => {
 
   const fetchCounts = async () => {
     try {
-      const response = await axios.get(`/api/coupons/count`);
+      const response = await axios.get(`/coupons/count`);
       console.log(response.data);
       setCounts({
         available: response.data.availableCount || 0,
@@ -40,7 +40,7 @@ const Coupon = () => {
       const currentPage = isInitialLoad ? 0 : page;
 
       try {
-        const res = await axios.get(`/api/coupons/${activeTab}`, {
+        const res = await axios.get(`/coupons/${activeTab}`, {
           params: { page: currentPage, size: PAGE_SIZE },
         });
         console.log(res.data);

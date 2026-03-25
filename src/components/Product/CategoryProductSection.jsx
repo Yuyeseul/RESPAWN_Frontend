@@ -18,7 +18,7 @@ const CategoryProductSection = ({
 
   const handleAddToCart = useCallback(async (product) => {
     try {
-      await axios.post('/api/cart/add', {
+      await axios.post('/cart/add', {
         itemId: product.id,
         count: 1,
       });
@@ -45,7 +45,7 @@ const CategoryProductSection = ({
       setLoading(true);
       setError(null);
       try {
-        const res = await axios.get('/api/items', {
+        const res = await axios.get('/items', {
           params: {
             ...(apiCategoryParam ? { category: apiCategoryParam } : {}),
             size: maxItems,

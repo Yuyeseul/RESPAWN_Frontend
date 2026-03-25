@@ -26,7 +26,7 @@ const ReviewList = ({ itemId }) => {
 
   const fetchReviews = async () => {
     try {
-      const res = await axios.get(`api/reviews/items/${itemId}`, {
+      const res = await axios.get(`reviews/items/${itemId}`, {
         params: { page: pageInfo.page, size: pageInfo.size },
       });
       const data = res.data;

@@ -21,7 +21,7 @@ function ProductDetail() {
     const controller = new AbortController();
     const fetchItem = async () => {
       try {
-        const res = await axios.get(`/api/items/${id}`, {
+        const res = await axios.get(`/items/${id}`, {
           signal: controller.signal,
         });
         setItem(res.data);
@@ -50,7 +50,7 @@ function ProductDetail() {
     }
 
     try {
-      const res = await axios.post('/api/orders/prepare', {
+      const res = await axios.post('/orders/prepare', {
         itemId: item.id,
         count: count,
       });
@@ -75,7 +75,7 @@ function ProductDetail() {
     }
 
     try {
-      await axios.post('/api/cart/add', {
+      await axios.post('/cart/add', {
         itemId: item.id,
         count: count,
       });
