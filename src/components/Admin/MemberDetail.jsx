@@ -72,7 +72,7 @@ const MemberDetail = () => {
       try {
         const [{ data: summary }, { data: memoRes }] = await Promise.all([
           axios.get(`/admin/${userType}/${userId}/summary`),
-          axios.get(`/api/admin/memo`, { params: { userType, userId } }),
+          axios.get(`/admin/memo`, { params: { userType, userId } }),
         ]);
         const mapped = mapToForm(summary);
         mapped.memo = memoRes?.content ?? ''; // 메모 병합
@@ -250,7 +250,7 @@ const MemberDetail = () => {
             userId: Number(userId),
             content: form.memo ?? '',
           };
-          const { data } = await axios.post(`/api/admin/memo/upsert`, payload);
+          const { data } = await axios.post(`/admin/memo/upsert`, payload);
           const nextMemo = data?.content ?? payload.content;
           setForm((p) => ({ ...p, memo: nextMemo }));
           setOriginal((o) => ({ ...(o || {}), memo: nextMemo }));
@@ -530,7 +530,9 @@ const GhostBtn = styled.button`
   background: #eef2f7;
   color: #1f2937;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  transition: background 0.12s ease, transform 0.06s ease;
+  transition:
+    background 0.12s ease,
+    transform 0.06s ease;
   &:hover {
     background: #e5eaf1;
     transform: translateY(-1px);
@@ -614,7 +616,9 @@ const Stat = styled.div`
 const ClickableStat = styled(Stat)`
   position: relative;
   cursor: ${(p) => (p['data-clickable'] ? 'pointer' : 'default')};
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 
   ${(p) =>
     p['data-clickable'] &&
@@ -714,7 +718,10 @@ const PrimaryBtn = styled.button`
   background: #25324d;
   color: #fff;
   box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
-  transition: transform 0.06s ease, box-shadow 0.12s ease, background 0.12s ease;
+  transition:
+    transform 0.06s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(37, 50, 77, 0.22);

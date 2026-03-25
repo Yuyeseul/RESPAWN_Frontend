@@ -29,7 +29,7 @@ const CartList = () => {
     const controller = new AbortController();
     const fetchCartItems = async () => {
       try {
-        const res = await axios.get(`/api/cart`, {
+        const res = await axios.get(`/cart`, {
           signal: controller.signal,
         });
 
@@ -61,7 +61,7 @@ const CartList = () => {
     }
 
     try {
-      const res = await axios.post('/api/orders/cart', {
+      const res = await axios.post('/orders/cart', {
         cartItemIds: itemIds,
       });
 
@@ -87,7 +87,7 @@ const CartList = () => {
 
     try {
       const endpoint = amount > 0 ? 'increase' : 'decrease';
-      await axios.post(`/api/cart/items/${cartItemId}/${endpoint}`, {
+      await axios.post(`/cart/items/${cartItemId}/${endpoint}`, {
         amount: Math.abs(amount),
       });
     } catch (error) {
@@ -123,7 +123,7 @@ const CartList = () => {
     if (!ok) return;
 
     try {
-      await axios.delete('/api/cart/items/delete', {
+      await axios.delete('/cart/items/delete', {
         headers: { 'Content-Type': 'application/json' },
         data: {
           cartItemIds: selectedIds,
@@ -148,7 +148,7 @@ const CartList = () => {
     if (!ok) return;
 
     try {
-      await axios.delete('/api/cart'); // 예시
+      await axios.delete('/cart'); // 예시
 
       setCartItems([]);
     } catch (e) {

@@ -43,9 +43,7 @@ const NoticeDetail = () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.get(
-        `/api/notices/view?noticeId=${noticeId}`
-      );
+      const { data } = await axios.get(`/notices/view?noticeId=${noticeId}`);
       setNotice(data);
       setForm({
         title: data.title,
@@ -90,7 +88,7 @@ const NoticeDetail = () => {
         setLoading(true);
         try {
           const payload = { ...form };
-          await axios.post(`/api/notices/${noticeId}/update`, payload); // API 엔드포인트 예시
+          await axios.post(`/notices/${noticeId}/update`, payload); // API 엔드포인트 예시
           alert('성공적으로 수정되었습니다.');
           await fetchNotice();
           setIsEditing(false);
@@ -135,7 +133,7 @@ const NoticeDetail = () => {
         closeConfirmModal();
         setLoading(true);
         try {
-          await axios.delete(`/api/notices/${noticeId}`);
+          await axios.delete(`/notices/${noticeId}`);
           alert('삭제되었습니다.');
           navigate('/admin/notices');
         } catch (e) {
