@@ -64,7 +64,6 @@ const InquiryList = ({ itemId }) => {
     if (!expandedDetail[id]) {
       try {
         const response = await axios.get(`/api/inquiries/${id}/detail`);
-        console.log(response.data);
         setExpandedDetail((prev) => ({ ...prev, [id]: response.data }));
       } catch (error) {
         console.error('상세조회 실패:', error);
@@ -195,7 +194,7 @@ const InquiryList = ({ itemId }) => {
                 {/* 클릭 시 확장 영역 */}
                 {expandedId === item.id && expandedDetail[item.id] && (
                   <Tr>
-                    <Td colSpan={5} style={{ background: '#f9f9f9' }}>
+                    <Td colSpan={5}>
                       <ContentBox>
                         <p>
                           <strong>문의내용:</strong>{' '}
@@ -241,6 +240,10 @@ export default InquiryList;
 const Container = styled.div`
   width: 100%;
   margin: 0 auto;
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0 4px;
+    box-sizing: border-box;
+  }
 `;
 
 const TitleBox = styled.div`
@@ -248,16 +251,23 @@ const TitleBox = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 `;
 
 const Title = styled.h2`
-  font-size: 24px;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  font-size: 20px;
   font-weight: bold;
 `;
 
 const Count = styled.span`
-  color: #d32f2f;
-  font-size: 24px;
+  color: ${({ theme }) => theme.colors.red};
+  font-size: 20px;
   margin-left: 4px;
 `;
 
@@ -265,12 +275,17 @@ const Right = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    justify-content: space-between;
+    font-size: 14px;
+  }
 `;
 
 const Button = styled.button`
   padding: 8px 18px;
-  background: #222;
-  color: #fff;
+  background: ${({ theme }) => theme.colors.gray[800]};
+  color: ${({ theme }) => theme.colors.gray[200]};
   border-radius: 3px;
   border: none;
   font-weight: 500;
@@ -294,28 +309,56 @@ const TabButton = styled.button`
   transition: background 0.3s;
 
   &:hover {
-    background: #4a4e70;
+    background: ${({ theme }) => theme.colors.secondary};
     color: white;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    flex: 1;
+    text-align: center;
+    padding: 10px 5px;
   }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   margin-bottom: 18px;
+
+  @media ${({ theme }) => theme.mobile} {
+    display: block;
+    thead {
+      display: none;
+    }
+    tbody {
+      display: block;
+    }
+  }
 `;
 
 const Tr = styled.tr`
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 16px 10px;
+    align-items: center;
+
+    &:has(td[colspan='5']) {
+      padding: 0;
+      background: ${({ theme }) => theme.colors.gray[100]};
+    }
+  }
 `;
 
 const Th = styled.th`
-  background: #fafbfc;
+  background: ${({ theme }) => theme.colors.gray[200]};
   font-size: 15px;
   font-weight: 500;
   padding: 12px 4px;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid ${({ theme }) => theme.colors.gray[300]};
   text-align: center;
 `;
 
@@ -323,13 +366,24 @@ const TdTitle = styled.td`
   padding: 10px 4px;
   font-size: 15px;
   vertical-align: middle;
-  color: #444;
+  color: ${({ theme }) => theme.colors.gray[700]};
   cursor: pointer;
   max-width: 300px; 
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: left;
+
+  @media ${({ theme }) => theme.mobile} {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    order: 3; 
+    padding: 8px 0;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: normal; 
+  }
   }
 `;
 
@@ -337,13 +391,74 @@ const Td = styled.td`
   padding: 10px 4px;
   font-size: 15px;
   vertical-align: middle;
-  color: #444;
+  color: ${({ theme }) => theme.colors.gray[700]};
   text-align: center;
-  ${(props) => props.finish && `color: #2e7d32;`}
+  ${(props) => props.finish && `color: ${props.theme.colors.success};`}
+
+  &[colspan='5'] {
+    background: ${({ theme }) => theme.colors.gray[100]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    display: block;
+    padding: 0;
+    text-align: left;
+    line-height: 1.4;
+
+    /* 확장 영역(상세 내용) 및 데이터 없음 영역 */
+    &[colspan='5'] {
+      width: 100%;
+      margin: 0;
+      padding: 16px 14px;
+      background: transparent;
+    }
+
+    /* 1번째 Td: 문의유형 */
+    &:not([colspan='5']):nth-child(1) {
+      order: 2;
+      font-size: 13px;
+      color: ${({ theme }) => theme.colors.gray[600]};
+    }
+
+    /* 2번째 Td: 답변상태 */
+    &:not([colspan='5']):nth-child(2) {
+      order: 1;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: ${({ theme }) => theme.colors.gray[100]};
+      margin-right: 8px;
+    }
+
+    /* 4번째 Td: 작성자 */
+    &:not([colspan='5']):nth-child(4) {
+      order: 4;
+      font-size: 13px;
+      color: ${({ theme }) => theme.colors.gray[600]};
+      margin-top: 4px;
+    }
+
+    /* 5번째 Td: 작성일 */
+    &:not([colspan='5']):nth-child(5) {
+      order: 5;
+      font-size: 13px;
+      color: ${({ theme }) => theme.colors.gray[600]};
+      margin-top: 4px;
+      margin-left: 8px;
+    }
+
+    /* 작성자와 작성일 사이에 파이프(|) 구분선 추가 */
+    &:not([colspan='5']):nth-child(5)::before {
+      content: '|';
+      margin-right: 8px;
+      color: ${({ theme }) => theme.colors.gray[300]};
+    }
+  }
 `;
 
 const Lock = styled.span`
-  color: #888;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 15px;
   display: flex;
   align-items: center;
@@ -355,24 +470,38 @@ const SecretText = styled.span`
 `;
 
 const ContentBox = styled.div`
-  padding: 10px 15px;
-  border-left: 4px solid #555a82;
-  background: #f4f5f8;
-  font-size: 14px;
-  color: #333;
+  padding: 16px 14px;
+  background: ${({ theme }) => theme.colors.white};
+  border-left: 4px solid ${({ theme }) => theme.colors.primary};
   text-align: left;
+  line-height: 1.5;
+  word-break: break-all;
 
   p {
-    margin: 6px 0;
+    margin: 14px 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   strong {
-    color: #555a82;
-    margin-right: 6px;
+    flex-shrink: 0;
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.primary};
+    font-weight: 600;
   }
 
   span {
-    color: #888;
+    color: ${({ theme }) => theme.colors.gray[600]};
     font-size: 12px;
+    white-space: nowrap;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    background: ${({ theme }) => theme.colors.white};
   }
 `;
