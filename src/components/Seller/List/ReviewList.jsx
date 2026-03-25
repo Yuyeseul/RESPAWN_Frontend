@@ -3,12 +3,27 @@ import styled from 'styled-components';
 import axios from '../../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import ItemSelector from './ItemSelector';
+import Pagination from '../../Pagination';
 
 const ReviewList = () => {
   const [reviews, setReviews] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState('');
   const navigate = useNavigate();
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 10,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
+
+  const handlePageChange = (page) => {
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
+  };
 
   useEffect(() => {
     fetchItems();
@@ -16,12 +31,13 @@ const ReviewList = () => {
 
   useEffect(() => {
     fetchReviews(selectedItem);
-  }, [selectedItem]);
+  }, [selectedItem, pageInfo.page]);
 
   // 상품 목록 불러오기
   const fetchItems = async () => {
     try {
-      const res = await axios.get('/api/items/my-items');
+      const res = await axios.get('/api/items/my-items/summary');
+      console.log(res.data);
       setItems(res.data);
     } catch (err) {
       console.error('상품 목록 불러오기 실패:', err);
@@ -30,12 +46,19 @@ const ReviewList = () => {
 
   const fetchReviews = async (itemId) => {
     try {
-      let url = '/api/reviews/seller/my-reviews';
-      if (itemId) {
-        url += `?itemId=${itemId}`;
-      }
-      const res = await axios.get(url);
-      setReviews(res.data);
+      const res = await axios.get('/api/reviews/seller/my-reviews', {
+        params: { page: pageInfo.page, size: pageInfo.size, itemId },
+      });
+      const data = res.data;
+      console.log(data);
+      setReviews(data.content);
+      setPageInfo((prev) => ({
+        ...prev,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+        isFirst: data.first,
+        isLast: data.last,
+      }));
     } catch (err) {
       console.error('리뷰 불러오기 실패:', err);
     }
@@ -80,13 +103,7 @@ const ReviewList = () => {
           </tr>
         </thead>
         <tbody>
-          {reviews.length === 0 ? (
-            <tr>
-              <td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>
-                작성된 리뷰가 없습니다.
-              </td>
-            </tr>
-          ) : (
+          {reviews.length > 0 ? (
             reviews.map((review, index) => (
               <tr
                 key={review.reviewId}
@@ -101,9 +118,22 @@ const ReviewList = () => {
                 <td>{new Date(review.createdDate).toLocaleDateString()}</td>
               </tr>
             ))
+          ) : (
+            <tr>
+              <NoDataCell colSpan="6">{'리뷰 내역이 없습니다.'}</NoDataCell>
+            </tr>
           )}
         </tbody>
       </Table>
+      {pageInfo.totalPages > 1 && (
+        <Pagination
+          currentPage={pageInfo.page + 1}
+          totalPages={pageInfo.totalPages}
+          onPageChange={handlePageChange}
+          isFirst={pageInfo.isFirst}
+          isLast={pageInfo.isLast}
+        />
+      )}
     </Container>
   );
 };
@@ -152,4 +182,11 @@ const Table = styled.table`
   tr:hover {
     background: #f5f7fa;
   }
+`;
+
+const NoDataCell = styled.td`
+  padding: 50px 0 !important;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
 `;

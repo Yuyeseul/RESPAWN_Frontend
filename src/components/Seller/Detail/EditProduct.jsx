@@ -1,10 +1,66 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import NoticeBox from '../Upload/NoticeBox';
 import axios from '../../../api/axios';
 import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import TiptapEditor from '../Upload/TiptapEditor';
 import Select from 'react-select';
+
+const categoryGroups = [
+  {
+    title: '콘솔 / 컨트롤러',
+    items: [
+      '게임 컨트롤러',
+      'umpc',
+      '플레이스테이션 액세서리',
+      'XBOX 액세서리',
+      '닌텐도 스위치',
+    ],
+  },
+  {
+    title: '게이밍 PC / 부품',
+    items: [
+      '그래픽카드',
+      'CPU',
+      'RAM',
+      'SSD / HDD',
+      '파워서플라이',
+      '메인보드',
+    ],
+  },
+  {
+    title: '게이밍 주변기기',
+    items: [
+      '마우스',
+      '키보드',
+      '헤드셋',
+      '모니터',
+      '스피커',
+      '마이크',
+      '레이싱 휠',
+    ],
+  },
+  {
+    title: '게이밍 환경',
+    items: [
+      '게이밍 체어',
+      '게이밍 데스크',
+      '노트북 쿨러 / 스탠드',
+      'RGB 조명',
+      '방음 패드',
+    ],
+  },
+  {
+    title: '악세서리 / 기타',
+    items: [
+      '마우스패드',
+      '손목 보호대',
+      '케이블 정리 용품',
+      '에어 블로워',
+      '멀티탭 / 허브',
+    ],
+  },
+];
 
 function EditProduct() {
   const navigate = useNavigate();
@@ -13,13 +69,28 @@ function EditProduct() {
   const [item, setItem] = useState(null);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    message: '',
+    onConfirm: null,
+  });
 
-  const categoryOptions = [
-    { value: '헤드셋', label: '헤드셋' },
-    { value: '마우스', label: '마우스' },
-    { value: '키보드', label: '키보드' },
-    { value: '모니터', label: '모니터' },
-  ];
+  const categoryOptions = useMemo(
+    () =>
+      categoryGroups.map((group) => ({
+        label: group.title,
+        options: group.items.map((item) => ({
+          value: item,
+          label: item,
+        })),
+      })),
+    []
+  );
+
+  const allCategoryItems = useMemo(
+    () => categoryOptions.flatMap((group) => group.options),
+    [categoryOptions]
+  );
 
   const STATUS = {
     SALE: 'SALE', // 판매중
@@ -27,7 +98,32 @@ function EditProduct() {
     STOPPED: 'STOPPED', // 판매중지(품절)
   };
 
-  const handleStatusChange = async (newStatus) => {
+  const openModal = (message, onConfirm) => {
+    setModal({
+      isOpen: true,
+      message,
+      onConfirm,
+    });
+  };
+
+  const closeModal = () => {
+    setModal({
+      isOpen: false,
+      message: '',
+      onConfirm: null,
+    });
+  };
+
+  const handleStatusChange = (newStatus) => {
+    const messages = {
+      PAUSED: "상태를 '일시 품절'로 변경하시겠습니까?",
+      STOPPED: "상태를 '품절'로 변경하시겠습니까?",
+      SALE: "상태를 '판매 재개'로 변경하시겠습니까?",
+    };
+    openModal(messages[newStatus], () => handleConfirmStatusChange(newStatus));
+  };
+
+  const handleConfirmStatusChange = async (newStatus) => {
     try {
       let endpoint;
       if (newStatus === STATUS.PAUSED) endpoint = `/api/items/${item.id}/pause`;
@@ -41,6 +137,8 @@ function EditProduct() {
       setItem((prev) => ({ ...prev, status: newStatus }));
     } catch (err) {
       alert('상태 변경 실패: ' + (err.response?.data?.message || err.message));
+    } finally {
+      closeModal();
     }
   };
 
@@ -91,16 +189,20 @@ function EditProduct() {
     }
   };
 
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm('정말로 삭제하시겠습니까?');
-    if (!confirmDelete) return;
+  //삭제
+  const handleDelete = () => {
+    openModal('정말로 삭제하시겠습니까?', handleConfirmDelete);
+  };
 
+  const handleConfirmDelete = async () => {
     try {
       await axios.delete(`/api/items/${item.id}`);
       alert('삭제 성공!');
       navigate('/sellerCenter');
     } catch (err) {
       alert('삭제 실패: ' + (err.response?.data?.error || err.message));
+    } finally {
+      closeModal();
     }
   };
 
@@ -109,6 +211,7 @@ function EditProduct() {
     const fetchItem = async () => {
       try {
         const res = await axios.get(`/api/items/${id}`);
+        console.log(res.data);
         setItem(res.data);
         setPreview(res.data.imageUrl);
       } catch (err) {
@@ -121,6 +224,13 @@ function EditProduct() {
 
   const handleChange = (e) => {
     setItem((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleCategoryChange = (selectedOption) => {
+    setItem((prev) => ({
+      ...prev,
+      categoryName: selectedOption ? selectedOption.value : '',
+    }));
   };
 
   const handleDescriptionChange = (html) => {
@@ -140,26 +250,17 @@ function EditProduct() {
     navigate(-1);
   };
 
-  const handleSubmit = async (e) => {
+  // 수정
+  const handleSubmit = (e) => {
     e.preventDefault();
+    openModal('상품 정보를 수정하시겠습니까?', handleConfirmSubmit);
+  };
 
+  const handleConfirmSubmit = async () => {
     const formData = new FormData();
     formData.append(
       'itemDto',
-      new Blob(
-        [
-          JSON.stringify({
-            ...item,
-            categoryIds:
-              item.categoryIds.map?.((id) => id) ||
-              item.categoryIds
-                .toString()
-                .split(',')
-                .map((id) => id.trim()),
-          }),
-        ],
-        { type: 'application/json' }
-      )
+      new Blob([JSON.stringify(item)], { type: 'application/json' })
     );
 
     // 이미지가 선택되어 있을 때만 formData에 append
@@ -179,10 +280,32 @@ function EditProduct() {
       navigate('/sellerCenter');
     } catch (err) {
       alert('수정 실패: ' + (err.response?.data?.message || err.message));
+    } finally {
+      closeModal();
     }
   };
 
+  function ConfirmationModal({ isOpen, message, onConfirm, onCancel }) {
+    if (!isOpen) return null;
+
+    return (
+      <ModalBackdrop>
+        <ModalContent onClick={(e) => e.stopPropagation()}>
+          <p>{message}</p> {/* 메시지를 props로 받아서 표시 */}
+          <ModalButtonContainer>
+            <ModalButton onClick={onCancel}>취소</ModalButton>
+            <ConfirmButton onClick={onConfirm}>확인</ConfirmButton>
+          </ModalButtonContainer>
+        </ModalContent>
+      </ModalBackdrop>
+    );
+  }
+
   if (!item) return <div>로딩 중...</div>;
+
+  const selectedCategory = allCategoryItems.find(
+    (opt) => opt.value === item.categoryName
+  );
 
   return (
     <Container>
@@ -283,18 +406,11 @@ function EditProduct() {
                 <InputGroup>
                   <Label>카테고리</Label>
                   <SelectStyled
-                    isMulti
-                    name="categoryIds"
+                    name="categoryName"
                     options={categoryOptions}
-                    onChange={(selected) =>
-                      setItem((prev) => ({
-                        ...prev,
-                        categoryIds: selected.map((s) => s.value),
-                      }))
-                    }
-                    value={categoryOptions.filter((opt) =>
-                      item.categoryIds.includes(opt.value)
-                    )}
+                    onChange={handleCategoryChange}
+                    value={selectedCategory}
+                    placeholder="카테고리를 선택하세요"
                   />
                 </InputGroup>
               </Inputs>
@@ -334,6 +450,13 @@ function EditProduct() {
           </FormContainer>
         </ContentWrapper>
       </PageLayout>
+
+      <ConfirmationModal
+        isOpen={modal.isOpen}
+        message={modal.message}
+        onConfirm={modal.onConfirm}
+        onCancel={closeModal}
+      />
     </Container>
   );
 }
@@ -465,16 +588,16 @@ const CancelButton = styled.button`
 
 const SubmitButton = styled.button`
   background-color: #3b5998;
+  border: 1.8px solid #3b5998;
   color: white;
-  border: none;
-  padding: 12px 28px;
+  padding: 10px 26px;
   border-radius: 6px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(59, 89, 152, 0.6);
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
 
   &:hover {
+    border-color: #2d4373;
     background-color: #2d4373;
   }
 `;
@@ -510,10 +633,32 @@ const StatusButton = styled.button`
 const DeleteButton = styled.button`
   background: #ff4d4f;
   color: white;
-  border: none;
-  padding: 10px 20px;
+  border: 1.8px solid #ff4d4f;
+  padding: 10px 26px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #d84144ff;
+    background-color: #d84144ff;
+  }
+
+  &:disabled {
+    background: #e5e7eb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: default;
+    opacity: 1;
+    box-shadow: none;
+  }
+
+  &:disabled:hover {
+    background: #e5e7eb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+  }
 `;
 
 const NoticeMessage = styled.div`
@@ -544,4 +689,47 @@ const Label = styled.label`
 const SelectStyled = styled(Select)`
   width: 300px;
   font-size: 14px;
+`;
+
+const ModalBackdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 360px;
+`;
+
+const ModalButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+`;
+
+const ModalButton = styled.button`
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  cursor: pointer;
+`;
+
+const ConfirmButton = styled(ModalButton)`
+  background-color: rgb(105, 111, 148);
+  color: white;
+  border: none;
 `;

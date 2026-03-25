@@ -3,16 +3,15 @@ import styled from 'styled-components';
 import axios from '../../../api/axios';
 import ResetPasswordModal from '../../ResetPasswordModal';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../../../AuthContext';
 
 function UserInfo() {
+  const { user: authUser } = useAuth();
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] =
     useState(false);
-
-  const userData = JSON.parse(sessionStorage.getItem('userData'));
-  const username = userData?.username;
 
   const [seePassword, setSeePassword] = useState(false);
 
@@ -35,7 +34,8 @@ function UserInfo() {
     }
     try {
       const response = await axios.post('/myPage/checkPassword', { password });
-      if (response.data === true) {
+      console.log(response.data);
+      if (response.data.isSuccess === true) {
         setIsAuthenticated(true);
       } else {
         alert('비밀번호가 일치하지 않습니다.');
@@ -50,16 +50,17 @@ function UserInfo() {
     const fetchUserDetails = async () => {
       try {
         const response = await axios.get(`/user`);
-        setUser(response.data);
+        console.log(response.data);
+        setUser(response.data.result);
       } catch (error) {
         console.error('회원 정보 조회 실패', error);
       }
     };
 
-    if (username) {
+    if (authUser) {
       fetchUserDetails();
     }
-  }, [username]);
+  }, [authUser]);
 
   const handleOpenResetPasswordModal = () => {
     setIsResetPasswordModalOpen(true);
@@ -69,14 +70,14 @@ function UserInfo() {
     setIsResetPasswordModalOpen(false);
   };
 
-  if (user.provider === 'local' && !isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <Wrapper>
         <Section>
           <SectionTitle>내 정보 확인</SectionTitle>
           <UserDetail>
             <Label>아이디</Label>
-            <Value>{userData?.username || '-'}</Value>
+            <Value>{authUser?.username || '-'}</Value>
           </UserDetail>
           <UserDetail>
             <Label>비밀번호</Label>

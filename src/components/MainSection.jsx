@@ -38,7 +38,15 @@ const MainSection = () => (
 export default MainSection;
 
 const Container = styled.div`
-  max-width: 1320px;
-  margin: 40px auto;
+  max-width: ${({ theme }) => theme.maxWidth};
+  margin: 60px auto;
   padding: 0 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin: 40px auto;
+    gap: 20px;
+  }
 `;

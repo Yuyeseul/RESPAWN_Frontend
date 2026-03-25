@@ -11,9 +11,7 @@ const OrderItemCard = ({ item, orderId, orderStatus }) => {
   useEffect(() => {
     const checkReview = async () => {
       try {
-        const res = await axios.get(
-          `/api/reviews/order-items/${item.orderItemId}`
-        );
+        const res = await axios.get(`/reviews/order-items/${item.orderItemId}`);
         setReviewExists(res.data.reviewExists);
       } catch (error) {
         console.error('리뷰 존재 여부 확인 실패', error);
@@ -174,6 +172,7 @@ const ButtonBase = styled.button`
 `;
 
 const RefundButton = styled(ButtonBase)`
+  min-width: 120px;
   border-color: rgb(105, 111, 148);
   color: rgb(105, 111, 148);
 
@@ -183,6 +182,7 @@ const RefundButton = styled(ButtonBase)`
 `;
 
 const ReviewButton = styled(ButtonBase)`
+  min-width: 120px;
   border-color: #4b5563;
   color: #4b5563;
 

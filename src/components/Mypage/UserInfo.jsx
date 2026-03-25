@@ -4,14 +4,13 @@ import axios from '../../api/axios';
 import AddressListModal from '../AddressListModal';
 import ResetPasswordModal from '../ResetPasswordModal';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../../AuthContext';
 
 function UserInfo() {
+  const { user: authUser } = useAuth();
   const [password, setPassword] = useState('');
   const [seePassword, setSeePassword] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const userData = JSON.parse(sessionStorage.getItem('userData'));
-  const username = userData?.username;
 
   const [user, setUser] = useState({
     name: '',
@@ -74,10 +73,10 @@ function UserInfo() {
       }
     };
 
-    if (username) {
+    if (authUser) {
       fetchUserDetails();
     }
-  }, [username]);
+  }, [authUser]);
 
   useEffect(() => {
     if (timer > 0) {
@@ -257,11 +256,11 @@ function UserInfo() {
           <SectionTitle>내 정보 확인</SectionTitle>
           <UserDetail>
             <Label>아이디</Label>
-            <Value>{userData?.username || '-'}</Value>
+            <Value>{authUser?.username || '-'}</Value>
             <Input
               type={'text'}
               autoComplete="username"
-              value={userData?.username || '-'}
+              value={authUser?.username || '-'}
               style={{
                 position: 'absolute',
                 width: '1px',
@@ -314,10 +313,12 @@ function UserInfo() {
         <UserDetail>
           <Label>유저네임</Label> <Value>{user.username || '-'}</Value>
         </UserDetail>
-        <UserDetail>
-          <Label>비밀번호</Label>
-          <Button onClick={handleOpenResetPasswordModal}>재설정</Button>
-        </UserDetail>
+        {user.provider === 'local' && (
+          <UserDetail>
+            <Label>비밀번호</Label>
+            <Button onClick={handleOpenResetPasswordModal}>재설정</Button>
+          </UserDetail>
+        )}
 
         {isResetPasswordModalOpen && (
           <ResetPasswordModal onClose={handleCloseResetPasswordModal} />
@@ -366,8 +367,8 @@ function UserInfo() {
                   {loading
                     ? '확인 중...'
                     : phoneAuth.isVerified
-                    ? '인증완료'
-                    : '인증번호 확인'}
+                      ? '인증완료'
+                      : '인증번호 확인'}
                 </Button>
                 {!phoneAuth.isVerified && (
                   <TimerText>남은 시간: {formatTime(timer)}</TimerText>
@@ -389,8 +390,8 @@ function UserInfo() {
             {user.role === 'ROLE_SELLER'
               ? '판매자'
               : user.role === 'ROLE_USER'
-              ? '구매자'
-              : '-'}
+                ? '구매자'
+                : '-'}
           </Value>
         </UserDetail>
 
@@ -400,7 +401,7 @@ function UserInfo() {
         </UserDetail>
       </Section>
       {isAddressModalOpen && (
-        <AddressListModal onClose={handleCloseAddressModal} />
+        <AddressListModal mode="mypage" onClose={handleCloseAddressModal} />
       )}
     </Container>
   );

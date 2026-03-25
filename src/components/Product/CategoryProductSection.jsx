@@ -16,20 +16,22 @@ const CategoryProductSection = ({
 
   const requestedRef = useRef(false);
 
-  const handleClickMore = () => {
-    const url = `/productlist?category=${encodeURIComponent(
-      apiCategoryParam || ''
-    )}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const handleAddToCart = useCallback(async (product) => {
     try {
-      await axios.post('/api/cart/add', { itemId: product.id, count: 1 });
+      await axios.post('/cart/add', {
+        itemId: product.id,
+        count: 1,
+      });
+
       alert(`${product.name}이(가) 장바구니에 담겼습니다.`);
     } catch (err) {
       console.error('장바구니 담기 실패:', err);
-      alert('장바구니 담기 실패');
+
+      const serverErrorMessage = err.response?.data?.message;
+
+      alert(
+        serverErrorMessage || '장바구니 담기에 실패했습니다. 다시 시도해주세요.'
+      );
     }
   }, []);
 
@@ -43,15 +45,18 @@ const CategoryProductSection = ({
       setLoading(true);
       setError(null);
       try {
-        const res = await axios.get('/api/items', {
+        const res = await axios.get('/items', {
           params: {
             ...(apiCategoryParam ? { category: apiCategoryParam } : {}),
-            limit: maxItems,
-            offset: 0,
+            size: maxItems,
+            page: 0,
           },
         });
+        console.log(res.data);
         if (!ignore) {
-          const items = Array.isArray(res.data?.items) ? res.data.items : [];
+          const items = Array.isArray(res.data?.content)
+            ? res.data.content
+            : [];
           setProducts(items); // 덮어쓰기
         }
       } catch (e) {
@@ -74,7 +79,6 @@ const CategoryProductSection = ({
         <Body>
           <Side>
             <Title>{categoryName}</Title>
-            <MoreBtn disabled>전체보기</MoreBtn>
             <SubTitle>HOT 키워드</SubTitle>
             <KeywordList>
               {keywords.map((k) => (
@@ -98,7 +102,6 @@ const CategoryProductSection = ({
       <Body>
         <Side>
           <Title>{categoryName}</Title>
-          <MoreBtn onClick={handleClickMore}>전체보기</MoreBtn>
           <SubTitle>HOT 키워드</SubTitle>
           <KeywordList>
             {keywords.map((k) => (
@@ -124,52 +127,53 @@ export default CategoryProductSection;
 
 const Section = styled.section`
   width: 100%;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 16px; /* 내부 패딩 고정 */
-  margin-block: 24px; /* 섹션 위/아래 간격만 */
-  margin-inline: 0;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 12px;
+  padding: 24px;
+  margin-block: 40px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+    margin-block: 12px;
+    border-radius: 0;
+    border: none;
+  }
 `;
 
 const Body = styled.div`
   display: grid;
   grid-template-columns: 220px 1fr;
-  gap: 16px; /* 사이드와 그리드 간격 */
-  @media (max-width: 900px) {
+  gap: 16px;
+  @media ${({ theme }) => theme.mobile} {
     grid-template-columns: 1fr;
-    gap: 12px; /* 모바일에서 살짝 축소 */
+    gap: 12px;
   }
 `;
 
 const Side = styled.aside`
   display: grid;
   align-content: start;
-  gap: 12px; /* 사이드 내부 요소 간격 */
-  border: 1px solid #f0f0f0;
+  gap: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
-  background: #fafafa;
+  background: ${({ theme }) => theme.colors.gray[100]};
   padding: 12px;
   font-size: 13px;
+
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px;
+  }
 `;
 
 const Title = styled.h3`
   font-size: 20px;
   font-weight: 700;
-  margin: 0; /* 외부 여백은 부모가 책임 */
-`;
-
-const MoreBtn = styled.button`
-  border: 1px solid #ddd;
-  background: #f7f7f7;
-  border-radius: 16px;
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  justify-self: start; /* 사이드 내 좌측 정렬 */
-  &:hover {
-    background: #eee;
-  }
+  margin: 0;
 `;
 
 const SubTitle = styled.div`
@@ -180,47 +184,51 @@ const SubTitle = styled.div`
 const KeywordList = styled.ul`
   list-style: none;
   padding: 0;
-  margin: 0; /* 바깥 여백 제거 */
+  margin: 0;
   display: grid;
-  gap: 8px; /* 항목 간 간격 */
+  gap: 8px;
   li {
-    color: #666;
+    color: ${({ theme }) => theme.colors.gray[600]};
     padding: 4px 0;
-    border-bottom: 1px dashed #eee;
+    border-bottom: 1px dashed ${({ theme }) => theme.colors.gray[300]};
   }
   li:last-child {
     border-bottom: 0;
     padding-bottom: 0;
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+
+    li {
+      padding: 0;
+      border-bottom: none;
+    }
+  }
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(${(p) => p.$cols}, 1fr);
-  gap: 16px; /* 카드 간 간격 */
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(${(p) => p.$cols}, minmax(0, 1fr));
+  gap: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-  }
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  @media (max-width: 520px) {
-    grid-template-columns: 1fr;
-    gap: 8px;
   }
 `;
 
 const Card = styled.div`
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: box-shadow 0.2s ease;
-  /* margin 없음: 간격은 Grid gap이 관리 */
   &:hover {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   }

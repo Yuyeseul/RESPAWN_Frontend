@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import axios from '../../api/axios';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ko } from 'date-fns/locale';
 
 const SCROLL_THRESHOLD = 8;
 
@@ -51,14 +54,14 @@ function PointsPage() {
           usesRes,
           expireRes,
         ] = await Promise.all([
-          axios.get(`/api/points/total/active`, { params: { year, month: m } }),
-          axios.get(`/api/points/expire/this-month/total`, {
+          axios.get(`/points/total/active`, { params: { year, month: m } }),
+          axios.get(`/points/expire/this-month/total`, {
             params: { year, month: m },
           }),
-          axios.get(`/api/points/history`, { params: { year, month: m } }),
-          axios.get(`/api/points/saves`, { params: { year, month: m } }),
-          axios.get(`/api/points/uses`, { params: { year, month: m } }),
-          axios.get(`/api/points/expire/list`, { params: { year, month: m } }),
+          axios.get(`/points/history`, { params: { year, month: m } }),
+          axios.get(`/points/saves`, { params: { year, month: m } }),
+          axios.get(`/points/uses`, { params: { year, month: m } }),
+          axios.get(`/points/expire/list`, { params: { year, month: m } }),
         ]);
 
         setTotalPoints(totalRes.data ?? 0);
@@ -207,7 +210,20 @@ function PointsPage() {
         <IconBtn type="button" aria-label="prev" onClick={() => shiftMonth(-1)}>
           ‹
         </IconBtn>
-        <MonthBtn type="button">{month.getMonth() + 1}월</MonthBtn>
+        <StyledDatePicker>
+          <DatePicker
+            selected={month}
+            onChange={(date) => setMonth(date)}
+            dateFormat="yyyy년 MM월"
+            showMonthYearPicker
+            locale={ko}
+            customInput={
+              <MonthBtn>
+                {month.getFullYear()}년 {month.getMonth() + 1}월 ▾
+              </MonthBtn>
+            }
+          />
+        </StyledDatePicker>
         <IconBtn type="button" aria-label="next" onClick={() => shiftMonth(1)}>
           ›
         </IconBtn>
@@ -262,17 +278,16 @@ function PointsPage() {
       {loading
         ? renderEmpty('불러오는 중...')
         : error
-        ? renderEmpty(error)
-        : activeTab === 'expiring'
-        ? renderExpiringSection(currentList)
-        : renderHistoryLikeSection(currentList)}
+          ? renderEmpty(error)
+          : activeTab === 'expiring'
+            ? renderExpiringSection(currentList)
+            : renderHistoryLikeSection(currentList)}
     </Container>
   );
 }
 
 export default PointsPage;
 
-/* styled-components */
 const Container = styled.div`
   max-width: 720px;
   margin: 0 auto;
@@ -284,22 +299,67 @@ const Container = styled.div`
 const HeaderRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 6px;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+  position: relative;
 `;
 
 const IconBtn = styled.button`
   border: none;
   background: transparent;
-  font-size: 22px;
+  font-size: 24px;
   color: #333;
   cursor: pointer;
+  align-items: center;
+  padding: 0 10px;
+`;
+
+const StyledDatePicker = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .react-datepicker__triangle {
+    display: none;
+  }
+
+  .react-datepicker {
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .react-datepicker__header {
+    background-color: #333;
+    border-bottom: none;
+    padding-top: 10px;
+    color: #ddd;
+  }
+
+  .react-datepicker__navigation-icon::before {
+    border-color: #ddd;
+    border-width: 2px 2px 0 0;
+    top: 10px;
+  }
+
+  .react-datepicker__current-month {
+    color: #ddd;
+  }
+
+  .react-datepicker__month-text--keyboard-selected,
+  .react-datepicker__month-text--selected {
+    background-color: #333 !important;
+    color: #ddd !important;
+  }
 `;
 
 const MonthBtn = styled.button`
   border: none;
   background: transparent;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: #222;
   cursor: pointer;
@@ -369,10 +429,10 @@ const Chip = styled.button`
 `;
 
 const Empty = styled.div`
-  padding: 40px 0;
+  padding: 32px 0;
   text-align: center;
-  color: #98a1a8;
-  font-size: 14px;
+  color: #666;
+  font-size: 16px;
 `;
 
 const CardList = styled.div`

@@ -253,6 +253,7 @@ export default CartList;
 const Container = styled.div`
   padding: 40px;
   max-width: 1200px;
+  min-height: 500px;
   width: 1200px;
   margin: 0 auto;
 `;

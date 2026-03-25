@@ -10,7 +10,7 @@ import banner2 from '../../assets/banner2.png';
 
 const Banner = () => {
   return (
-    <Swiper
+    <StyledSwiper
       modules={[Navigation, Pagination, Autoplay]}
       slidesPerView={1}
       navigation
@@ -24,14 +24,45 @@ const Banner = () => {
       <SwiperSlide>
         <ImgBanner src={banner2} alt="banner2" />
       </SwiperSlide>
-    </Swiper>
+    </StyledSwiper>
   );
 };
 
 export default Banner;
 
+const StyledSwiper = styled(Swiper)`
+  --swiper-navigation-color: ${({ theme }) => theme.colors.primary};
+  --swiper-pagination-color: ${({ theme }) => theme.colors.primary};
+  --swiper-pagination-bullet-inactive-color: ${({ theme }) =>
+    theme.colors.gray[500]};
+  --swiper-pagination-bullet-inactive-opacity: 0.7;
+
+  .swiper-button-next,
+  .swiper-button-prev {
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    @media ${({ theme }) => theme.mobile} {
+      display: none;
+    }
+  }
+
+  .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    transition: all 0.3s;
+  }
+  .swiper-pagination-bullet-active {
+    width: 24px;
+    border-radius: 5px;
+  }
+`;
+
 const ImgBanner = styled.img`
   width: 100%;
-  height: 400px;
+  height: 450px;
   object-fit: cover;
+  cursor: pointer;
+
+  @media ${({ theme }) => theme.mobile} {
+    height: 250px;
+  }
 `;

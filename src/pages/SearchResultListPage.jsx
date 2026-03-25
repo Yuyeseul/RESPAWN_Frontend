@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from '../api/axios';
@@ -7,224 +13,182 @@ import Footer from '../components/common/Footer';
 import SearchFilter from '../components/Search/SearchFilter';
 import SearchResultList from '../components/Search/SearchResultList';
 
-// const PAGE_SIZE = 20;
+const PAGE_SIZE = 8;
 
 const SearchResultListPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 1) URL → 상태 초기화
-  const queryParams = new URLSearchParams(location.search);
+  // 1. URL 파라미터 추출 (useMemo를 사용하여 URL 변경 시 자동 계산)
+  const queryParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
   const query = queryParams.get('query') || '';
-  const initialCategories = queryParams.getAll('categoryIds') || [];
-  const initialCompanies = queryParams.getAll('companyIds') || [];
-  const initialShipping = queryParams.get('shipping') || '';
-  const initialMinPrice = queryParams.get('minPrice');
-  const initialMaxPrice = queryParams.get('maxPrice');
 
+  // 필터 상태들: URL에서 직접 가져오기 때문에 별도의 set 함수보다 URL 변경이 우선순위가 됩니다.
+  const selectedCategories = queryParams.getAll('categoryIds');
+  const selectedCompanies = queryParams.getAll('company');
+  const selectedDeliveryType = queryParams.get('deliveryType') || '';
+  const minPrice = queryParams.get('minPrice')
+    ? Number(queryParams.get('minPrice'))
+    : null;
+  const maxPrice = queryParams.get('maxPrice')
+    ? Number(queryParams.get('maxPrice'))
+    : null;
+
+  // 2. 데이터 관리 상태
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [pagingLoading, setPagingLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // const [offset, setOffset] = useState(0); // 페이지네이션 기준점
-  // const [hasMore, setHasMore] = useState(true); // 다음 데이터 존재 여부
-  // const sentinelRef = useRef(null); // 관찰 대상 요소
-  // const inFlightRef = useRef(false); // 요청 중복 방지 플래그
+  const hasMore = useMemo(() => page < totalPages, [page, totalPages]);
+  const inFlightRef = useRef(false);
+  const ignoreRef = useRef(false);
+  const sentinelRef = useRef(null);
 
-  // const [availableCategories, setAvailableCategories] = useState([]); // 카테고리
-  const [selectedCategories, setSelectedCategories] =
-    useState(initialCategories);
-  const [selectedCompanies, setSelectedCompanies] = useState(initialCompanies);
-  const [selectedShipping, setSelectedShipping] = useState(initialShipping);
-  const [minPrice, setMinPrice] = useState(
-    initialMinPrice ? Number(initialMinPrice) : null
-  );
-  const [maxPrice, setMaxPrice] = useState(
-    initialMaxPrice ? Number(initialMaxPrice) : null
-  );
-  // 2) URL 변경 시 로컬 상태 동기화
-  useEffect(() => {
-    const sp = new URLSearchParams(location.search);
-    setSelectedCategories(sp.getAll('categoryIds'));
-    setSelectedCompanies(sp.getAll('companyIds'));
-    setSelectedShipping(sp.get('shipping') || '');
-    setMinPrice(sp.get('minPrice') ? Number(sp.get('minPrice')) : null);
-    setMaxPrice(sp.get('maxPrice') ? Number(sp.get('maxPrice')) : null);
+  const [resultsCount, setResultsCount] = useState(0);
 
-    // 필터 변경 시 무한 스크롤 초기화
-    // setOffset(0);
-    // setHasMore(true);
-    // setItems([]);
-  }, [location.search]);
+  // 3. 데이터 페칭 함수
+  const fetchPage = useCallback(
+    async (nextPage, isInitial = false) => {
+      if (inFlightRef.current) return;
 
-  // 3) 데이터 조회
-  useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
+      const controller = new AbortController();
+      inFlightRef.current = true;
+      isInitial ? setInitialLoading(true) : setPagingLoading(true);
+
       try {
-        const params = new URLSearchParams();
-        if (query) params.append('query', query);
-        selectedCategories.forEach((c) => params.append('categoryIds', c));
-        selectedCompanies.forEach((c) => params.append('companyIds', c));
-        if (selectedShipping) params.append('shipping', selectedShipping);
-        if (minPrice != null) params.append('minPrice', String(minPrice));
-        if (maxPrice != null) params.append('maxPrice', String(maxPrice));
+        // 현재 URL의 모든 쿼리 파라미터를 복사하여 page/size만 추가/수정
+        const sp = new URLSearchParams(location.search);
+        sp.set('page', String(nextPage));
+        sp.set('size', String(PAGE_SIZE));
 
         const res = await axios.get(
-          `/api/items/search/advanced?${params.toString()}`
+          `/api/items/search/advanced?${sp.toString()}`,
+          {
+            signal: controller.signal,
+          }
         );
-        setItems(res.data);
+        console.log('검색 결과:', res.data);
+        if (ignoreRef.current) return;
 
-        // 초기 전체 로딩 후 무한 스크롤 초기값 세팅
-        // setOffset(res.data.length);
-        // setHasMore(res.data.length >= PAGE_SIZE);
+        const data = res.data || {};
+        const newItems = data.content || [];
+        setResultsCount(data.totalElements || 0);
+
+        setItems((prev) => (isInitial ? newItems : [...prev, ...newItems]));
+        setPage(nextPage + 1);
+
+        if (typeof data.totalPages === 'number') {
+          setTotalPages(data.totalPages);
+        }
       } catch (err) {
-        console.error('고급 검색 오류:', err);
+        if (!axios.isCancel(err)) {
+          console.error('검색 오류:', err);
+          setError('상품을 불러오는 중 문제가 발생했습니다.');
+        }
       } finally {
-        setLoading(false);
+        if (!ignoreRef.current) {
+          isInitial ? setInitialLoading(false) : setPagingLoading(false);
+        }
+        inFlightRef.current = false;
       }
+    },
+    [location.search]
+  );
+
+  // 4. URL 변경 시(필터 클릭 시) 데이터 리셋 및 재조회
+  useEffect(() => {
+    ignoreRef.current = false;
+    setItems([]);
+    setPage(0);
+    setTotalPages(1);
+    setError(null);
+
+    fetchPage(0, true);
+
+    return () => {
+      ignoreRef.current = true;
     };
-    fetchItems();
-  }, [location.search, query]);
+  }, [location.search, fetchPage]);
 
-  // 3-1) 무한 스크롤: 다음 페이지 로드
-  // const fetchNextPage = async () => {
-  //   if (inFlightRef.current || !hasMore) return;
-  //   inFlightRef.current = true;
-  //   try {
-  //     const sp = new URLSearchParams(location.search);
-  //     // 기존 쿼리 파라미터 유지 + 페이지네이션 파라미터 추가
-  //     sp.set('offset', String(offset));
-  //     sp.set('limit', String(PAGE_SIZE));
-  //
-  //     // 예: /api/items/search/advanced/paged 형태 사용 고려
-  //     const res = await axios.get(`/api/items/search/advanced?${sp.toString()}`);
-  //     const page = Array.isArray(res.data) ? res.data : (res.data.items || []);
-  //
-  //     setItems((prev) => [...prev, ...page]);
-  //     setOffset((prev) => prev + page.length);
-  //     setHasMore(page.length === PAGE_SIZE); // hasNext 없을 때 길이 기반 판정
-  //   } catch (e) {
-  //     console.error('다음 페이지 조회 실패:', e);
-  //     setHasMore(false);
-  //   } finally {
-  //     inFlightRef.current = false;
-  //   }
-  // };
+  // 5. 무한 스크롤 관찰 (Intersection Observer)
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || initialLoading) return;
 
-  // 3-2) IntersectionObserver 설정
-  // useEffect(() => {
-  //   const el = sentinelRef.current;
-  //   if (!el) return;
-  //
-  //   const observer = new IntersectionObserver(
-  //     (entries) => {
-  //       const entry = entries;
-  //       if (!entry.isIntersecting) return;
-  //       // 관찰 대상이 보이면 다음 페이지 로드 시도
-  //       fetchNextPage();
-  //     },
-  //     { root: null, rootMargin: '0px 0px 200px 0px', threshold: 0 }
-  //   );
-  //
-  //   observer.observe(el);
-  //   return () => {
-  //     if (el) observer.unobserve(el);
-  //     observer.disconnect();
-  //   };
-  // }, [location.search /* 필터 변경 시 옵저버 재설정 */, /* fetchNextPage */]);
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !inFlightRef.current) {
+          fetchPage(page, false);
+        }
+      },
+      { rootMargin: '0px 0px 200px 0px', threshold: 0 }
+    );
 
-  // 4) URL 업데이트 유틸
-  const buildParams = ({
-    categories = selectedCategories,
-    companies = selectedCompanies,
-    shipping = selectedShipping,
-    minP = minPrice,
-    maxP = maxPrice,
-  } = {}) => {
-    const sp = new URLSearchParams();
-    if (query) sp.append('query', query);
-    categories.forEach((c) => sp.append('categoryIds', c));
-    companies.forEach((c) => sp.append('companyIds', c));
-    if (shipping) sp.append('shipping', shipping);
-    if (minP != null) sp.append('minPrice', String(minP));
-    if (maxP != null) sp.append('maxPrice', String(maxP));
-    return sp;
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [page, hasMore, initialLoading, fetchPage]);
+
+  // 6. URL 업데이트 유틸리티 (필터 키값 수정 완료)
+  const navigateWithUpdate = (update) => {
+    const sp = new URLSearchParams(location.search);
+    // 필터 변경 시 페이지는 항상 0으로 리셋
+    sp.delete('page');
+
+    Object.entries(update).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        sp.delete(key);
+        value.forEach((v) => sp.append(key, v));
+      } else if (value === null || value === '') {
+        sp.delete(key);
+      } else {
+        sp.set(key, String(value));
+      }
+    });
+    navigate(`/search?${sp.toString()}`);
   };
 
-  const navigateWithParams = (sp) => navigate(`/search?${sp.toString()}`);
-
-  // 5) 이벤트 핸들러 (즉시 반영: 체크/라디오)
+  // 7. 이벤트 핸들러 (백엔드 파라미터 key 이름과 일치시킴)
   const handleCategoryChange = (categoryId) => {
     const next = selectedCategories.includes(categoryId)
       ? selectedCategories.filter((c) => c !== categoryId)
       : [...selectedCategories, categoryId];
-    setSelectedCategories(next);
-    navigateWithParams(buildParams({ categories: next }));
+    navigateWithUpdate({ categoryIds: next });
   };
 
-  const handleCompanyChange = (companyId) => {
-    const next = selectedCompanies.includes(companyId)
-      ? selectedCompanies.filter((c) => c !== companyId)
-      : [...selectedCompanies, companyId];
-    setSelectedCompanies(next);
-    navigateWithParams(buildParams({ companies: next }));
+  const handleCompanyChange = (company) => {
+    const next = selectedCompanies.includes(company)
+      ? selectedCompanies.filter((c) => c !== company)
+      : [...selectedCompanies, company];
+    navigateWithUpdate({ company: next });
   };
 
-  const handleShippingChange = (shippingId) => {
-    setSelectedShipping(shippingId);
-    navigateWithParams(buildParams({ shipping: shippingId }));
-  };
-
-  // 6) 가격/키워드: 디바운스 반영
-  const debounceRef = useRef(null);
-  const scheduleUrlUpdate = (nextState) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      navigateWithParams(
-        buildParams({
-          minP: nextState.minP ?? minPrice,
-          maxP: nextState.maxP ?? maxPrice,
-        })
-      );
-    }, 400);
+  const handleDeliveryTypeChange = (id) => {
+    navigateWithUpdate({ deliveryType: id });
   };
 
   const handlePriceChange = ({ min, max }) => {
-    setMinPrice(min);
-    setMaxPrice(max);
-    scheduleUrlUpdate({ minP: min, maxP: max });
-
-    // 가격 변경 시 무한 스크롤 초기화
-    // setItems([]);
-    // setOffset(0);
-    // setHasMore(true);
+    navigateWithUpdate({ minPrice: min, maxPrice: max });
   };
 
-  // 7) 초기화
   const handleReset = () => {
-    setSelectedCategories([]);
-    setSelectedCompanies([]);
-    setSelectedShipping('');
-    setMinPrice(null);
-    setMaxPrice(null);
     const sp = new URLSearchParams();
-    if (query) sp.append('query', query); // 검색어 페이지 진입 query는 유지
+    if (query) sp.append('query', query);
     navigate(`/search?${sp.toString()}`);
-
-    // 무한 스크롤 초기화
-    // setItems([]);
-    // setOffset(0);
-    // setHasMore(true);
   };
 
-  // 더미 데이터 (UI용)
-  const SHIPPING_METHODS = [
-    { id: 'direct', name: '직접배송' },
-    { id: 'fast', name: '빠른배송' },
-    { id: 'same_day', name: '당일배송' },
-    { id: 'pickup', name: '매장픽업' },
+  // 데이터/상수 (UI용)
+  const DELIVERY_METHODS = [
+    { id: '직접배송', name: '직접배송' },
+    { id: '빠른배송', name: '빠른배송' },
+    { id: '당일배송', name: '당일배송' },
+    { id: '매장픽업', name: '매장픽업' },
   ];
-
   const COMPANIES = [
     { id: 'Logitech', name: 'Logitech' },
     { id: 'NOX', name: 'NOX' },
@@ -232,7 +196,6 @@ const SearchResultListPage = () => {
     { id: 'Razer', name: 'Razer' },
     { id: 'Corsair', name: 'CORSAIR' },
   ];
-
   const availableCategories = [
     { id: '모니터', name: '모니터' },
     { id: '헤드셋', name: '헤드셋' },
@@ -245,28 +208,29 @@ const SearchResultListPage = () => {
       <Header />
       <PageWrapper>
         <SearchFilter
-          // 카테고리
           categories={availableCategories}
           selectedCategories={selectedCategories}
           onCategoryChange={handleCategoryChange}
-          // 회사
           companies={COMPANIES}
           selectedCompanies={selectedCompanies}
           onCompanyChange={handleCompanyChange}
-          // 배송
-          shippingMethods={SHIPPING_METHODS}
-          selectedShipping={selectedShipping}
-          onShippingChange={handleShippingChange}
-          // 가격/키워드
+          deliveryTypeMethods={DELIVERY_METHODS}
+          selectedDeliveryType={selectedDeliveryType}
+          onDeliveryTypeChange={handleDeliveryTypeChange}
           minPrice={minPrice}
           maxPrice={maxPrice}
           onPriceChange={handlePriceChange}
-          // 초기화
           onReset={handleReset}
         />
-        <SearchResultList query={query} items={items} loading={loading} />
-
-        {/* {hasMore && !loading && <Sentinel ref={sentinelRef} />} */}
+        <SearchResultList
+          query={query}
+          items={items}
+          resultsCount={resultsCount}
+          loading={initialLoading}
+        />
+        {pagingLoading && <Status>추가 상품 로딩 중...</Status>}
+        {error && <Status>{error}</Status>}
+        {hasMore && !initialLoading && <Sentinel ref={sentinelRef} />}
       </PageWrapper>
       <Footer />
     </>
@@ -276,7 +240,6 @@ const SearchResultListPage = () => {
 export default SearchResultListPage;
 
 const PageWrapper = styled.div`
-  --filter-h: 112px;
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
@@ -284,7 +247,12 @@ const PageWrapper = styled.div`
   flex-direction: column;
   gap: 20px;
 `;
-
-// const Sentinel = styled.div`
-//   height: 1px;
-// `;
+const Sentinel = styled.div`
+  height: 40px;
+  width: 100%;
+`;
+const Status = styled.div`
+  text-align: center;
+  color: #666;
+  padding: 20px 0;
+`;

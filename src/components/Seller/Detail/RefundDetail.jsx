@@ -17,9 +17,10 @@ function RefundDetail() {
 
   const handleAcceptRefund = async () => {
     try {
-      await axios.post(
+      const response = await axios.post(
         `/api/orders/seller/refund-requests/${orderItemId}/complete`
       );
+      console.log(response.data);
       alert('환불 처리가 완료되었습니다.');
       navigate('/sellerCenter/refundList'); // 리스트로 이동
     } catch (err) {
@@ -47,7 +48,7 @@ function RefundDetail() {
         // 환불 요청 중인 데이터 가져오기
         res = await axios.get('/api/orders/seller/refund-requests');
         console.log(res.data);
-        let allRefunds = res.data;
+        let allRefunds = res.data.content;
 
         // 요청 중 환불에서 orderItemId가 일치하는 아이템 찾기
         let found = allRefunds.find(
@@ -57,7 +58,7 @@ function RefundDetail() {
         // 못 찾으면 완료된 환불 데이터에서 찾기
         if (!found) {
           res = await axios.get('/api/orders/seller/refund-completed');
-          allRefunds = res.data;
+          allRefunds = res.data.content;
 
           found = allRefunds.find(
             (item) => item.orderItemId === Number(orderItemId)

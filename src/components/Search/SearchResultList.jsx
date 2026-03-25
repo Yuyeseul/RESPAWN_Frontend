@@ -3,22 +3,20 @@ import styled from 'styled-components';
 import ProductCard from '../Product/ProductCard';
 import axios from '../../api/axios';
 
-const SearchResultList = ({ query, items, loading }) => {
+const SearchResultList = ({ query, items, resultsCount, loading }) => {
   const handleAddToCart = async (product) => {
     try {
-      const res = await axios.post('/api/cart/add', {
+      await axios.post('/api/cart/add', {
         itemId: product.id,
         count: 1,
       });
-      console.log(res.data);
-      if (res.status === 200 && res.data?.success) {
-        alert(`${product.name}이(가) 장바구니에 담겼습니다.`);
-      } else {
-        alert('장바구니 담기에 실패했습니다.');
-      }
+      alert(`${product.name}이(가) 담겼습니다.`);
     } catch (err) {
       console.error('장바구니 담기 실패:', err);
-      alert('장바구니 담기 실패');
+
+      const errorMessage = err.response?.data?.message;
+
+      alert(errorMessage || '장바구니 담기에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -34,7 +32,7 @@ const SearchResultList = ({ query, items, loading }) => {
             '전체 상품'
           )}
         </Title>
-        <ResultCount>총 {items.length}개</ResultCount>
+        <ResultCount>총 {resultsCount}개</ResultCount>
       </Header>
 
       {loading ? (
@@ -49,7 +47,7 @@ const SearchResultList = ({ query, items, loading }) => {
             <ProductCard
               key={product.id}
               product={product}
-              onAddToCart={handleAddToCart}
+              onAddToCart={() => handleAddToCart(product)}
             />
           ))}
         </Grid>
@@ -76,7 +74,7 @@ const Title = styled.h2`
   font-weight: bold;
 
   span {
-    color: #0077ff;
+    color: rgb(105, 111, 148);
   }
 `;
 

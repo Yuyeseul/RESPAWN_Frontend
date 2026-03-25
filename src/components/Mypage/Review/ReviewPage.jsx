@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../../../api/axios';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const ReviewPage = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const ReviewPage = () => {
 
     (async () => {
       try {
-        const res = await axios.get(`/api/orders/history/${orderId}`);
+        const res = await axios.get(`/orders/history/${orderId}`);
         setOrder(res.data);
       } catch (err) {
         console.error('주문 정보 불러오기 실패:', err);
@@ -72,7 +73,7 @@ const ReviewPage = () => {
 
     try {
       await axios.post(
-        `/api/reviews/order-items/${selectedItem.orderItemId}`,
+        `/reviews/order-items/${selectedItem.orderItemId}`,
         review
       );
       alert('리뷰가 작성되었습니다.');
@@ -137,13 +138,22 @@ const ReviewPage = () => {
 
           <FormRow>
             <Label htmlFor="content">리뷰 내용</Label>
-            <Textarea
+            <TextareaAutosize
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="리뷰를 입력해 주세요"
               required
+              minRows={10}
               maxLength={499}
+              style={{
+                width: '100%',
+                padding: 12,
+                border: '1px solid #e5e7eb',
+                borderRadius: 8,
+                resize: 'none',
+                fontSize: '16px',
+              }}
             />
             <Hint>{content.length}/500</Hint>
           </FormRow>
@@ -272,18 +282,6 @@ const RequiredMark = styled.span`
   font-size: 14px;
   color: red;
   margin-left: 4px;
-`;
-
-const Textarea = styled.textarea`
-  min-height: 96px;
-  padding: 10px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  outline: none;
-  resize: vertical;
-  &:focus {
-    border-color: #111827;
-  }
 `;
 
 const Hint = styled.div`

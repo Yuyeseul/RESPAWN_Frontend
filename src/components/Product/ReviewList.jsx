@@ -3,27 +3,45 @@ import axios from '../../api/axios';
 import styled from 'styled-components';
 import Pagination from '../Pagination';
 
-const ITEMS_PER_PAGE = 10;
-
 const ReviewList = ({ itemId }) => {
   const [reviews, setReviews] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 10,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
+
+  const handlePageChange = (page) => {
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 }));
+  };
 
   useEffect(() => {
-    if (!itemId) return;
-
-    const fetchReviews = async () => {
-      try {
-        const res = await axios.get(`api/reviews/items/${itemId}`);
-        setReviews(res.data || []);
-        setCurrentPage(1);
-      } catch (err) {
-        console.error('리뷰 불러오기 실패:', err);
-      }
-    };
-
     fetchReviews();
-  }, [itemId]);
+  }, [pageInfo.page]);
+
+  const fetchReviews = async () => {
+    try {
+      const res = await axios.get(`reviews/items/${itemId}`, {
+        params: { page: pageInfo.page, size: pageInfo.size },
+      });
+      const data = res.data;
+      setReviews(data.content);
+      setPageInfo((prev) => ({
+        ...prev,
+        totalPages: data.totalPages,
+        totalElements: data.totalElements,
+        isFirst: data.first,
+        isLast: data.last,
+      }));
+    } catch (err) {
+      console.error('리뷰 불러오기 실패:', err);
+    }
+  };
 
   const getRatingStats = (reviews) => {
     const stats = [0, 0, 0, 0, 0]; // index 0 → 1점, index 4 → 5점
@@ -36,20 +54,13 @@ const ReviewList = ({ itemId }) => {
   };
 
   const ratingStats = getRatingStats(reviews);
-  const totalReviews = reviews.length;
+  const totalReviews = pageInfo.totalElements;
   const averageRating =
     totalReviews > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(
           1
         )
       : 0;
-
-  // 현재 페이지에 보여줄 리뷰 목록 (10개씩)
-  const indexOfLast = currentPage * ITEMS_PER_PAGE;
-  const indexOfFirst = indexOfLast - ITEMS_PER_PAGE;
-  const currentReviews = reviews.slice(indexOfFirst, indexOfLast);
-
-  const totalPages = Math.ceil(reviews.length / ITEMS_PER_PAGE);
 
   return (
     <Container>
@@ -82,7 +93,7 @@ const ReviewList = ({ itemId }) => {
         <NoReview>리뷰가 없습니다.</NoReview>
       ) : (
         <>
-          {currentReviews.map((review) => (
+          {reviews.map((review) => (
             <ReviewCard key={review.reviewId}>
               <Header>
                 <Reviewer>{review.maskedUsername}</Reviewer>
@@ -94,15 +105,15 @@ const ReviewList = ({ itemId }) => {
               <Content>{review.content}</Content>
             </ReviewCard>
           ))}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => {
-              if (page >= 1 && page <= totalPages) {
-                setCurrentPage(page);
-              }
-            }}
-          />
+          {pageInfo.totalPages > 1 && (
+            <Pagination
+              currentPage={pageInfo.page + 1}
+              totalPages={pageInfo.totalPages}
+              onPageChange={handlePageChange}
+              isFirst={pageInfo.isFirst}
+              isLast={pageInfo.isLast}
+            />
+          )}
         </>
       )}
     </Container>
@@ -114,63 +125,36 @@ export default ReviewList;
 const Container = styled.div`
   width: 100%;
   margin: 0 auto;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0 4px;
+    box-sizing: border-box;
+  }
 `;
 
 const Title = styled.h2`
-  font-size: 24px;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  font-size: 20px;
   font-weight: bold;
 `;
 
 const Count = styled.span`
-  color: #d32f2f;
-  font-size: 24px;
+  color: ${({ theme }) => theme.colors.red};
+  font-size: 20px;
   margin-left: 4px;
-`;
-
-const NoReview = styled.p`
-  color: #999;
-  font-size: 14px;
-`;
-
-const ReviewCard = styled.div`
-  border: 1px solid #e0e0e0;
-  padding: 16px;
-  border-radius: 10px;
-  margin-bottom: 16px;
-  background-color: #fafafa;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-`;
-
-const Reviewer = styled.span`
-  font-weight: bold;
-`;
-
-const DateText = styled.span`
-  font-size: 12px;
-  color: #888;
-`;
-
-const Rating = styled.div`
-  margin-bottom: 8px;
-  color: #ff9500;
-  font-weight: 500;
-`;
-
-const Content = styled.p`
-  line-height: 1.6;
 `;
 
 const StatsContainer = styled.div`
   margin: 24px 0;
   padding: 20px;
-  background-color: #fdfdfd;
-  border: 1px solid #ddd;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+    margin: 16px 0;
+  }
 `;
 
 const AverageBox = styled.div`
@@ -182,13 +166,17 @@ const AverageBox = styled.div`
 const AverageScore = styled.span`
   font-size: 24px;
   font-weight: bold;
-  color: #ff9500;
+  color: ${({ theme }) => theme.colors.orange};
   margin-right: 8px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 20px;
+  }
 `;
 
 const TotalReviewText = styled.span`
   font-size: 14px;
-  color: #555;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const StatRow = styled.div`
@@ -196,33 +184,110 @@ const StatRow = styled.div`
   align-items: center;
   gap: 12px;
   margin-bottom: 10px;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
 `;
 
 const RatingLabel = styled.span`
   width: 40px;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[700]};
   text-align: right;
-`;
 
-const CountText = styled.span`
-  width: 40px;
-  font-size: 13px;
-  color: #666;
-  text-align: left;
+  @media ${({ theme }) => theme.mobile} {
+    width: 32px;
+    font-size: 14px;
+  }
 `;
 
 const ProgressBar = styled.div`
   flex: 1;
   height: 10px;
-  background-color: #eee;
+  background-color: ${({ theme }) => theme.colors.gray[300]};
   border-radius: 20px;
   overflow: hidden;
 `;
 
 const Progress = styled.div`
   height: 100%;
-  background-color: #ffb347;
+  background-color: ${({ theme }) => theme.colors.yellow};
   transition: width 0.3s ease;
+`;
+
+const CountText = styled.span`
+  width: 40px;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  text-align: left;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 32px;
+    font-size: 12px;
+  }
+`;
+
+const NoReview = styled.p`
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-size: 14px;
+`;
+
+const ReviewCard = styled.div`
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+`;
+
+const Reviewer = styled.span`
+  color: ${({ theme }) => theme.colors.gray[700]};
+  font-weight: bold;
+
+  @media ${({ theme }) => theme.mobile} {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+`;
+
+const DateText = styled.span`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-left: 0;
+  }
+`;
+
+const Rating = styled.div`
+  margin-bottom: 8px;
+  color: ${({ theme }) => theme.colors.orange};
+  font-weight: 500;
+`;
+
+const Content = styled.p`
+  line-height: 1.6;
 `;

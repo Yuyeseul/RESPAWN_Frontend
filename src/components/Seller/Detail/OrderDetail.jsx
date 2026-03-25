@@ -144,92 +144,92 @@ export default OrderDetail;
 
 const Wrapper = styled.div`
   max-width: 1100px;
-  margin: 70px auto 100px;
-  padding: 0 30px;
+  margin: 40px auto 80px;
+  padding: 0 20px;
   font-family: 'Noto Sans KR', sans-serif;
-  color: #000;
+  color: #333;
 `;
 
 const Title = styled.h1`
-  font-size: 32px;
-  font-weight: 800;
-  color: #000;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111;
   margin-bottom: 40px;
   letter-spacing: -0.02em;
 `;
 
 const Section = styled.section`
   background: #fff;
-  border: 1.5px solid #c3c9db;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 36px 48px;
-  margin-bottom: 48px;
+  padding: 24px 32px;
+  margin-bottom: 32px;
   box-shadow: 0 6px 15px rgb(0 0 0 / 0.07);
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
   margin-bottom: 28px;
   color: #000;
-  border-bottom: 3px solid #696f94;
+  border-bottom: 2px solid #555a82;
   padding-bottom: 10px;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 18px;
+  border-spacing: 0 12px;
 
   th,
   td {
-    padding: 20px 24px;
-    font-size: 18px;
+    padding: 14px 16px;
+    font-size: 15px;
     vertical-align: middle;
   }
 
   th {
-    width: 160px;
-    font-weight: 700;
+    width: 130px;
+    font-weight: 600;
     color: #555a82;
     text-align: left;
-    background: rgba(105, 111, 148, 0.1);
-    border-radius: 8px 0 0 8px;
+    background: #f3f4f6;
+    border-radius: 6px 0 0 6px;
   }
 
   td {
-    background: #f9fafc;
-    border-radius: 0 8px 8px 0;
-    font-weight: 600;
-    color: #000;
-  }
-
-  tr {
-    box-shadow: 0 1px 6px rgb(0 0 0 / 0.06);
+    background: #f9fafb;
+    border-radius: 0 6px 6px 0;
+    font-weight: 500;
+    color: #111;
   }
 
   .highlight {
-    font-weight: 900;
-    font-size: 20px;
+    font-weight: 700;
+    font-size: 16px;
     color: #000;
   }
 `;
 
 const FlexContainer = styled.div`
   display: flex;
-  gap: 48px;
+  gap: 32px;
   flex-wrap: wrap;
   justify-content: space-between;
+  & > section {
+    flex: 1;
+    min-width: 400px;
+  }
 `;
 
 const BackButton = styled.button`
   background: none;
   border: none;
-  color: #696f94;
-  font-size: 18px;
-  font-weight: 700;
+  color: #555a82;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  margin-bottom: 36px;
+  margin-bottom: 24px;
   padding: 0;
   &:hover {
     text-decoration: underline;
@@ -238,9 +238,10 @@ const BackButton = styled.button`
 
 const StatusBadge = styled.span`
   display: inline-block;
-  padding: 6px 18px;
-  border-radius: 24px;
-  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
   color: white;
 
   background-color: ${(props) => {

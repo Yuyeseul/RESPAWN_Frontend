@@ -5,13 +5,25 @@ import SmallBanner from '../Banner/SmallBanner';
 import OrderCard from './OrderHistory/OrderCard';
 import Pagination from '../Pagination';
 
-const ORDERS_PER_PAGE = 3;
-
 function MainInfo() {
   const [user, setUser] = useState({});
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({
+    page: 0,
+    size: 3,
+    totalPages: 0,
+    totalElements: 0,
+    isFirst: true,
+    isLast: true,
+  });
+
+  const handlePageChange = (page) => {
+    // Pagination 컴포넌트는 1-indexed 페이지 번호를 전달
+    if (page < 1 || (pageInfo.totalPages > 0 && page > pageInfo.totalPages))
+      return;
+    setPageInfo((p) => ({ ...p, page: page - 1 })); // 0-indexed로 변환하여 상태 업데이트
+  };
 
   useEffect(() => {
     let active = true;
@@ -21,7 +33,8 @@ function MainInfo() {
       try {
         const [userRes, orderRes] = await Promise.allSettled([
           axios.get('/myPage/summary', { signal: controller.signal }),
-          axios.get('/api/orders/history/recent-month', {
+          axios.get('/orders/history/recent-month', {
+            params: { page: pageInfo.page, size: pageInfo.size },
             signal: controller.signal,
           }),
         ]);
@@ -31,19 +44,17 @@ function MainInfo() {
         console.log('userRes', userRes.value.data);
         console.log('orderRes', orderRes.value.data);
 
-        // user 처리
-        if (userRes.status === 'fulfilled') {
-          setUser(userRes.value.data.result);
-        }
+        setUser(userRes.value.data.result);
 
-        // orders 처리: 배열 -> 최신 1건 선택
-        if (orderRes.status === 'fulfilled') {
-          const orders = Array.isArray(orderRes.value.data)
-            ? orderRes.value.data
-            : [];
-          setRecentOrders(orders);
-          setCurrentPage(1);
-        }
+        const ordersData = orderRes.value.data;
+        setRecentOrders(ordersData.content || []);
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: ordersData.totalPages,
+          totalElements: ordersData.totalElements,
+          isFirst: ordersData.first,
+          isLast: ordersData.last,
+        }));
       } catch (error) {
         console.error('유저 또는 주문 정보 불러오기 실패', error);
       } finally {
@@ -53,11 +64,12 @@ function MainInfo() {
       }
     };
     fetchData();
+
     return () => {
       active = false;
       controller.abort();
     };
-  }, []);
+  }, [pageInfo.page, pageInfo.size]);
 
   // 정렬: 최신 주문이 먼저
   const sortedOrders = useMemo(
@@ -70,19 +82,6 @@ function MainInfo() {
         ),
     [recentOrders]
   );
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(sortedOrders.length / ORDERS_PER_PAGE)
-  );
-  const startIdx = (currentPage - 1) * ORDERS_PER_PAGE;
-  const endIdx = startIdx + ORDERS_PER_PAGE;
-  const currentOrders = sortedOrders.slice(startIdx, endIdx);
-
-  // totalPages가 줄어든 경우 페이지 보정
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-  }, [currentPage, totalPages]);
 
   if (loading) {
     return <div>로딩 중...</div>;
@@ -111,15 +110,21 @@ function MainInfo() {
 
         {sortedOrders.length > 0 ? (
           <>
-            {currentOrders.map((o) => (
+            {/* ✅ FIX: currentOrders -> sortedOrders 로 변경 */}
+            {sortedOrders.map((o) => (
               <OrderCard key={o.orderId} order={o} />
             ))}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+
+            {pageInfo.totalPages > 1 && (
+              <PaginationWrapper>
+                <Pagination
+                  currentPage={pageInfo.page + 1} // UI에는 1-indexed
+                  totalPages={pageInfo.totalPages}
+                  onPageChange={handlePageChange} // ✅ FIX: 올바른 핸들러 함수 전달
+                  isFirst={pageInfo.isFirst}
+                  isLast={pageInfo.isLast}
+                />
+              </PaginationWrapper>
             )}
           </>
         ) : (
@@ -173,8 +178,14 @@ const SectionTitle = styled.h3`
   padding-bottom: 6px;
 `;
 
+const PaginationWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+`;
+
 const NoOrderText = styled.p`
-  color: #999;
+  color: #666;
   text-align: center;
   font-size: 16px;
 `;

@@ -21,7 +21,6 @@ const ProfileComplete = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
-  // 1) 누락 필드 파싱: ?missing=name%2CphoneNumber → ['name','phoneNumber']
   const missing = useMemo(() => {
     const raw = params.get('missing') || '';
     return raw
@@ -30,7 +29,7 @@ const ProfileComplete = () => {
       .filter((s) => s === 'name' || s === 'phoneNumber'); // 허용 목록 화이트리스트
   }, [params]); // [5][1]
 
-  // 2) 폼 상태
+  // 폼 상태
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumberState);
   const [confirmPhone, setConfirmPhone] = useState(initialConfirmPhoneState);
@@ -49,6 +48,10 @@ const ProfileComplete = () => {
     name: missing.includes('name'),
     phoneNumber: missing.includes('phoneNumber'),
   };
+
+  const isReadyToSubmit =
+    (!needs.name || name.trim() !== '') &&
+    (!needs.phoneNumber || phoneNumber.isCheckedPhoneNumber);
 
   // 전화번호 인증 요청 (응답값 false -> 중복X)
   const verifyPhoneNumber = async () => {
@@ -101,7 +104,6 @@ const ProfileComplete = () => {
           isCheckedPhoneNumber: true,
           error: '',
         });
-        setShowPhoneConfirm(false);
         setTimerActive(false);
         alert('전화번호 인증이 완료되었습니다.');
       }
@@ -160,10 +162,8 @@ const ProfileComplete = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    // 이름이 필요한 경우에만 체크
     if (needs.name) {
-      const trimmedName = name?.trim() || '';
-      if (!trimmedName) {
+      if (!name?.trim()) {
         alert('이름을 입력해주세요.');
         return;
       }
@@ -205,8 +205,6 @@ const ProfileComplete = () => {
       // 서버 연동 예시
       await axios.post('/profile/update', userData);
       console.log(userData);
-
-      // 완료 후 이동: 프로필 또는 홈
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -233,50 +231,66 @@ const ProfileComplete = () => {
                 value={name}
                 onChange={onChange('name')}
                 required
+                disabled={phoneNumber.isCheckedPhoneNumber}
               />
             </Field>
           )}
 
           {needs.phoneNumber && (
             <Field>
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="01012345678"
-                value={phoneNumber.phoneNumber}
-                onChange={onChange('phoneNumber')}
-                required
-              />
+              <InputRow>
+                <Input
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="01012345678"
+                  value={phoneNumber.phoneNumber}
+                  onChange={onChange('phoneNumber')}
+                  required
+                />
+                <Button
+                  type="button"
+                  disabled={
+                    !phoneNumber.isRequiredPhoneNumber ||
+                    phoneNumber.isCheckedPhoneNumber
+                  }
+                  onClick={verifyPhoneNumber}
+                >
+                  인증하기
+                </Button>
+              </InputRow>
               <Hint>숫자만 입력 (하이픈 없이)</Hint>
-
-              <Button
-                type="button"
-                disabled={!phoneNumber.isRequiredPhoneNumber}
-                onClick={verifyPhoneNumber}
-              >
-                인증번호 받기
-              </Button>
 
               {showPhoneConfirm && (
                 <Field>
-                  <Input
-                    id="confirmPhone"
-                    name="confirmPhone"
-                    type="text"
-                    placeholder="인증번호 입력"
-                    value={confirmPhone.confirmPhone}
-                    onChange={onChange('confirmPhone')}
-                  />
-                  <Button type="button" onClick={confirmPhoneVerificationCode}>
-                    확인
-                  </Button>
-                  <Timer>
-                    {Math.floor(countdown / 60)}:
-                    {String(countdown % 60).padStart(2, '0')}
-                  </Timer>
+                  <InputRow>
+                    <Input
+                      id="confirmPhone"
+                      name="confirmPhone"
+                      type="text"
+                      placeholder="인증번호 입력"
+                      value={confirmPhone.confirmPhone}
+                      onChange={onChange('confirmPhone')}
+                      disabled={phoneNumber.isCheckedPhoneNumber}
+                    />
+                    <Button
+                      type="button"
+                      onClick={confirmPhoneVerificationCode}
+                      disabled={phoneNumber.isCheckedPhoneNumber}
+                    >
+                      {phoneNumber.isCheckedPhoneNumber
+                        ? '인증완료'
+                        : '인증확인'}
+                    </Button>
+                  </InputRow>
+                  {timerActive && (
+                    <Timer>
+                      인증 유효 시간: {Math.floor(countdown / 60)}:
+                      {String(countdown % 60).padStart(2, '0')}
+                    </Timer>
+                  )}
                 </Field>
               )}
 
@@ -286,9 +300,11 @@ const ProfileComplete = () => {
 
           {error && <ErrorMsg role="alert">{error}</ErrorMsg>}
 
-          <Button type="submit" disabled={submitting}>
-            {submitting ? '저장 중...' : '저장'}
-          </Button>
+          {isReadyToSubmit && (
+            <Button type="submit" disabled={submitting}>
+              {submitting ? '저장 중...' : '저장'}
+            </Button>
+          )}
         </Form>
       </Card>
     </Container>
@@ -342,15 +358,47 @@ const Field = styled.div`
 `;
 
 const Input = styled.input`
-  border: none;
-  border-bottom: 1px solid #ccc;
+  flex: 1;
   padding: 12px;
   font-size: 16px;
+  border: none;
+  border-bottom: 2px solid #ccc;
   background: transparent;
+  border-radius: 6px 6px 0 0;
   &:focus {
     outline: none;
     border-bottom: 2px solid rgb(105, 111, 148);
   }
+  &:disabled {
+    background: #f6f6f6;
+    color: #aaa;
+  }
+`;
+
+const Button = styled.button`
+  background: rgb(105, 111, 148);
+  color: white;
+  width: 110px;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+  &:hover:not(:disabled) {
+    background: rgb(85, 90, 130);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+`;
+
+const InputRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 `;
 
 const Hint = styled.span`
@@ -361,23 +409,6 @@ const Hint = styled.span`
 const ErrorMsg = styled.div`
   color: #d93025;
   font-size: 14px;
-`;
-
-const Button = styled.button`
-  background: rgb(105, 111, 148);
-  color: white;
-  padding: 12px;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  &:hover {
-    background: rgb(85, 90, 130);
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
 `;
 
 const Timer = styled.span`

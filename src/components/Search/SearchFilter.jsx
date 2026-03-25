@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 const SearchFilter = ({
@@ -10,9 +10,9 @@ const SearchFilter = ({
   selectedCompanies = [],
   onCompanyChange,
 
-  shippingMethods = [],
-  selectedShipping = '',
-  onShippingChange,
+  deliveryTypeMethods = [],
+  selectedDeliveryType = '',
+  onDeliveryTypeChange,
 
   minPrice,
   maxPrice,
@@ -20,6 +20,18 @@ const SearchFilter = ({
 
   onReset,
 }) => {
+  const [localMin, setLocalMin] = useState(minPrice ?? '');
+  const [localMax, setLocalMax] = useState(maxPrice ?? '');
+
+  useEffect(() => {
+    setLocalMin(minPrice ?? '');
+    setLocalMax(maxPrice ?? '');
+  }, [minPrice, maxPrice]);
+
+  const handleApplyPrice = () => {
+    onPriceChange?.({ min: localMin, max: localMax });
+  };
+
   return (
     <FilterBar>
       <BarHeader>
@@ -70,14 +82,14 @@ const SearchFilter = ({
         <Group>
           <Label>배송</Label>
           <RadioRow>
-            {shippingMethods.map((m) => (
+            {deliveryTypeMethods.map((m) => (
               <RadioItem key={m.id}>
                 <input
                   id={`ship-${m.id}`}
                   type="radio"
-                  name="shipping"
-                  checked={selectedShipping === m.id}
-                  onChange={() => onShippingChange?.(m.id)}
+                  name="delivery"
+                  checked={selectedDeliveryType === m.id}
+                  onChange={() => onDeliveryTypeChange?.(m.id)}
                 />
                 <label htmlFor={`ship-${m.id}`}>{m.name}</label>
               </RadioItem>
@@ -86,34 +98,25 @@ const SearchFilter = ({
         </Group>
 
         <InlineRow>
-          <Group small>
+          <Group small grow>
             <Label>가격</Label>
             <PriceRow>
               <Input
                 type="number"
-                min="0"
                 placeholder="최소"
-                value={minPrice ?? ''}
-                onChange={(e) =>
-                  onPriceChange?.({
-                    min: e.target.value === '' ? null : Number(e.target.value),
-                    max: maxPrice ?? null,
-                  })
-                }
+                value={localMin}
+                onChange={(e) => setLocalMin(e.target.value)}
               />
               <Dash>~</Dash>
               <Input
                 type="number"
-                min="0"
                 placeholder="최대"
-                value={maxPrice ?? ''}
-                onChange={(e) =>
-                  onPriceChange?.({
-                    min: minPrice ?? null,
-                    max: e.target.value === '' ? null : Number(e.target.value),
-                  })
-                }
+                value={localMax}
+                onChange={(e) => setLocalMax(e.target.value)}
               />
+              <ApplyButton type="button" onClick={handleApplyPrice}>
+                적용
+              </ApplyButton>
             </PriceRow>
           </Group>
         </InlineRow>
@@ -208,7 +211,7 @@ const CheckItem = styled.div`
   gap: 8px;
 
   input[type='checkbox'] {
-    accent-color: #2563eb;
+    accent-color: rgb(85, 90, 130);
     width: 16px;
     height: 16px;
   }
@@ -231,7 +234,7 @@ const RadioItem = styled.div`
   gap: 8px;
 
   input[type='radio'] {
-    accent-color: #2563eb;
+    accent-color: rgb(85, 90, 130);
     width: 16px;
     height: 16px;
   }
@@ -268,16 +271,34 @@ const Input = styled.input`
   border-radius: 8px;
   outline: none;
   background: #fff;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
 
   &:hover {
     border-color: #d1d5db;
   }
   &:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    border-color: rgb(105, 111, 148);
+    box-shadow: 0 0 0 3px rgba(105, 111, 148, 0.12);
   }
   &::placeholder {
     color: #9ca3af;
+  }
+`;
+
+const ApplyButton = styled.button`
+  padding: 8px 16px;
+  background: rgb(105, 111, 148);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    background: rgb(85, 90, 130);
   }
 `;

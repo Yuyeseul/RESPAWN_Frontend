@@ -264,6 +264,7 @@ export default function TiptapEditor({ value = '', onChange }) {
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
     ],
     content: value,
+    autofocus: false,
     onUpdate: ({ editor }) => {
       onChange && onChange(editor.getHTML());
     },
@@ -277,11 +278,11 @@ export default function TiptapEditor({ value = '', onChange }) {
       value !== editor.getHTML()
     ) {
       editor.commands.setContent(value, false);
-      setTimeout(() => {
-        if (editor.view && !editor.isDestroyed) {
-          editor.commands.focus();
-        }
-      }, 0);
+      // setTimeout(() => {
+      //   if (editor.view && !editor.isDestroyed) {
+      //     editor.commands.focus();
+      //   }
+      // }, 0);
     }
   }, [value, editor]);
 

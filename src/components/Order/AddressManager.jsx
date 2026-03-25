@@ -136,6 +136,7 @@ const AddressManager = ({ defaultAddress, onAddressSelect }) => {
           onClose={() => setIsAddressListModalOpen(false)}
           preSelectedId={preSelectedAddressId}
           onConfirm={handleAddressListConfirm}
+          mode="order"
         />
       )}
 

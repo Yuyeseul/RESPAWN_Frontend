@@ -42,11 +42,28 @@ const Login = (e) => {
       formData.append('password', user.password);
 
       const response = await axios.post('/loginProc', formData);
+      const data = response.data; // 서버에서 받은 유저 정보
+      // ⭐️ 권한 체크 로직 추가
+      // role 값이 'ROLE_ADMIN'이 아니면 로그인을 무산시킵니다.
+      if (data.role !== 'ROLE_ADMIN') {
+        alert('접근 권한이 없는 계정입니다.\n관리자 계정으로 로그인해주세요.');
+        try {
+          await axios.post('/logout');
+        } catch (logoutError) {
+          console.error('강제 로그아웃 중 오류 발생:', logoutError);
+        }
+
+        // 세션 스토리지 비우기 및 메인 이동
+        sessionStorage.clear();
+        navigate('/adminlogin');
+        return;
+      }
+
       console.log('로그인 성공', response.data);
 
       sessionStorage.setItem('userData', JSON.stringify(response.data));
       setFailCount(0);
-      navigate('/admin');
+      navigate('/admin/members');
     } catch (error) {
       if (error.response && error.response.data) {
         const { error: errorCode, failedLoginAttempts } = error.response.data;
@@ -61,14 +78,14 @@ const Login = (e) => {
         } else if (errorCode === 'locked') {
           // 계정 잠김 안내
           alert(
-            '비밀번호 5회 불일치로 계정이 잠겼습니다. 관리자에게 문의하세요. '
+            '비밀번호 5회 불일치로 계정이 잠겼습니다. 관리자에게 문의하세요. ',
           );
         } else if (errorCode === 'invalid_credentials') {
           // 비밀번호/아이디 불일치 안내
           alert(
             `아이디 또는 비밀번호가 올바르지 않습니다.(${
               failedLoginAttempts || 0
-            }회 실패)`
+            }회 실패)`,
           );
         } else if (errorCode === 'disabled') {
           alert(`정지된 계정입니다. 관리자에게 문의하세요.`);

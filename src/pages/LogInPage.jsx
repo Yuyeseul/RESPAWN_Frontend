@@ -7,8 +7,11 @@ import naver_icon from '../assets/login_naver.png';
 import google_icon from '../assets/login_google.png';
 import kakao_icon from '../assets/login_kakao.png';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../AuthContext';
+import { BASE_URL } from '../api/axios';
 
 const LoginPage = (e) => {
+  const { login } = useAuth();
   const [failCount, setFailCount] = useState(0);
   const [user, setUser] = useState({
     username: '',
@@ -46,8 +49,7 @@ const LoginPage = (e) => {
       formData.append('password', user.password);
 
       const response = await axios.post('/loginProc', formData);
-      sessionStorage.setItem('userData', JSON.stringify(response.data));
-      localStorage.setItem('auth:updated', String(Date.now())); // 브로드캐스트
+      login(response.data);
       console.log('일반 로그인 성공', response.data);
 
       setFailCount(0);
@@ -106,8 +108,7 @@ const LoginPage = (e) => {
       if (data.type === 'LOGIN_SUCCESS') {
         try {
           const res = await axios.get('/loginOk');
-          sessionStorage.setItem('userData', JSON.stringify(res.data));
-          localStorage.setItem('auth:updated', String(Date.now()));
+          login(res.data);
           console.log('소셜 로그인 성공');
           navigate('/');
         } catch (err) {
@@ -160,7 +161,7 @@ const LoginPage = (e) => {
       window.removeEventListener('message', handleMessage);
       window.removeEventListener('storage', onStorage);
     };
-  }, [navigate]);
+  }, [navigate, login]);
 
   // 팝업창 닫힘 감지용 effect
   useEffect(() => {
@@ -180,7 +181,7 @@ const LoginPage = (e) => {
 
   const handleSocialLogin = (provider) => {
     const win = window.open(
-      `http://localhost:8080/oauth2/authorization/${provider}`,
+      `http://${BASE_URL}/oauth2/authorization/${provider}`,
       '_blank',
       'width=600,height=700,resizable=yes,scrollbars=yes'
     );
@@ -270,7 +271,7 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #fafafa;
+  background: ${({ theme }) => theme.colors.gray[50]};
   padding: 40px 20px;
 `;
 
@@ -278,29 +279,51 @@ const LogoWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
   & > div img {
     height: 80px;
     object-fit: contain;
+    transition: height 0.2s ease;
+
+    @media ${({ theme }) => theme.mobile} {
+      height: 56px;
+    }
   }
 `;
 
 const LogInBox = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.white};
   padding: 40px;
   border-radius: 12px;
   width: 100%;
   max-width: 480px;
   margin-top: 40px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 24px 16px;
+    margin-top: 20px;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
 `;
 
 const Field = styled.div`
   position: relative;
-  width: 300px;
+  width: 100%;
+  max-width: 260px;
   margin-bottom: 16px;
 `;
 
@@ -308,13 +331,13 @@ const Input = styled.input`
   width: 100%;
   padding: 12px 40px 12px 12px;
   border: none;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   font-size: 16px;
   background: transparent;
 
   &:focus {
     outline: none;
-    border-bottom: 2px solid rgb(105, 111, 148);
+    border-bottom: 2px solid ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -326,18 +349,19 @@ const IconButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 18px;
 
   &:hover {
-    color: rgb(105, 111, 148);
+    color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
 const Button = styled.button`
   width: 100%;
-  background: rgb(105, 111, 148);
-  color: white;
+  max-width: 260px;
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
   padding: 14px;
   font-size: 16px;
   border: none;
@@ -346,7 +370,7 @@ const Button = styled.button`
   margin-top: 10px;
 
   &:hover {
-    background: rgb(85, 90, 130);
+    background: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -355,24 +379,25 @@ const LWrap = styled.div`
   justify-content: center;
   align-items: center;
   margin-top: 16px;
+  margin-bottom: 32px;
   gap: 12px;
   flex-wrap: wrap;
 `;
 
 const LLink = styled.a`
   cursor: pointer;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   text-decoration: none;
   font-size: 14px;
 
   &:hover {
-    color: rgb(105, 111, 148);
+    color: ${({ theme }) => theme.colors.secondary};
     text-decoration: underline;
   }
 `;
 
 const Message = styled.p`
-  color: red;
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 14px;
   margin-top: 8px;
   text-align: center;
@@ -381,7 +406,7 @@ const Message = styled.p`
 const SocialButton = styled.button`
   margin-top: 12px;
   width: 100%;
-  max-width: 240px;
+  max-width: 260px;
   height: 48px;
   background: transparent;
   border: none;
@@ -397,7 +422,9 @@ const SocialButton = styled.button`
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 
@@ -408,7 +435,7 @@ const SocialButton = styled.button`
 `;
 
 const FailCountMessage = styled.p`
-  color: #d93025; /* 빨간색 */
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 14px;
   margin-top: 4px;
   text-align: center;

@@ -5,8 +5,12 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import ReviewList from './ReviewList';
 import InquiryList from './InquiryList';
+import { useAuth } from '../../AuthContext';
+import { BASE_URL } from '../../api/axios';
 
 function ProductDetail() {
+  const { user } = useAuth();
+  const isSeller = user?.role === 'ROLE_SELLER';
   const { id } = useParams();
   const [item, setItem] = useState(null);
   const [count, setCount] = useState(1);
@@ -17,7 +21,7 @@ function ProductDetail() {
     const controller = new AbortController();
     const fetchItem = async () => {
       try {
-        const res = await axios.get(`/api/items/${id}`, {
+        const res = await axios.get(`/items/${id}`, {
           signal: controller.signal,
         });
         setItem(res.data);
@@ -34,8 +38,19 @@ function ProductDetail() {
   }, [id]);
 
   const handleBuyNow = async () => {
+    if (!user) {
+      if (
+        window.confirm(
+          '로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?'
+        )
+      ) {
+        navigate('/login');
+      }
+      return;
+    }
+
     try {
-      const res = await axios.post('/api/orders/prepare', {
+      const res = await axios.post('/orders/prepare', {
         itemId: item.id,
         count: count,
       });
@@ -48,8 +63,19 @@ function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
+    if (!user) {
+      if (
+        window.confirm(
+          '로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?'
+        )
+      ) {
+        navigate('/login');
+      }
+      return;
+    }
+
     try {
-      await axios.post('/api/cart/add', {
+      await axios.post('/cart/add', {
         itemId: item.id,
         count: count,
       });
@@ -78,39 +104,47 @@ function ProductDetail() {
         <TopSection>
           {item.imageUrl && (
             <ImageBox>
-              <ProductImage src={item.imageUrl} width={300} alt={item.name} />
+              <ProductImage
+                src={`${BASE_URL}${item.imageUrl}`}
+                width={300}
+                alt={item.name}
+              />
             </ImageBox>
           )}
           <DetailBox>
             <Title>{item.name}</Title>
             <Price>{item.price.toLocaleString()} 원</Price>
 
-            <InfoRow>
+            <InfoRow $isSeller={isSeller}>
               <Value>
                 {item.deliveryType} / {item.deliveryFee.toLocaleString()} 원
               </Value>
             </InfoRow>
 
-            <CountRow>
-              <span>수량</span>
-              <CountControls>
-                <QtyButton onClick={handleDecrease}>-</QtyButton>
-                <QtyDisplay>{count}</QtyDisplay>
-                <QtyButton onClick={handleIncrease}>+</QtyButton>
-              </CountControls>
-            </CountRow>
+            {!isSeller && (
+              <>
+                <CountRow>
+                  <span>수량</span>
+                  <CountControls>
+                    <QtyButton onClick={handleDecrease}>-</QtyButton>
+                    <QtyDisplay>{count}</QtyDisplay>
+                    <QtyButton onClick={handleIncrease}>+</QtyButton>
+                  </CountControls>
+                </CountRow>
 
-            <TotalRow>
-              <span>총 상품 금액</span>
-              <TotalPrice>
-                총 수량 {count}개 | {totalPrice.toLocaleString()} 원
-              </TotalPrice>
-            </TotalRow>
+                <TotalRow>
+                  <span>총 상품 금액</span>
+                  <TotalPrice>
+                    총 수량 {count}개 | {totalPrice.toLocaleString()} 원
+                  </TotalPrice>
+                </TotalRow>
 
-            <ButtonRow>
-              <BuyButton onClick={handleBuyNow}>바로 구매</BuyButton>
-              <CartButton onClick={handleAddToCart}>장바구니</CartButton>
-            </ButtonRow>
+                <ButtonRow>
+                  <BuyButton onClick={handleBuyNow}>바로 구매</BuyButton>
+                  <CartButton onClick={handleAddToCart}>장바구니</CartButton>
+                </ButtonRow>
+              </>
+            )}
           </DetailBox>
         </TopSection>
 
@@ -188,6 +222,12 @@ const PageLayout = styled.div`
   padding: 60px 24px;
   max-width: 1200px;
   width: 100%;
+  box-sizing: border-box;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 24px;
+    padding: 20px 16px;
+  }
 `;
 
 const TopSection = styled.div`
@@ -195,17 +235,30 @@ const TopSection = styled.div`
   justify-content: space-between;
   gap: 60px;
   width: 100%;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    gap: 20px;
+  }
 `;
 
 const ImageBox = styled.div`
   flex: 1;
   max-width: 450px;
-  height: 450px;
-  background-color: #eee;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-left: 30px;
+  overflow: hidden;
+  border-radius: 12px;
+
+  @media ${({ theme }) => theme.mobile} {
+    max-width: 100%;
+    margin-left: 0; // 기존 30px 제거
+    height: auto;
+  }
 `;
 
 const ProductImage = styled.img`
@@ -220,28 +273,45 @@ const DetailBox = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 16px;
+  }
 `;
 
 const Title = styled.h2`
+  font-size: 32px;
   font-size: 40px;
+  line-height: 1.2;
   font-weight: 700;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 24px;
+  }
 `;
 
 const Price = styled.div`
   font-size: 28px;
   font-weight: bold;
-  color: #222;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
 const InfoRow = styled.div`
   display: flex;
   gap: 16px;
   font-size: 16px;
-  margin-top: 80px;
+  margin-top: ${({ $isSeller }) => ($isSeller ? '20px' : '80px')};
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 0;
+    padding: 12px 0;
+    border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  }
 `;
 
 const Value = styled.div`
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
 const CountRow = styled.div`
@@ -253,7 +323,7 @@ const CountRow = styled.div`
 const CountControls = styled.div`
   display: flex;
   align-items: center;
-  border: 1px solid #ccc;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 6px;
   overflow: hidden;
 `;
@@ -267,7 +337,7 @@ const QtyButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: #f2f2f2;
+    background: ${({ theme }) => theme.colors.gray[300]};
   }
 `;
 
@@ -287,18 +357,27 @@ const TotalRow = styled.div`
 `;
 
 const TotalPrice = styled.div`
-  color: rgb(85, 90, 130);
+  color: ${({ theme }) => theme.colors.primary};
   font-size: 18px;
 `;
 
 const ButtonRow = styled.div`
   display: flex;
-  gap: 16px;
+  gap: 12px;
+  margin-top: 10px;
+
+  @media ${({ theme }) => theme.mobile} {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 10px 0;
+    z-index: 10;
+  }
 `;
 
 const BuyButton = styled.button`
   flex: 1;
-  background-color: rgb(85, 90, 130);
+  background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   padding: 14px 0;
@@ -306,16 +385,12 @@ const BuyButton = styled.button`
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
-
-  &:hover {
-    background-color: rgb(85, 90, 130);
-  }
 `;
 
 const CartButton = styled.button`
   flex: 1;
-  background-color: #eee;
-  color: #333;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
+  color: ${({ theme }) => theme.colors.gray[700]};
   border: none;
   padding: 14px 0;
   font-size: 16px;
@@ -323,48 +398,67 @@ const CartButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: #ddd;
+    background-color: ${({ theme }) => theme.colors.gray[300]};
+  }
+`;
+
+const TabMenu = styled.div`
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const TabItem = styled.button`
+  flex: 1;
+  min-width: 80px;
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : theme.colors.gray[600]};
+
+  border-bottom: ${({ $active, theme }) =>
+    $active ? `2px solid ${theme.colors.primary}` : '2px solid transparent'};
+
+  font-weight: ${({ $active }) => ($active ? '700' : '400')};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 14px 10px;
+    font-size: 15px;
   }
 `;
 
 const DescriptionBox = styled.div`
   width: 100%;
-  background: #f9f9f9;
+  background: ${({ theme }) => theme.colors.gray[100]};
   padding: 30px;
   border-radius: 10px;
 
   h3 {
     margin-bottom: 10px;
     font-size: 20px;
-    color: #444;
+    color: ${({ theme }) => theme.colors.gray[700]};
   }
 
   p {
     white-space: pre-wrap;
     line-height: 1.6;
     font-size: 16px;
-    color: #555;
-  }
-`;
-
-const TabMenu = styled.div`
-  display: flex;
-  gap: 16px;
-  border-bottom: 1px solid #ddd;
-`;
-
-const TabItem = styled.button`
-  background: none;
-  border: none;
-  padding: 12px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  color: ${({ $active }) => ($active ? '#000' : '#888')};
-  border-bottom: ${({ $active }) =>
-    $active ? '2px solid #000' : '2px solid transparent'};
-  font-weight: ${({ $active }) => ($active ? 'bold' : 'normal')};
-
-  &:hover {
-    color: #000;
+    color: ${({ theme }) => theme.colors.gray[700]};
   }
 `;

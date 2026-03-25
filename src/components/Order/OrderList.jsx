@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from '../../api/axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import StepProgress from '../common/StepProgress';
 import PaymentComponent from './PaymentComponent';
 import AddressManager from './AddressManager';
@@ -9,6 +9,8 @@ import DiscountManager from './DiscountManager';
 
 const OrderList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isCompleting = React.useRef(false);
   const { orderId } = useParams();
   const [orderData, setOrderData] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -68,6 +70,7 @@ const OrderList = () => {
 
   // PaymentComponent에서 결제 완료 시 호출될 함수
   const handlePaymentComplete = () => {
+    isCompleting.current = true;
     setShowPaymentComponent(false);
 
     // 결제 완료 후 주문 완료 처리
@@ -82,6 +85,7 @@ const OrderList = () => {
         navigate(`/order/${orderId}/complete`);
       })
       .catch((err) => {
+        isCompleting.current = false;
         alert(err.response?.data?.error || '주문 처리 중 오류가 발생했습니다.');
       });
   };
@@ -112,36 +116,54 @@ const OrderList = () => {
   };
 
   useEffect(() => {
-    const isRefresh = () => {
-      const navEntries = performance.getEntriesByType('navigation');
-      return navEntries.length > 0 && navEntries[0].type === 'reload';
-    };
+    if (showPaymentComponent) {
+      const preventGoBack = () => {
+        window.history.pushState(null, '', window.location.href);
+        alert('결제 진행 중에는 페이지를 이동할 수 없습니다.');
+      };
 
+      window.history.pushState(null, '', window.location.href);
+      window.addEventListener('popstate', preventGoBack);
+
+      return () => window.removeEventListener('popstate', preventGoBack);
+    }
+  }, [showPaymentComponent]);
+
+  useEffect(() => {
+    const currentOrderId = orderId;
     const sendDeleteRequest = () => {
+      if (isCompleting.current || !currentOrderId) return;
       fetch('/api/orders/temporary', {
         method: 'DELETE',
-        keepalive: true, // 페이지가 닫혀도 요청을 보냄
+        keepalive: true,
       });
     };
 
     const handleBeforeUnload = (event) => {
-      if (!isRefresh()) {
+      const navEntries = performance.getEntriesByType('navigation');
+      const isRefresh =
+        navEntries.length > 0 && navEntries[0].type === 'reload';
+      if (!isRefresh) {
         sendDeleteRequest();
       }
     };
 
-    const handlePopState = () => {
-      sendDeleteRequest();
-    };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
+
+      const targetPath = window.location.pathname;
+      const isStayingOnOrderPage = targetPath.includes(
+        `/order/${currentOrderId}`
+      );
+      const isGoingToComplete = targetPath.includes('/complete');
+
+      if (!isStayingOnOrderPage && !isGoingToComplete) {
+        sendDeleteRequest();
+      }
     };
-  }, []);
+  }, [orderId]);
 
   useEffect(() => {
     if (!orderId) return;
@@ -195,6 +217,14 @@ const OrderList = () => {
 
   return (
     <Container>
+      {(showPaymentComponent || isCompleting.current) && (
+        <LoadingOverlay>
+          <Spinner />
+          <p style={{ fontSize: '18px', fontWeight: 'bold' }}>
+            결제가 진행 중입니다. 잠시만 기다려 주세요...
+          </p>
+        </LoadingOverlay>
+      )}
       <Section>
         <StepProgressWrapper>
           <StepProgress currentStep={2} />
@@ -419,4 +449,38 @@ const NoticeBox = styled.div`
   border-radius: 6px;
   font-size: 14px;
   color: #856404;
+`;
+
+const LoadingOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); // 반투명 검정
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; // 최상단 배치
+  color: white;
+  gap: 20px;
+`;
+
+const Spinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 `;
