@@ -11,7 +11,7 @@ import { useAuth } from '../AuthContext';
 import { BASE_URL } from '../api/axios';
 
 const LoginPage = (e) => {
-  const { login } = useAuth();
+  const { login, fetchUser } = useAuth();
   const [failCount, setFailCount] = useState(0);
   const [user, setUser] = useState({
     username: '',
@@ -49,7 +49,7 @@ const LoginPage = (e) => {
       formData.append('password', user.password);
 
       const response = await axios.post('/loginProc', formData);
-      login(response.data);
+      await fetchUser();
       console.log('일반 로그인 성공', response.data);
 
       setFailCount(0);
@@ -148,7 +148,7 @@ const LoginPage = (e) => {
       if (e.key === 'auth:updated') {
         try {
           const res = await axios.get('/loginOk');
-          sessionStorage.setItem('userData', JSON.stringify(res.data));
+          login(res.data);
         } catch {
           sessionStorage.removeItem('userData');
         }

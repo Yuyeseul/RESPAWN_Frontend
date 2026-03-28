@@ -36,7 +36,6 @@ import MemberDetail from './components/Admin/MemberDetail';
 import Notices from './components/Admin/Notices';
 import Login from './components/Admin/Login';
 import SearchResultListPage from './pages/SearchResultListPage';
-import AuthGate from './AuthGate';
 import ProfileComplete from './pages/ProfileComplete';
 import NoticeRegister from './components/Admin/NoticeRegister';
 import NoticeDetail from './components/Admin/NoticeDetail';
@@ -51,10 +50,9 @@ import ComingSoon from './pages/ComingSoon';
 function App() {
   return (
     <>
+    <AuthProvider>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
-        <AuthGate>
-          <AuthProvider>
             <ChatbotContainer />
             <Routes>
               <Route path="/" element={<MainPage />} />
@@ -132,9 +130,8 @@ function App() {
               <Route path="/events" element={<ComingSoon title="이벤트" />} />
               <Route path="/*" element={<NotFoundPage />} />
             </Routes>
-          </AuthProvider>
-        </AuthGate>
       </ThemeProvider>
+      </AuthProvider>
     </>
   );
 }
