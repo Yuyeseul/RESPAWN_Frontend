@@ -198,6 +198,7 @@ const SearchResultListPage = () => {
     { id: '헤드셋', name: '헤드셋' },
     { id: '마우스', name: '마우스' },
     { id: '키보드', name: '키보드' },
+    { id: '스피커', name: '스피커' },
   ];
 
   return (

@@ -91,7 +91,7 @@ const Header = () => {
 
   const handleMenuClick = (item) => {
     if (item.type === 'search') {
-      navigate(`/search?query=${encodeURIComponent(item.name)}`);
+      navigate(`/search?categoryIds=${encodeURIComponent(item.name)}`);
     } else if (item.type === 'link') {
       navigate(item.path);
     }

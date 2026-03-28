@@ -3,6 +3,7 @@ import axios from '../../api/axios';
 import styled, { css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import StarRating from '../../components/common/StarRating';
+import { BASE_URL } from '../../api/axios';
 
 const PAGE_SIZE = 10;
 
@@ -139,7 +140,11 @@ const MyReviewList = () => {
     if (activeTab === 'writable') {
       return items.map((item) => (
         <WritableItem key={item.orderItemId}>
-          <ItemImage src={item.imageUrl} alt={item.itemName} loading="lazy" />
+          <ItemImage
+            src={`${BASE_URL}${item.imageUrl}`}
+            alt={item.itemName}
+            loading="lazy"
+          />
           <ItemInfo>
             <ItemName>{item.itemName}</ItemName>
           </ItemInfo>
@@ -159,7 +164,11 @@ const MyReviewList = () => {
         <WrittenItem key={review.reviewId}>
           <ItemHeader>
             {review.imageUrl && (
-              <ReviewImage src={review.imageUrl} alt="" loading="lazy" />
+              <ReviewImage
+                src={`${BASE_URL}${review.imageUrl}`}
+                alt=""
+                loading="lazy"
+              />
             )}
             <ItemInfo>
               <ItemName>{review.itemName}</ItemName>

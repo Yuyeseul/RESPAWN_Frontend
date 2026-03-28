@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styled from 'styled-components';
 import axios from '../../../api/axios';
+import { BASE_URL } from '../../../api/axios';
 
 const OrderDetailModal = ({ open, onClose, orderId, triggerRef }) => {
   const dialogRef = useRef(null);
@@ -189,7 +190,11 @@ const OrderDetailModal = ({ open, onClose, orderId, triggerRef }) => {
                     return (
                       <tr key={item.orderItemId}>
                         <td style={{ textAlign: 'center' }}>
-                          <img src={item.imageUrl} alt="" width={64} />
+                          <img
+                            src={`${BASE_URL}${item.imageUrl}`}
+                            alt=""
+                            width={64}
+                          />
                         </td>
                         <td>{item.itemName ?? '-'}</td>
                         <td style={{ textAlign: 'center' }}>{qty ?? 0}</td>
@@ -288,13 +293,14 @@ const OrderDetailModal = ({ open, onClose, orderId, triggerRef }) => {
                       <PaymentRow>
                         <PaymentLabel>포인트 사용</PaymentLabel>
                         <PaymentValue isDiscount>
-                          - {formatCurrency(data.usedPointAmount ?? 0)}원
+                          {formatCurrency(data.usedPointAmount ?? 0)}원
                         </PaymentValue>
                       </PaymentRow>
                       <PaymentRow>
                         <PaymentLabel>쿠폰 사용</PaymentLabel>
                         <PaymentValue isDiscount>
-                          - {formatCurrency(data.usedCouponAmount ?? 0)}원
+                          {data.usedCouponAmount ? '-' : ''}
+                          {formatCurrency(data.usedCouponAmount ?? 0)}원
                         </PaymentValue>
                       </PaymentRow>
                       <PaymentRow>

@@ -1,8 +1,8 @@
-// OrderItemCard.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../../api/axios';
+import { BASE_URL } from '../../../api/axios';
 
 const OrderItemCard = ({ item, orderId, orderStatus }) => {
   const navigate = useNavigate();
@@ -63,7 +63,7 @@ const OrderItemCard = ({ item, orderId, orderStatus }) => {
   return (
     <ItemContainer>
       <ImageWrapper onClick={openProductPage}>
-        <img src={item.imageUrl} alt={item.itemName} />
+        <img src={`${BASE_URL}${item.imageUrl}`} alt={item.itemName} />
       </ImageWrapper>
       <Info>
         <Name onClick={openProductPage}>{item.itemName}</Name>
