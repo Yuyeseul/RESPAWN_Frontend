@@ -25,6 +25,7 @@ const OrderCard = ({ order }) => {
           </DetailButton>
         </Right>
       </Header>
+
       <ItemList>
         {order.items.map((item) => (
           <OrderItemCard
@@ -35,9 +36,13 @@ const OrderCard = ({ order }) => {
           />
         ))}
       </ItemList>
-      <OrderPrice>
-        총 결제 금액: {order.totalAmount.toLocaleString()}원
-      </OrderPrice>
+
+      <FooterSection>
+        <OrderPrice>
+          <span className="label">총 결제 금액</span>
+          <span className="price">{order.totalAmount.toLocaleString()}원</span>
+        </OrderPrice>
+      </FooterSection>
 
       <OrderDetailModal
         open={open}
@@ -52,22 +57,62 @@ const OrderCard = ({ order }) => {
 export default OrderCard;
 
 const CardContainer = styled.div`
-  border: 1px solid #d1d5db;
-  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 12px;
   padding: 24px;
-  background-color: #f9fafb;
-  margin-bottom: 32px;
+  background-color: ${({ theme }) => theme.colors.white};
+  margin-bottom: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+  }
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-bottom: 16px;
+  }
 `;
 
 const Left = styled.div`
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 8px;
+  }
+`;
+
+const OrderDate = styled.div`
+  font-weight: 700;
+  font-size: 16px;
+  color: ${({ theme }) => theme.colors.gray[700]};
+
+  &::after {
+    content: '|';
+    margin-left: 10px;
+    color: ${({ theme }) => theme.colors.gray[300]};
+    font-weight: normal;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 15px;
+  }
+`;
+
+const OrderId = styled.div`
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 12px;
+  }
 `;
 
 const Right = styled.div`
@@ -76,24 +121,17 @@ const Right = styled.div`
 `;
 
 const DetailButton = styled.button`
-  padding: 8px 12px;
-  color: #374151;
-  background-color: #f9fafb;
+  padding: 8px 0;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background: none;
   border: none;
-  border-radius: 8px;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-`;
 
-const OrderDate = styled.div`
-  font-weight: 600;
-  font-size: 16px;
-  color: #374151;
-`;
-
-const OrderId = styled.div`
-  font-size: 14px;
-  color: #6b7280;
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 13px;
+  }
 `;
 
 const ItemList = styled.div`
@@ -102,10 +140,33 @@ const ItemList = styled.div`
   gap: 12px;
 `;
 
+const FooterSection = styled.div`
+  margin-top: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 14px;
+  }
+`;
+
 const OrderPrice = styled.div`
-  font-weight: 700;
-  font-size: 18px;
-  text-align: right;
-  margin-top: 24px;
-  color: #374151;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .label {
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.gray[600]};
+  }
+
+  .price {
+    font-weight: 800;
+    font-size: 20px;
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    .price {
+      font-size: 16px;
+    }
+  }
 `;

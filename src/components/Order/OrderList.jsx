@@ -134,10 +134,9 @@ const OrderList = () => {
     const currentOrderId = orderId;
     const sendDeleteRequest = () => {
       if (isCompleting.current || !currentOrderId) return;
-      fetch('/orders/temporary', {
-        method: 'DELETE',
-        keepalive: true,
-      });
+      axios
+        .delete('/orders/temporary')
+        .catch((err) => console.error('삭제 실패:', err));
     };
 
     const handleBeforeUnload = (event) => {

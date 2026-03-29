@@ -181,7 +181,7 @@ const LoginPage = (e) => {
 
   const handleSocialLogin = (provider) => {
     const win = window.open(
-      `http://${BASE_URL}/oauth2/authorization/${provider}`,
+      `${BASE_URL}/oauth2/authorization/${provider}`,
       '_blank',
       'width=600,height=700,resizable=yes,scrollbars=yes'
     );
