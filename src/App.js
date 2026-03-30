@@ -46,6 +46,7 @@ import Faq from './components/CustomerCenter/Faq';
 import { AuthProvider } from './AuthContext';
 import ChatbotContainer from './components/Chatbot/ChatbotContainer';
 import ComingSoon from './pages/ComingSoon';
+import PaymentCallback from './pages/PaymentCallback';
 
 function App() {
   return (
@@ -89,6 +90,7 @@ function App() {
               <Route path="/findid" element={<FindIdPage />} />
               <Route path="/findPw" element={<FindPwPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/payments/mobile/callback" element={<PaymentCallback />} />
               <Route
                 path="/update-password"
                 element={<PasswordUpdateRequiredPage />}
