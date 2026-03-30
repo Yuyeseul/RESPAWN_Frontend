@@ -20,6 +20,7 @@ const theme = {
     // 상태 컬러
     success: '#28a745',
     danger: '#dc3545',
+    green: '#45a745',
     red: '#d32f2f',
     yellow: '#ffc107',
     orange: '#ff9500',
@@ -27,6 +28,7 @@ const theme = {
     // 무채색 계열
     white: '#ffffff', // #fff
     gray: {
+      10: '#fefefe',
       50: '#fcfcfd', // 더 밝은 배경
       100: '#f8f9fa', // 배경
       200: '#eeeeee', // #eee - 글자

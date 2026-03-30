@@ -5,6 +5,7 @@ import AddressListModal from '../AddressListModal';
 import ResetPasswordModal from '../ResetPasswordModal';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../../AuthContext';
+import MyPageLayout from './MyPageLayout';
 
 function UserInfo() {
   const { user: authUser } = useAuth();
@@ -96,7 +97,6 @@ function UserInfo() {
                 isVerified: false,
               };
             });
-            alert('인증 시간이 만료되었습니다. 다시 시도해주세요.');
             return 0;
           }
           return prev - 1;
@@ -251,9 +251,8 @@ function UserInfo() {
 
   if (user.provider === 'local' && !isAuthenticated) {
     return (
-      <Container>
+      <MyPageLayout title="내 정보 확인">
         <Section>
-          <SectionTitle>내 정보 확인</SectionTitle>
           <UserDetail>
             <Label>아이디</Label>
             <Value>{authUser?.username || '-'}</Value>
@@ -299,14 +298,13 @@ function UserInfo() {
           </UserDetail>
           <Button onClick={handlePasswordCheck}>확인</Button>
         </Section>
-      </Container>
+      </MyPageLayout>
     );
   }
 
   return (
-    <Container>
+    <MyPageLayout title="내 정보 관리">
       <Section>
-        <SectionTitle>내 정보 관리</SectionTitle>
         <UserDetail>
           <Label>이름</Label> <Value>{user.name || '-'}</Value>
         </UserDetail>
@@ -332,18 +330,22 @@ function UserInfo() {
           <Value>
             {user.phoneNumber
               ? user.phoneNumber
-              : '등록된 전화번호가 없습니다.'}
+              : !phoneAuth.isAdding && (
+                  <Button
+                    onClick={handleAddPhoneNumber}
+                    style={{ marginLeft: 0 }}
+                  >
+                    전화번호 추가하기
+                  </Button>
+                )}
           </Value>
         </UserDetail>
-
-        {!user.phoneNumber && !phoneAuth.isAdding && (
-          <Button onClick={handleAddPhoneNumber}>전화번호 추가하기</Button>
-        )}
 
         {phoneAuth.isAdding && (
           <PhoneInputContainer>
             <Input
               type="text"
+              placeholder="전화번호 입력"
               value={phoneAuth.newPhoneNumber}
               onChange={handlePhoneNumberChange}
               disabled={phoneAuth.isCodeSent}
@@ -356,6 +358,7 @@ function UserInfo() {
               <>
                 <Input
                   type="text"
+                  placeholder="인증번호"
                   value={phoneAuth.verificationCode}
                   onChange={handleVerificationCodeChange}
                   disabled={phoneAuth.isVerified}
@@ -403,80 +406,73 @@ function UserInfo() {
       {isAddressModalOpen && (
         <AddressListModal mode="mypage" onClose={handleCloseAddressModal} />
       )}
-    </Container>
+    </MyPageLayout>
   );
 }
 
 export default UserInfo;
 
-const Container = styled.div`
-  max-width: 1000px;
-  font-family: 'Noto Sans KR', sans-serif;
-  color: #222;
-`;
-
 const Section = styled.section`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   border-radius: 8px;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
 `;
 
 const UserDetail = styled.p`
   font-size: 16px;
-  color: #444;
+  color: ${({ theme }) => theme.colors.gray[700]};
   margin: 12px 0 5px 0;
   display: flex;
-  align-items: center;
-  border-bottom: 1px solid #e0e0e0;
+  align-items: stretch;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
 `;
 
 const Label = styled.div`
-  flex: 0 0 150px; // 고정 너비
-  background-color: #f7f7f7; // 연한 회색 배경
+  flex: 0 0 150px;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
   padding: 10px 16px;
   font-weight: 600;
-  color: #666;
-  border-right: 1px solid #ddd; // 오른쪽 세로 경계선
+  color: ${({ theme }) => theme.colors.gray[700]};
+  border-right: 1px solid ${({ theme }) => theme.colors.gray[300]};
   box-sizing: border-box;
   text-align: left;
+  display: flex;
+  align-items: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex: 0 0 80px;
+    padding: 10px 8px;
+    font-size: 14px;
+    word-break: keep-all;
+  }
 `;
 
 const Value = styled.div`
   flex: 1;
   padding: 10px 16px;
-  color: #444;
-`;
-
-const Button = styled.button`
-  background-color: #222;
-  color: #fff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-left: 5px;
-  min-width: 100px;
-  &:hover:enabled {
-    background-color: #555;
-  }
-  &:disabled {
-    background-color: #999;
-    cursor: not-allowed;
-  }
-`;
-
-const PhoneInputContainer = styled.div`
-  margin-top: 16px;
-  display: flex;
+  color: ${({ theme }) => theme.colors.gray[700]};
   flex-wrap: wrap;
-  gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+`;
+
+const Input = styled.input`
+  flex: 1;
+  width: 100%;
+  padding: 8px 40px 8px 12px;
+  font-size: 16px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 4px;
+  min-width: 0;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.gray[800]};
+  }
 `;
 
 const Field = styled.div`
@@ -487,52 +483,71 @@ const Field = styled.div`
   width: 100%;
 `;
 
-const Input = styled.input`
-  flex: 1;
-  min-width: 200px;
-  padding: 8px 40px 8px 12px; /* 오른쪽 아이콘 공간 확보 */
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-
-  &:focus {
-    outline: none;
-    border-color: #222;
-  }
-`;
-
 const IconButton = styled.button`
   position: absolute;
   right: 8px;
   background: transparent;
   border: none;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 4px;
   cursor: pointer;
 
-  /* 포커스 및 호버 상태 접근성/시각 피드백 */
   &:hover {
-    color: #222;
+    color: ${({ theme }) => theme.colors.gray[800]};
   }
   &:focus {
-    outline: 2px solid #999;
+    outline: 2px solid ${({ theme }) => theme.colors.gray[300]};
     outline-offset: 2px;
     border-radius: 4px;
   }
 
-  /* 아이콘 크기 조절 */
   svg {
     width: 18px;
     height: 18px;
   }
 `;
 
+const Button = styled.button`
+  background-color: ${({ theme }) => theme.colors.gray[800]};
+  color: ${({ theme }) => theme.colors.white};
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 5px;
+  min-width: 100px;
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.gray[300]};
+    cursor: not-allowed;
+  }
+`;
+
+const PhoneInputContainer = styled.div`
+  display: flex;
+  flex-direction: column; /* 기본적으로 세로로 쌓기 (모바일 우선) */
+  gap: 10px;
+  width: 100%;
+  padding: 10px 0;
+
+  /* PC 환경 (화면이 넓을 때) */
+  @media (min-width: 768px) {
+    flex-direction: row; /* 가로로 나열 */
+    flex-wrap: wrap;
+    align-items: center;
+  }
+`;
+
 const TimerText = styled.p`
-  color: #d22525;
+  color: ${({ theme }) => theme.colors.red};
   margin-left: 12px;
   font-size: 16px;
   font-weight: bold;
+
+  @media ${({ theme }) => theme.mobile} {
+    text-align: right;
+  }
 `;

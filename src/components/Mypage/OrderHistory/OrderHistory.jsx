@@ -4,9 +4,11 @@ import OrderCard from './OrderCard';
 import axios from '../../../api/axios';
 import Pagination from '../../Pagination';
 import { useLocation } from 'react-router-dom';
+import MyPageLayout from '../MyPageLayout';
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
   const location = useLocation();
   const [pageInfo, setPageInfo] = useState({
     page: 0,
@@ -46,6 +48,7 @@ const OrderHistory = () => {
 
   useEffect(() => {
     fetchOrderHistory();
+    window.scrollTo(0, 0);
   }, [pageInfo.page]);
 
   useEffect(() => {
@@ -56,14 +59,16 @@ const OrderHistory = () => {
   }, [location.state]);
 
   return (
-    <Container>
-      <Title>주문 내역</Title>
-      {orders.length === 0 ? (
+    <MyPageLayout title="주문 내역">
+      {loading ? (
+        <EmptyMessage>데이터를 불러오는 중입니다...</EmptyMessage>
+      ) : orders.length === 0 ? (
         <EmptyMessage>주문 내역이 없습니다.</EmptyMessage>
       ) : (
         orders.map((order) => <OrderCard key={order.orderId} order={order} />)
       )}
-      {pageInfo.totalPages > 1 && (
+
+      {!loading && pageInfo.totalPages > 1 && (
         <Pagination
           currentPage={pageInfo.page + 1}
           totalPages={pageInfo.totalPages}
@@ -72,25 +77,15 @@ const OrderHistory = () => {
           isLast={pageInfo.isLast}
         />
       )}
-    </Container>
+    </MyPageLayout>
   );
 };
 
 export default OrderHistory;
 
-const Container = styled.div`
-  max-width: 1000px;
-`;
-
-const Title = styled.h2`
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
-`;
-
 const EmptyMessage = styled.div`
   font-size: 16px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   text-align: center;
   padding: 32px 0;
 `;

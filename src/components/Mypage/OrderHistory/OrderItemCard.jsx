@@ -12,7 +12,7 @@ const OrderItemCard = ({ item, orderId, orderStatus }) => {
     const checkReview = async () => {
       try {
         const res = await axios.get(`/reviews/order-items/${item.orderItemId}`);
-        setReviewExists(res.data.reviewExists);
+        setReviewExists(res.data.exists);
       } catch (error) {
         console.error('리뷰 존재 여부 확인 실패', error);
         setReviewExists(false); // 오류 시 버튼 보여줄지 말지 결정 가능
@@ -93,7 +93,6 @@ const ItemContainer = styled.div`
   padding: 16px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  margin-bottom: 16px;
   background-color: #ffffff;
   align-items: center;
 `;

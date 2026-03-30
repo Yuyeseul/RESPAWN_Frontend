@@ -4,6 +4,7 @@ import axios from '../../api/axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
+import MyPageLayout from './MyPageLayout';
 
 const SCROLL_THRESHOLD = 8;
 
@@ -205,8 +206,8 @@ function PointsPage() {
   };
 
   return (
-    <Container>
-      <HeaderRow>
+    <MyPageLayout title="적립금" isNarrow={true}>
+      <DateFilterSection>
         <IconBtn type="button" aria-label="prev" onClick={() => shiftMonth(-1)}>
           ‹
         </IconBtn>
@@ -227,12 +228,13 @@ function PointsPage() {
         <IconBtn type="button" aria-label="next" onClick={() => shiftMonth(1)}>
           ›
         </IconBtn>
-      </HeaderRow>
+      </DateFilterSection>
+
       <PeriodText>{periodText}</PeriodText>
 
       <SummaryCard>
         <div className="left">
-          <div className="label">총 적립 혜택</div>
+          <div className="label">총 보유 적립금</div>
           <div className="hint">
             이번 달 소멸 예정 {expiringPoints.toLocaleString()}원
           </div>
@@ -240,76 +242,52 @@ function PointsPage() {
         <div className="value">{totalPoints.toLocaleString()}원</div>
       </SummaryCard>
 
-      <ChipTabs role="tablist" aria-label="포인트 내역 탭">
-        <Chip
-          role="tab"
-          aria-selected={activeTab === 'all'}
-          active={activeTab === 'all'}
-          onClick={() => setActiveTab('all')}
-        >
-          전체
-        </Chip>
-        <Chip
-          role="tab"
-          aria-selected={activeTab === 'saves'}
-          active={activeTab === 'saves'}
-          onClick={() => setActiveTab('saves')}
-        >
-          적립
-        </Chip>
-        <Chip
-          role="tab"
-          aria-selected={activeTab === 'uses'}
-          active={activeTab === 'uses'}
-          onClick={() => setActiveTab('uses')}
-        >
-          사용
-        </Chip>
-        <Chip
-          role="tab"
-          aria-selected={activeTab === 'expiring'}
-          active={activeTab === 'expiring'}
-          onClick={() => setActiveTab('expiring')}
-        >
-          만료예정
-        </Chip>
+      <ChipTabs role="tablist">
+        {['all', 'saves', 'uses', 'expiring'].map((tab) => (
+          <Chip
+            key={tab}
+            active={activeTab === tab}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab === 'all'
+              ? '전체'
+              : tab === 'saves'
+                ? '적립'
+                : tab === 'uses'
+                  ? '사용'
+                  : '만료예정'}
+          </Chip>
+        ))}
       </ChipTabs>
 
-      {loading
-        ? renderEmpty('불러오는 중...')
-        : error
-          ? renderEmpty(error)
-          : activeTab === 'expiring'
-            ? renderExpiringSection(currentList)
-            : renderHistoryLikeSection(currentList)}
-    </Container>
+      <ListContainer>
+        {loading
+          ? renderEmpty('불러오는 중...')
+          : error
+            ? renderEmpty(error)
+            : activeTab === 'expiring'
+              ? renderExpiringSection(currentList)
+              : renderHistoryLikeSection(currentList)}
+      </ListContainer>
+    </MyPageLayout>
   );
 }
 
 export default PointsPage;
 
-const Container = styled.div`
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 16px 16px 40px;
-  font-family: 'Noto Sans KR', sans-serif;
-  background: #fafbfc;
-`;
-
-const HeaderRow = styled.div`
+const DateFilterSection = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin-top: 10px;
-  position: relative;
+  gap: 15px;
+  margin-bottom: 5px;
 `;
 
 const IconBtn = styled.button`
   border: none;
   background: transparent;
   font-size: 24px;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[600]};
   cursor: pointer;
   align-items: center;
   padding: 0 10px;
@@ -333,26 +311,26 @@ const StyledDatePicker = styled.div`
   }
 
   .react-datepicker__header {
-    background-color: #333;
+    background-color: ${({ theme }) => theme.colors.gray[800]};
     border-bottom: none;
     padding-top: 10px;
-    color: #ddd;
+    color: ${({ theme }) => theme.colors.gray[300]};
   }
 
   .react-datepicker__navigation-icon::before {
-    border-color: #ddd;
+    border-color: ${({ theme }) => theme.colors.gray[300]};
     border-width: 2px 2px 0 0;
     top: 10px;
   }
 
   .react-datepicker__current-month {
-    color: #ddd;
+    color: ${({ theme }) => theme.colors.gray[300]};
   }
 
   .react-datepicker__month-text--keyboard-selected,
   .react-datepicker__month-text--selected {
-    background-color: #333 !important;
-    color: #ddd !important;
+    background-color: ${({ theme }) => theme.colors.gray[700]} !important;
+    color: ${({ theme }) => theme.colors.gray[300]} !important;
   }
 `;
 
@@ -361,13 +339,13 @@ const MonthBtn = styled.button`
   background: transparent;
   font-size: 20px;
   font-weight: 700;
-  color: #222;
+  color: ${({ theme }) => theme.colors.gray[700]};
   cursor: pointer;
 `;
 
 const PeriodText = styled.div`
   margin: 2px 0 12px;
-  color: #8b95a1;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 12px;
   text-align: center;
 `;
@@ -377,8 +355,8 @@ const SummaryCard = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
-  border: 1px solid #e9eef1;
+  background: ${({ theme }) => theme.colors.gray[50]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 14px;
   padding: 14px 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -387,26 +365,19 @@ const SummaryCard = styled.div`
     flex: 1;
     .label {
       font-size: 14px;
-      color: #222;
+      color: ${({ theme }) => theme.colors.gray[700]};
       font-weight: 600;
     }
     .hint {
       margin-top: 2px;
       font-size: 12px;
-      color: #9aa4ad;
+      color: ${({ theme }) => theme.colors.gray[600]};
     }
   }
   .value {
     font-weight: 800;
-    color: #111;
+    color: ${({ theme }) => theme.colors.gray[700]};
     font-size: 18px;
-  }
-  .chev {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    color: #7b858e;
-    font-size: 14px;
   }
 `;
 
@@ -419,19 +390,28 @@ const ChipTabs = styled.div`
 const Chip = styled.button`
   padding: 8px 14px;
   border-radius: 18px;
-  border: 1px solid ${({ active }) => (active ? '#222' : '#e3e5e8')};
-  background: ${({ active }) => (active ? '#222' : '#fff')};
-  color: ${({ active }) => (active ? '#fff' : '#5f6e76')};
+  border: 1px solid
+    ${({ active, theme }) =>
+      active ? theme.colors.gray[700] : theme.colors.gray[300]};
+  background: ${({ active, theme }) =>
+    active ? theme.colors.gray[800] : theme.colors.white};
+  color: ${({ active, theme }) =>
+    active ? theme.colors.white : theme.colors.gray[600]};
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
 `;
 
 const Empty = styled.div`
   padding: 32px 0;
   text-align: center;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 16px;
 `;
 
@@ -439,11 +419,9 @@ const CardList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  /* 스크롤 활성화 조건: prop으로 제어 */
   max-height: ${({ scrollable }) => (scrollable ? '420px' : 'unset')};
   overflow-y: ${({ scrollable }) => (scrollable ? 'auto' : 'visible')};
-  padding-right: ${({ scrollable }) =>
-    scrollable ? '6px' : '0'}; /* 스크롤바 여백 */
+  padding-right: ${({ scrollable }) => (scrollable ? '6px' : '0')};
 `;
 
 const Card = styled.div`
@@ -451,8 +429,8 @@ const Card = styled.div`
   grid-template-columns: 58px 1fr auto;
   align-items: center;
   gap: 10px;
-  background: #fff;
-  border: 1px solid #e9eef1;
+  background: ${({ theme }) => theme.colors.gray[10]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 14px;
   padding: 12px 14px;
 `;
@@ -460,11 +438,11 @@ const Card = styled.div`
 const Left = styled.div`
   .date {
     font-weight: 800;
-    color: #222;
+    color: ${({ theme }) => theme.colors.gray[700]};
     font-size: 13px;
   }
   .time {
-    color: #9aa0a6;
+    color: ${({ theme }) => theme.colors.gray[600]};
     font-size: 12px;
     margin-top: 2px;
   }
@@ -474,7 +452,7 @@ const Center = styled.div`
   overflow: hidden;
   .title {
     font-size: 14px;
-    color: #222;
+    color: ${({ theme }) => theme.colors.gray[700]};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -482,7 +460,7 @@ const Center = styled.div`
   .sub {
     margin-top: 3px;
     font-size: 12px;
-    color: #8a96a0;
+    color: ${({ theme }) => theme.colors.gray[600]};
   }
 `;
 
@@ -490,9 +468,14 @@ const Right = styled.div`
   font-weight: 800;
   font-size: 14px;
   &.plus {
-    color: #0a8f3c;
+    color: ${({ theme }) => theme.colors.green};
   }
   &.minus {
-    color: #4f5965;
+    color: ${({ theme }) => theme.colors.gray[600]};
   }
+`;
+
+const ListContainer = styled.div`
+  margin-top: 10px;
+  padding-bottom: 20px;
 `;
