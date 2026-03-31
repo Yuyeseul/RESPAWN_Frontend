@@ -2,7 +2,7 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
-const MyPageLayout = ({ title, children, isNarrow = false }) => {
+const MypageLayout = ({ title, children, isNarrow = false }) => {
   const navigate = useNavigate();
 
   return (
@@ -16,7 +16,7 @@ const MyPageLayout = ({ title, children, isNarrow = false }) => {
   );
 };
 
-export default MyPageLayout;
+export default MypageLayout;
 
 const Container = styled.div`
   max-width: 1000px;

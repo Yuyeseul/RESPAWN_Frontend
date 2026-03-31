@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from '../../api/axios';
 import styled, { css } from 'styled-components';
+import MypageLayout from './MypageLayout';
 
 const PAGE_SIZE = 10;
 
@@ -20,7 +21,6 @@ const Coupon = () => {
   const fetchCounts = async () => {
     try {
       const response = await axios.get(`/coupons/count`);
-      console.log(response.data);
       setCounts({
         available: response.data.availableCount || 0,
         unavailable: response.data.unavailableCount || 0,
@@ -43,7 +43,6 @@ const Coupon = () => {
         const res = await axios.get(`/coupons/${activeTab}`, {
           params: { page: currentPage, size: PAGE_SIZE },
         });
-        console.log(res.data);
 
         const newItems = res.data.content || [];
         const pageMeta = res.data.page || {};
@@ -124,9 +123,7 @@ const Coupon = () => {
       : '만료된 쿠폰이 없습니다.';
 
   return (
-    <Container>
-      <Title>쿠폰</Title>
-
+    <MypageLayout title={'쿠폰'}>
       <TabContainer>
         <TabButton
           type="button"
@@ -154,7 +151,7 @@ const Coupon = () => {
             <CouponCard
               key={`${c.id}-${index}`}
               ref={coupons.length === index + 1 ? lastCouponElementRef : null}
-              aria-disabled={activeTab === 'unavailable'}
+              $activeTab={activeTab}
             >
               <CouponName>{c.name}</CouponName>
               <CouponDiscount>{renderAmount(c.couponAmount)}</CouponDiscount>
@@ -170,102 +167,135 @@ const Coupon = () => {
 
       {!initialLoading && loading && <Message>불러오는 중...</Message>}
       {error && <Message>{error}</Message>}
-    </Container>
+    </MypageLayout>
   );
 };
 
 export default Coupon;
 
-const Container = styled.div`
-  max-width: 1000px;
-`;
-
-const Title = styled.h2`
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
-`;
-
 const TabContainer = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-bottom: 16px;
+  }
 `;
 
 const TabButton = styled.button`
   flex: 1;
-  padding: 15px 0;
+  padding: 16px 0;
   font-size: 16px;
   font-weight: 700;
-  color: #888;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  border-bottom: none;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background-color: transparent;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  ${({ active }) =>
+  position: relative;
+  transition: all 0.2s ease;
+
+  ${({ active, theme }) =>
     active &&
     css`
-      color: #333;
-      background-color: #fff;
-      border-bottom: 1px solid #fff;
-      position: relative;
-      top: 1px;
+      color: ${theme.colors.gray[700]};
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: ${theme.colors.gray[700]};
+      }
     `}
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 12px 0;
+    font-size: 14px;
+  }
 `;
 
 const Count = styled.span`
   margin-left: 6px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const Message = styled.div`
   font-size: 16px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   text-align: center;
   padding: 32px 0;
 `;
 
 const CouponList = styled.div`
-  display: flex; /* Flexbox로 변경하여 내부 아이템 정렬 용이 */
-  flex-direction: column; /* 세로 방향으로 아이템 쌓기 */
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 `;
 
 const CouponCard = styled.div`
   width: 100%;
-  max-width: 720px; /* 필요에 따라 640~800px 조정 */
-  margin: 0 auto; /* 가운데 정렬 */
-  background: #fff;
-  border: 1px solid #eee;
+  max-width: 720px;
+  margin: 0 auto;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
   padding: 18px 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  ${({ $activeTab, theme }) =>
+    $activeTab === 'unavailable' &&
+    css`
+      background-color: ${theme.colors.gray[10]};
+      border-color: ${theme.colors.gray[300]};
+      filter: grayscale(1);
+      opacity: 0.6;
+
+      ${CouponDiscount} {
+        color: ${theme.colors.gray[600]};
+      }
+    `}
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+    border-radius: 8px;
+  }
 `;
 
 const CouponName = styled.h3`
-  font-size: 1.05rem;
+  font-size: 16px;
   font-weight: 700;
-  color: #222;
+  color: ${({ theme }) => theme.colors.gray[700]};
   margin: 0;
   line-height: 1.35;
   word-break: keep-all;
-  overflow-wrap: anywhere; /* 긴 이름 대응 */
+  overflow-wrap: anywhere;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
+  }
 `;
 
 const CouponDiscount = styled.div`
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 700;
-  color: #e53935;
+  color: ${({ theme }) => theme.colors.red};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 16px;
+  }
 `;
 
 const CouponExpire = styled.div`
-  font-size: 0.88rem;
-  color: #8b95a1;
-  margin-top: 2px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin-top: 4px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 12px;
+  }
 `;

@@ -1,7 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from '../../api/axios';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Pagination from '../Pagination';
+
+const ReviewItem = ({ review }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const contentRef = useRef(null);
+  const [shouldShowButton, setShouldShowButton] = useState(false);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      const hasOverflow =
+        contentRef.current.scrollHeight > contentRef.current.clientHeight;
+      setShouldShowButton(hasOverflow);
+    }
+  }, [review.content]);
+
+  return (
+    <ReviewCard>
+      <Header>
+        <Reviewer>{review.maskedUsername}</Reviewer>
+        <DateText>{new Date(review.createdDate).toLocaleDateString()}</DateText>
+      </Header>
+      <Rating>⭐ {review.rating}점</Rating>
+
+      <Content ref={contentRef} $isExpanded={isExpanded}>
+        {review.content}
+      </Content>
+
+      {shouldShowButton && (
+        <MoreButton onClick={() => setIsExpanded(!isExpanded)}>
+          {isExpanded ? '접기' : '...더보기'}
+        </MoreButton>
+      )}
+    </ReviewCard>
+  );
+};
 
 const ReviewList = ({ itemId }) => {
   const [reviews, setReviews] = useState([]);
@@ -94,16 +128,7 @@ const ReviewList = ({ itemId }) => {
       ) : (
         <>
           {reviews.map((review) => (
-            <ReviewCard key={review.reviewId}>
-              <Header>
-                <Reviewer>{review.maskedUsername}</Reviewer>
-                <DateText>
-                  {new Date(review.createdDate).toLocaleDateString()}
-                </DateText>
-              </Header>
-              <Rating>⭐ {review.rating}점</Rating>
-              <Content>{review.content}</Content>
-            </ReviewCard>
+            <ReviewItem key={review.reviewId} review={review} />
           ))}
           {pageInfo.totalPages > 1 && (
             <Pagination
@@ -290,4 +315,33 @@ const Rating = styled.div`
 
 const Content = styled.p`
   line-height: 1.6;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  margin: 0;
+  white-space: pre-wrap;
+
+  ${({ $isExpanded }) =>
+    !$isExpanded &&
+    css`
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `}
+`;
+
+const MoreButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0 0 0;
+  margin-top: 4px;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.gray[700]};
+  }
 `;

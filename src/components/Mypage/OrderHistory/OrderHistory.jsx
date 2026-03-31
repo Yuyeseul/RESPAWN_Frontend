@@ -4,7 +4,7 @@ import OrderCard from './OrderCard';
 import axios from '../../../api/axios';
 import Pagination from '../../Pagination';
 import { useLocation } from 'react-router-dom';
-import MyPageLayout from '../MyPageLayout';
+import MypageLayout from '../MypageLayout';
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -59,7 +59,7 @@ const OrderHistory = () => {
   }, [location.state]);
 
   return (
-    <MyPageLayout title="주문 내역">
+    <MypageLayout title="주문 내역">
       {loading ? (
         <EmptyMessage>데이터를 불러오는 중입니다...</EmptyMessage>
       ) : orders.length === 0 ? (
@@ -77,7 +77,7 @@ const OrderHistory = () => {
           isLast={pageInfo.isLast}
         />
       )}
-    </MyPageLayout>
+    </MypageLayout>
   );
 };
 

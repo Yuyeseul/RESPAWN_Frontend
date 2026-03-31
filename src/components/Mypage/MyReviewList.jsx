@@ -4,8 +4,58 @@ import styled, { css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import StarRating from '../../components/common/StarRating';
 import { BASE_URL } from '../../api/axios';
+import MypageLayout from './MypageLayout';
 
 const PAGE_SIZE = 10;
+
+const WrittenReviewItem = ({ review }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const contentRef = useRef(null);
+  const [shouldShowButton, setShouldShowButton] = useState(false);
+
+  // 텍스트가 3줄을 초과하는지 체크
+  useEffect(() => {
+    if (contentRef.current) {
+      // line-height와 height를 비교하여 3줄 초과 여부 확인
+      const hasOverflow =
+        contentRef.current.scrollHeight > contentRef.current.clientHeight;
+      setShouldShowButton(hasOverflow);
+    }
+  }, [review.content]);
+
+  return (
+    <WrittenItem>
+      <ItemHeader>
+        {review.imageUrl && (
+          <ReviewImage
+            src={`${BASE_URL}${review.imageUrl}`}
+            alt=""
+            loading="lazy"
+          />
+        )}
+        <ItemInfo>
+          <ItemName>{review.itemName}</ItemName>
+          <StarRating value={review.rating} readOnly={true} />
+          <ReviewDate>
+            {new Date(review.createdDate).toLocaleDateString()}
+          </ReviewDate>
+        </ItemInfo>
+      </ItemHeader>
+
+      <ReviewContent ref={contentRef} $isExpanded={isExpanded}>
+        {(review.content || '').split('\n').map((line, index) => (
+          <p key={index}>{line}</p>
+        ))}
+      </ReviewContent>
+
+      {shouldShowButton && (
+        <MoreButton onClick={() => setIsExpanded(!isExpanded)}>
+          {isExpanded ? '접기' : '...더보기'}
+        </MoreButton>
+      )}
+    </WrittenItem>
+  );
+};
 
 const MyReviewList = () => {
   const navigate = useNavigate();
@@ -69,16 +119,11 @@ const MyReviewList = () => {
         setItems((prevItems) =>
           isInitialLoad ? newItems : [...prevItems, ...newItems]
         );
-        let more;
-        if (totalPages > 0) {
-          more = number + 1 < totalPages;
-        } else {
-          // totalPages 정보가 없을 때의 보루 로직
-          more = newItems.length === PAGE_SIZE;
-        }
-        setHasMore(more);
-
-        // 페이지는 항상 +1
+        setHasMore(
+          totalPages > 0
+            ? number + 1 < totalPages
+            : newItems.length === PAGE_SIZE
+        );
         setPage(isInitialLoad ? 1 : currentPage + 1);
       } catch (error) {
         console.error(error);
@@ -161,37 +206,14 @@ const MyReviewList = () => {
 
     if (activeTab === 'written') {
       return items.map((review) => (
-        <WrittenItem key={review.reviewId}>
-          <ItemHeader>
-            {review.imageUrl && (
-              <ReviewImage
-                src={`${BASE_URL}${review.imageUrl}`}
-                alt=""
-                loading="lazy"
-              />
-            )}
-            <ItemInfo>
-              <ItemName>{review.itemName}</ItemName>
-              <StarRating value={review.rating} readOnly={true} />
-            </ItemInfo>
-          </ItemHeader>
-          <ReviewContent>
-            <ReviewDate>
-              {new Date(review.createdDate).toLocaleDateString()}
-            </ReviewDate>
-            {(review.content || '').split('\n').map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
-          </ReviewContent>
-        </WrittenItem>
+        <WrittenReviewItem key={review.reviewId} review={review} />
       ));
     }
     return null;
   };
 
   return (
-    <Container>
-      <Title>리뷰</Title>
+    <MypageLayout title={'리뷰'}>
       <TabContainer role="tablist" aria-label="리뷰 탭">
         <TabButton
           role="tab"
@@ -219,53 +241,53 @@ const MyReviewList = () => {
         )}
         {hasMore && !loading && <Sentinel ref={sentinelRef} />}
       </Content>
-    </Container>
+    </MypageLayout>
   );
 };
 
 export default MyReviewList;
 
-const Container = styled.div`
-  max-width: 1000px;
-`;
-
-const Title = styled.h2`
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
-`;
-
 const TabContainer = styled.div`
   display: flex;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
 `;
 
 const TabButton = styled.button`
   flex: 1;
-  padding: 15px 0;
+  padding: 16px 0;
   font-size: 16px;
   font-weight: 700;
-  color: #888;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  border-bottom: none;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background-color: transparent;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  ${({ active }) =>
+  position: relative;
+  transition: all 0.2s ease;
+
+  ${({ active, theme }) =>
     active &&
     css`
-      color: #333;
-      background-color: #fff;
-      border-bottom: 1px solid #fff;
-      position: relative;
-      top: 1px;
+      color: ${theme.colors.gray[700]};
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: ${theme.colors.gray[700]};
+      }
     `}
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 12px 0;
+    font-size: 14px;
+  }
 `;
 
 const Count = styled.span`
-  margin-left: 4px;
+  margin-left: 6px;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const Content = styled.div`
@@ -281,9 +303,12 @@ const ReviewList = styled.ul`
 
 const ListItemBase = styled.li`
   padding: 20px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   &:last-child {
     border-bottom: none;
+  }
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px 0;
   }
 `;
 
@@ -298,7 +323,12 @@ const ItemImage = styled.img`
   height: 90px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 70px;
+    height: 70px;
+  }
 `;
 
 const ItemInfo = styled.div`
@@ -309,11 +339,15 @@ const ItemInfo = styled.div`
 `;
 
 const ItemName = styled.h3`
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   margin: 0;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[700]};
   line-height: 1.4;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
+  }
 `;
 
 const Actions = styled.div`
@@ -326,23 +360,37 @@ const ActionButton = styled.button`
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 700;
-  color: rgb(105, 111, 148);
-  background-color: #fff;
-  border: 1px solid rgb(105, 111, 148);
+  color: ${({ theme }) => theme.colors.secondary};
+  background-color: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.secondary};
   border-radius: 4px;
   cursor: pointer;
+  white-space: nowrap;
+
   &:hover {
-    background-color: rgba(105, 111, 148, 0.1);
+    background-color: ${({ theme }) => theme.colors.lightNavy};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 8px 12px;
+    font-size: 14px;
   }
 `;
 
-const WrittenItem = styled(ListItemBase)``;
+const WrittenItem = styled(ListItemBase)`
+  display: flex;
+  flex-direction: column;
+`;
 
 const ItemHeader = styled.div`
   display: flex;
   gap: 16px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   align-items: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 12px;
+  }
 `;
 
 const ReviewImage = styled.img`
@@ -350,29 +398,72 @@ const ReviewImage = styled.img`
   height: 80px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 65px;
+    height: 65px;
+  }
 `;
 
 const ReviewContent = styled.div`
   font-size: 14px;
-  color: #555;
+  color: ${({ theme }) => theme.colors.gray[700]};
   line-height: 1.6;
-  padding-left: 96px; /* 이미지 너비 + 간격 만큼 들여쓰기 */
+  padding-left: 96px;
 
   p {
-    margin: 8px 0;
+    margin: 0;
+  }
+
+  ${({ $isExpanded }) =>
+    !$isExpanded &&
+    css`
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `}
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 13px;
+    padding-left: 0;
+    margin-top: 12px;
+    p {
+      padding: 0 4px;
+    }
+  }
+`;
+
+const MoreButton = styled.button`
+  align-self: flex-start;
+  margin-top: 8px;
+  margin-left: 96px;
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  &:hover {
+    color: ${({ theme }) => theme.colors.gray[700]};
+  }
+  @media ${({ theme }) => theme.mobile} {
+    margin-left: 4px;
   }
 `;
 
 const ReviewDate = styled.p`
   font-size: 13px;
-  color: #999;
-  margin: 10px 0 !important;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin: 4px 0 !important;
 `;
 
 const Message = styled.div`
   text-align: center;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 16px;
   padding: 32px 0;
 `;

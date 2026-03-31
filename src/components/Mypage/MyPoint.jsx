@@ -4,7 +4,7 @@ import axios from '../../api/axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
-import MyPageLayout from './MyPageLayout';
+import MypageLayout from './MypageLayout';
 
 const SCROLL_THRESHOLD = 8;
 
@@ -206,7 +206,7 @@ function PointsPage() {
   };
 
   return (
-    <MyPageLayout title="적립금" isNarrow={true}>
+    <MypageLayout title="적립금" isNarrow={true}>
       <DateFilterSection>
         <IconBtn type="button" aria-label="prev" onClick={() => shiftMonth(-1)}>
           ‹
@@ -269,7 +269,7 @@ function PointsPage() {
               ? renderExpiringSection(currentList)
               : renderHistoryLikeSection(currentList)}
       </ListContainer>
-    </MyPageLayout>
+    </MypageLayout>
   );
 }
 

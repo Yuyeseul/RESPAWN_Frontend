@@ -5,7 +5,7 @@ import AddressListModal from '../AddressListModal';
 import ResetPasswordModal from '../ResetPasswordModal';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../../AuthContext';
-import MyPageLayout from './MyPageLayout';
+import MypageLayout from './MypageLayout';
 
 function UserInfo() {
   const { user: authUser } = useAuth();
@@ -251,7 +251,7 @@ function UserInfo() {
 
   if (user.provider === 'local' && !isAuthenticated) {
     return (
-      <MyPageLayout title="내 정보 확인">
+      <MypageLayout title="내 정보 확인">
         <Section>
           <UserDetail>
             <Label>아이디</Label>
@@ -298,12 +298,12 @@ function UserInfo() {
           </UserDetail>
           <Button onClick={handlePasswordCheck}>확인</Button>
         </Section>
-      </MyPageLayout>
+      </MypageLayout>
     );
   }
 
   return (
-    <MyPageLayout title="내 정보 관리">
+    <MypageLayout title="내 정보 관리">
       <Section>
         <UserDetail>
           <Label>이름</Label> <Value>{user.name || '-'}</Value>
@@ -406,7 +406,7 @@ function UserInfo() {
       {isAddressModalOpen && (
         <AddressListModal mode="mypage" onClose={handleCloseAddressModal} />
       )}
-    </MyPageLayout>
+    </MypageLayout>
   );
 }
 
