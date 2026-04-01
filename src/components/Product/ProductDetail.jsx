@@ -7,6 +7,7 @@ import ReviewList from './ReviewList';
 import InquiryList from './InquiryList';
 import { useAuth } from '../../AuthContext';
 import { BASE_URL } from '../../api/axios';
+import theme from '../../styles/theme';
 
 function ProductDetail() {
   const { user } = useAuth();
@@ -15,6 +16,10 @@ function ProductDetail() {
   const [item, setItem] = useState(null);
   const [count, setCount] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
+
+  const [isWished, setIsWished] = useState(false);
+  const [wishCount, setWishCount] = useState(0);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +30,9 @@ function ProductDetail() {
           signal: controller.signal,
         });
         setItem(res.data);
+
+        if (res.data.wished !== undefined) setIsWished(res.data.wished);
+        if (res.data.wishCount !== undefined) setWishCount(res.data.wishCount);
       } catch (err) {
         console.error(err);
       }
@@ -36,6 +44,30 @@ function ProductDetail() {
       controller.abort();
     };
   }, [id]);
+
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      if (
+        window.confirm(
+          '로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?'
+        )
+      ) {
+        navigate('/login');
+      }
+      return;
+    }
+
+    try {
+      const res = await axios.post(`/wishlists/${item.id}`);
+      const newIsWished = res.data.isWished;
+
+      setIsWished(newIsWished);
+      setWishCount((prev) => (newIsWished ? prev + 1 : prev - 1));
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || '찜하기 처리에 실패했습니다.');
+    }
+  };
 
   const handleBuyNow = async () => {
     if (!user) {
@@ -113,6 +145,8 @@ function ProductDetail() {
           )}
           <DetailBox>
             <Title>{item.name}</Title>
+
+            {/* 가격 부분 원복 */}
             <Price>{item.price.toLocaleString()} 원</Price>
 
             <InfoRow $isSeller={isSeller}>
@@ -132,6 +166,17 @@ function ProductDetail() {
                   </CountControls>
                 </CountRow>
 
+                {/* 🌟 예쁘게 꾸민 찜 개수 알림 배너 (총 수량 위에 배치) 🌟 */}
+                <WishNotice $isWished={isWished}>
+                  <HeartIcon $isWished={isWished}>
+                    {isWished ? '❤️' : '🤍'}
+                  </HeartIcon>
+                  <span>
+                    현재 <strong>{wishCount.toLocaleString()}</strong>명이 이
+                    상품을 찜하고 있어요!
+                  </span>
+                </WishNotice>
+
                 <TotalRow>
                   <span>총 상품 금액</span>
                   <TotalPrice>
@@ -140,6 +185,12 @@ function ProductDetail() {
                 </TotalRow>
 
                 <ButtonRow>
+                  <WishButton
+                    onClick={handleToggleWishlist}
+                    $isWished={isWished}
+                  >
+                    {isWished ? '❤️ 찜 취소' : '🤍 찜하기'}
+                  </WishButton>
                   <BuyButton onClick={handleBuyNow}>바로 구매</BuyButton>
                   <CartButton onClick={handleAddToCart}>장바구니</CartButton>
                 </ButtonRow>
@@ -155,21 +206,18 @@ function ProductDetail() {
           >
             설명
           </TabItem>
-
           <TabItem
             $active={activeTab === 'additional'}
             onClick={() => setActiveTab('additional')}
           >
             추가 정보
           </TabItem>
-
           <TabItem
             $active={activeTab === 'reviews'}
             onClick={() => setActiveTab('reviews')}
           >
             상품평
           </TabItem>
-
           <TabItem
             $active={activeTab === 'inquiry'}
             onClick={() => setActiveTab('inquiry')}
@@ -209,13 +257,13 @@ function ProductDetail() {
 
 export default ProductDetail;
 
-const Container = styled.div`
+export const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
 `;
 
-const PageLayout = styled.div`
+export const PageLayout = styled.div`
   display: flex;
   flex-direction: column;
   gap: 60px;
@@ -224,131 +272,171 @@ const PageLayout = styled.div`
   width: 100%;
   box-sizing: border-box;
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     gap: 24px;
     padding: 20px 16px;
   }
 `;
 
-const TopSection = styled.div`
+export const TopSection = styled.div`
   display: flex;
   justify-content: space-between;
   gap: 60px;
   width: 100%;
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     flex-direction: column;
     gap: 20px;
   }
 `;
 
-const ImageBox = styled.div`
+export const ImageBox = styled.div`
   flex: 1;
   max-width: 450px;
   width: 100%;
   aspect-ratio: 1 / 1;
-  background-color: ${({ theme }) => theme.colors.gray[100]};
+  background-color: ${theme.colors.gray[100]};
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
   border-radius: 12px;
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     max-width: 100%;
-    margin-left: 0; // 기존 30px 제거
+    margin-left: 0;
     height: auto;
   }
 `;
 
-const ProductImage = styled.img`
+export const ProductImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
 `;
 
-const DetailBox = styled.div`
+export const DetailBox = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     gap: 16px;
   }
 `;
 
-const Title = styled.h2`
+export const Title = styled.h2`
   font-size: 32px;
-  font-size: 40px;
   line-height: 1.2;
   font-weight: 700;
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     font-size: 24px;
   }
 `;
 
-const Price = styled.div`
+export const Price = styled.div`
   font-size: 28px;
   font-weight: bold;
-  color: ${({ theme }) => theme.colors.gray[700]};
+  color: ${theme.colors.gray[700]};
 `;
 
-const InfoRow = styled.div`
+export const InfoRow = styled.div`
   display: flex;
   gap: 16px;
   font-size: 16px;
   margin-top: ${({ $isSeller }) => ($isSeller ? '20px' : '80px')};
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     margin-top: 0;
     padding: 12px 0;
-    border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    border-top: 1px solid ${theme.colors.gray[200]};
+    border-bottom: 1px solid ${theme.colors.gray[200]};
   }
 `;
 
-const Value = styled.div`
-  color: ${({ theme }) => theme.colors.gray[700]};
+export const Value = styled.div`
+  color: ${theme.colors.gray[700]};
 `;
 
-const CountRow = styled.div`
+export const CountRow = styled.div`
   display: flex;
   align-items: center;
   gap: 20px;
 `;
 
-const CountControls = styled.div`
+export const CountControls = styled.div`
   display: flex;
   align-items: center;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1px solid ${theme.colors.gray[300]};
   border-radius: 6px;
   overflow: hidden;
 `;
 
-const QtyButton = styled.button`
+export const QtyButton = styled.button`
   width: 36px;
   height: 36px;
   border: none;
-  background: white;
+  background: ${theme.colors.white};
   font-size: 20px;
   cursor: pointer;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray[300]};
+    background: ${theme.colors.gray[300]};
   }
 `;
 
-const QtyDisplay = styled.div`
+export const QtyDisplay = styled.div`
   width: 40px;
   text-align: center;
   font-size: 16px;
   line-height: 36px;
 `;
 
-const TotalRow = styled.div`
+export const WishNotice = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 14px 16px;
+  /* 동적 상태($isWished)가 필요한 곳에서만 콜백을 씁니다 */
+  background-color: ${({ $isWished }) =>
+    $isWished ? theme.colors.pink_lace : theme.colors.gray[100]};
+  border: 1px solid
+    ${({ $isWished }) =>
+      $isWished ? theme.colors.pale_pink : theme.colors.gray[300]};
+  border-radius: 8px;
+  color: ${theme.colors.gray[700]};
+  font-size: 15px;
+  transition: all 0.3s ease;
+
+  strong {
+    color: ${theme.colors.red};
+    font-weight: bold;
+  }
+`;
+
+export const HeartIcon = styled.span`
+  font-size: 16px;
+  display: inline-block;
+  animation: ${({ $isWished }) => ($isWished ? 'pop 0.3s ease' : 'none')};
+
+  @keyframes pop {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.3);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+`;
+
+export const TotalRow = styled.div`
   margin-top: 20px;
   font-size: 16px;
   display: flex;
@@ -356,29 +444,51 @@ const TotalRow = styled.div`
   font-weight: bold;
 `;
 
-const TotalPrice = styled.div`
-  color: ${({ theme }) => theme.colors.primary};
+export const TotalPrice = styled.div`
+  color: ${theme.colors.primary};
   font-size: 18px;
 `;
 
-const ButtonRow = styled.div`
+export const ButtonRow = styled.div`
   display: flex;
   gap: 12px;
   margin-top: 10px;
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     position: sticky;
     bottom: 0;
-    background: white;
+    background: ${theme.colors.white};
     padding: 10px 0;
     z-index: 10;
   }
 `;
 
-const BuyButton = styled.button`
-  flex: 1;
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+export const WishButton = styled.button`
+  flex: 0.6;
+  background-color: ${({ $isWished }) =>
+    $isWished ? theme.colors.angel_pink : theme.colors.white};
+  color: ${({ $isWished }) =>
+    $isWished ? theme.colors.coral_sunset : theme.colors.gray[700]};
+  border: 1px solid
+    ${({ $isWished }) =>
+      $isWished ? theme.colors.coral_sunset : theme.colors.gray[300]};
+  padding: 14px 0;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: ${({ $isWished }) => ($isWished ? 'bold' : 'normal')};
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: ${({ $isWished }) =>
+      $isWished ? theme.colors.pale_pink : theme.colors.gray[100]};
+  }
+`;
+
+export const BuyButton = styled.button`
+  flex: 1.2;
+  background-color: ${theme.colors.primary};
+  color: ${theme.colors.white};
   border: none;
   padding: 14px 0;
   font-size: 16px;
@@ -387,10 +497,10 @@ const BuyButton = styled.button`
   font-weight: bold;
 `;
 
-const CartButton = styled.button`
+export const CartButton = styled.button`
   flex: 1;
-  background-color: ${({ theme }) => theme.colors.gray[100]};
-  color: ${({ theme }) => theme.colors.gray[700]};
+  background-color: ${theme.colors.gray[100]};
+  color: ${theme.colors.gray[700]};
   border: none;
   padding: 14px 0;
   font-size: 16px;
@@ -398,14 +508,14 @@ const CartButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.gray[300]};
+    background-color: ${theme.colors.gray[300]};
   }
 `;
 
-const TabMenu = styled.div`
+export const TabMenu = styled.div`
   display: flex;
   gap: 8px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-bottom: 1px solid ${theme.colors.gray[300]};
   overflow-x: auto;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
@@ -415,7 +525,7 @@ const TabMenu = styled.div`
   }
 `;
 
-const TabItem = styled.button`
+export const TabItem = styled.button`
   flex: 1;
   min-width: 80px;
   background: none;
@@ -425,40 +535,40 @@ const TabItem = styled.button`
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 
-  color: ${({ $active, theme }) =>
+  color: ${({ $active }) =>
     $active ? theme.colors.primary : theme.colors.gray[600]};
 
-  border-bottom: ${({ $active, theme }) =>
+  border-bottom: ${({ $active }) =>
     $active ? `2px solid ${theme.colors.primary}` : '2px solid transparent'};
 
   font-weight: ${({ $active }) => ($active ? '700' : '400')};
 
   &:hover {
-    color: ${({ theme }) => theme.colors.secondary};
+    color: ${theme.colors.secondary};
   }
 
-  @media ${({ theme }) => theme.mobile} {
+  @media ${theme.mobile} {
     padding: 14px 10px;
     font-size: 15px;
   }
 `;
 
-const DescriptionBox = styled.div`
+export const DescriptionBox = styled.div`
   width: 100%;
-  background: ${({ theme }) => theme.colors.gray[100]};
+  background: ${theme.colors.gray[100]};
   padding: 30px;
   border-radius: 10px;
 
   h3 {
     margin-bottom: 10px;
     font-size: 20px;
-    color: ${({ theme }) => theme.colors.gray[700]};
+    color: ${theme.colors.gray[700]};
   }
 
   p {
     white-space: pre-wrap;
     line-height: 1.6;
     font-size: 16px;
-    color: ${({ theme }) => theme.colors.gray[700]};
+    color: ${theme.colors.gray[700]};
   }
 `;
