@@ -24,9 +24,15 @@ const theme = {
     red: '#d32f2f',
     yellow: '#ffc107',
     orange: '#ff9500',
+    wish: '#ff4d4d',
+    pale_pink: '#ffe6e6',
+    pink_lace: '#fff4f4',
+    coral_sunset: '#ff4d4d',
+    angel_pink: '#fff0f0',
 
     // 무채색 계열
     white: '#ffffff', // #fff
+    white1: '#fff0f0',
     gray: {
       10: '#fefefe',
       50: '#fcfcfd', // 더 밝은 배경
