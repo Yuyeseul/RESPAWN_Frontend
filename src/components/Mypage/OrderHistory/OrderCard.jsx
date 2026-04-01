@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
-import OrderItemCard from './OrderItemCard';
 import OrderDetailModal from './OrderDetailModal';
+import { BASE_URL } from '../../../api/axios';
 
 const OrderCard = ({ order }) => {
   const [open, setOpen] = useState(false);
@@ -26,16 +26,20 @@ const OrderCard = ({ order }) => {
         </Right>
       </Header>
 
-      <ItemList>
-        {order.items.map((item) => (
-          <OrderItemCard
-            key={item.itemId}
-            item={item}
-            orderId={order.orderId}
-            orderStatus={order.status}
+      <SummarySection onClick={openDetail}>
+        <ImageWrapper>
+          <img
+            src={`${BASE_URL}${order.representativeImageUrl}`}
+            alt={order.orderName}
           />
-        ))}
-      </ItemList>
+        </ImageWrapper>
+        <InfoWrapper>
+          <StatusBadge status={order.status}>
+            {order.status === 'PAID' ? '결제완료' : order.status}
+          </StatusBadge>
+          <OrderName>{order.orderName}</OrderName>
+        </InfoWrapper>
+      </SummarySection>
 
       <FooterSection>
         <OrderPrice>
@@ -65,6 +69,57 @@ const CardContainer = styled.div`
 
   @media ${({ theme }) => theme.mobile} {
     padding: 16px;
+  }
+`;
+
+const SummarySection = styled.div`
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 0;
+`;
+
+const ImageWrapper = styled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 60px;
+    height: 60px;
+  }
+`;
+
+const InfoWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const StatusBadge = styled.span`
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ status, theme }) =>
+    status === 'PAID' ? theme.colors.primary : theme.colors.gray[600]};
+  margin-bottom: 4px;
+`;
+
+const OrderName = styled.div`
+  font-size: 16px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[700]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
   }
 `;
 

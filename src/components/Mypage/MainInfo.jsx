@@ -5,6 +5,8 @@ import OrderCard from './OrderHistory/OrderCard';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 
+const Order_Months = 3;
+
 const menuItems = [
   {
     title: 'MY 쇼핑',
@@ -52,9 +54,10 @@ function MainInfo() {
       try {
         const [userRes, orderRes] = await Promise.allSettled([
           axios.get('/myPage/summary', { signal: controller.signal }),
-          axios.get('/orders/history/recent-month', {
+          axios.get('/orders/history/summary', {
             params: { page: pageInfo.page, size: pageInfo.size },
             signal: controller.signal,
+            months: Order_Months,
           }),
         ]);
 

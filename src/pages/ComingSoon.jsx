@@ -35,16 +35,9 @@ const ComingSoon = ({ title }) => {
 
 export default ComingSoon;
 
-// 1. 점 3개 깜빡임 애니메이션
-const dotPulse = keyframes`
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
-`;
-
-// 2. 게이지가 차오르는 애니메이션
 const fillProgress = keyframes`
   from { width: 0%; }
-  to { width: 75%; } // 원하는 최종 게이지 퍼센트
+  to { width: 75%; }
 `;
 
 const Container = styled.div`
@@ -104,9 +97,7 @@ const LoadingBarFill = styled.div`
   );
   border-radius: 20px;
 
-  /* 애니메이션 적용 */
   animation: ${fillProgress} 2s ease-out forwards;
-  /* forwards: 애니메이션이 끝난 후 마지막 상태(75%)를 유지합니다 */
 `;
 
 const Description = styled.p`
