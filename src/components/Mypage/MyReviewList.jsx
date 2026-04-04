@@ -344,6 +344,10 @@ const ItemName = styled.h3`
   margin: 0;
   color: ${({ theme }) => theme.colors.gray[700]};
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 
   @media ${({ theme }) => theme.mobile} {
     font-size: 14px;
