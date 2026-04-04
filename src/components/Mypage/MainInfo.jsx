@@ -53,7 +53,7 @@ function MainInfo() {
     const fetchData = async () => {
       try {
         const [userRes, orderRes] = await Promise.allSettled([
-          axios.get('/myPage/summary', { signal: controller.signal }),
+          axios.get('/mypage/summary', { signal: controller.signal }),
           axios.get('/orders/history/summary', {
             params: { page: pageInfo.page, size: pageInfo.size },
             signal: controller.signal,
@@ -65,8 +65,9 @@ function MainInfo() {
 
         console.log('userRes', userRes.value.data);
         console.log('orderRes', orderRes.value.data);
+        console.log('loginUser', loginUser);
 
-        setUser(userRes.value.data.result);
+        setUser(userRes.value.data);
 
         const ordersData = orderRes.value.data;
         setRecentOrders(ordersData.content || []);
@@ -114,7 +115,7 @@ function MainInfo() {
           <ProfileSection>
             <Avatar>N</Avatar>
             <UserInfoSection>
-              <div className="grade">{user.grade}</div>
+              <div className="grade">{user?.grade}</div>
               <div className="name">{loginUser.name}님</div>
             </UserInfoSection>
             <SettingButton onClick={() => navigate('/mypage/profile')}>
@@ -125,26 +126,26 @@ function MainInfo() {
           <PointBar onClick={() => navigate('/mypage/point')}>
             <label>적립금</label>
             <span className="amount">
-              {Number(user.activePoint).toLocaleString()} P
+              {Number(user?.activePoint).toLocaleString()} P
               <i className="arrow">〉</i>
             </span>
           </PointBar>
 
           <SummaryGrid>
             <SummaryItem onClick={() => navigate('/mypage/orders')}>
-              <span className="count">{pageInfo.totalElements || 0}</span>
+              <span className="count">{user?.orderCount || 0}</span>
               <label>주문/배송</label>
             </SummaryItem>
             <SummaryItem onClick={() => navigate('/mypage/coupon')}>
-              <span className="count">{user.couponCount || 0}</span>
+              <span className="count">{user?.couponCount || 0}</span>
               <label>쿠폰</label>
             </SummaryItem>
-            <SummaryItem>
-              <span className="count">0</span>
+            <SummaryItem onClick={() => navigate('/mypage/wishlist')}>
+              <span className="count">{user?.wishlistCount || 0}</span>
               <label>관심상품</label>
             </SummaryItem>
             <SummaryItem onClick={() => navigate('/mypage/review')}>
-              <span className="count">0</span>
+              <span className="count">{user?.reviewCount || 0}</span>
               <label>구매후기</label>
             </SummaryItem>
           </SummaryGrid>
