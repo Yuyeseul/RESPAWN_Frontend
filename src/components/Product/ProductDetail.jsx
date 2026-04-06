@@ -479,10 +479,10 @@ export const WishButton = styled.button`
   background-color: ${({ $isWished }) =>
     $isWished ? theme.colors.angel_pink : theme.colors.white};
   color: ${({ $isWished }) =>
-    $isWished ? theme.colors.coral_sunset : theme.colors.gray[700]};
+    $isWished ? theme.colors.wish : theme.colors.gray[700]};
   border: 1px solid
     ${({ $isWished }) =>
-      $isWished ? theme.colors.coral_sunset : theme.colors.gray[300]};
+      $isWished ? theme.colors.wish : theme.colors.gray[300]};
   padding: 14px 0;
   font-size: 16px;
   border-radius: 6px;

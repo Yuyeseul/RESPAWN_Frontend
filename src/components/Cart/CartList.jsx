@@ -36,7 +36,7 @@ const CartList = () => {
 
         const itemsWithChecked = res.data.cartItems.map((item) => ({
           ...item,
-          checked: false,
+          checked: true,
         }));
 
         setCartItems(itemsWithChecked);
@@ -176,6 +176,20 @@ const CartList = () => {
         <StepProgress currentStep={1} />
       </StepProgressWrapper>
       <Title>장바구니</Title>
+
+      <MobileSelectAllBar>
+        <Checkbox
+          type="checkbox"
+          id="mobile-all-check"
+          checked={allChecked}
+          onChange={handleCheckAll}
+        />
+        <label htmlFor="mobile-all-check">
+          전체 선택 ({cartItems.filter((i) => i.checked).length}/
+          {cartItems.length})
+        </label>
+      </MobileSelectAllBar>
+
       <Table>
         <thead>
           <tr>
@@ -234,12 +248,8 @@ const CartList = () => {
       </Table>
 
       <ButtonActions>
-        <DeleteButton onClick={handleDeleteSelected}>
-          선택 상품 삭제
-        </DeleteButton>
-        <DeleteButton onClick={handleClearAll}>
-          장바구니 전체 비우기
-        </DeleteButton>
+        <DeleteButton onClick={handleDeleteSelected}>선택 삭제</DeleteButton>
+        <DeleteButton onClick={handleClearAll}>전체 삭제</DeleteButton>
       </ButtonActions>
 
       <Summary>
@@ -256,22 +266,57 @@ export default CartList;
 
 const Container = styled.div`
   padding: 40px;
-  max-width: 1200px;
+  max-width: ${({ theme }) => theme.maxWidth};
   min-height: 500px;
-  width: 1200px;
+  width: 100%;
   margin: 0 auto;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px 15px;
+  }
 `;
 
 const StepProgressWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 10px; /* 타이틀과 간격 */
+  margin-bottom: 10px;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-bottom: 30px;
+  }
 `;
 
 const Title = styled.h2`
   font-size: 34px;
   text-align: center;
-  margin: 0 0 40px 0; /* 아래쪽 마진 유지 */
+  margin: 0 0 40px 0;
+  color: ${({ theme }) => theme.colors.gray[700]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+`;
+
+const MobileSelectAllBar = styled.div`
+  display: none; /* 기본 숨김 */
+
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: ${({ theme }) => theme.colors.gray[100]};
+    border-radius: 8px;
+    margin-bottom: 10px;
+
+    label {
+      font-size: 14px;
+      font-weight: bold;
+      color: ${({ theme }) => theme.colors.gray[700]};
+      cursor: pointer;
+    }
+  }
 `;
 
 const Table = styled.table`
@@ -280,16 +325,22 @@ const Table = styled.table`
   text-align: left;
   overflow: hidden;
 
+  thead {
+    @media ${({ theme }) => theme.mobile} {
+      display: none;
+    }
+  }
+
   th,
   td {
     padding: 20px;
-    border-bottom: 1px solid #eee;
-    word-break: break-word; /* 긴 단어 줄바꿈 */
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+    word-break: break-word;
     text-align: center;
   }
 
   th {
-    background: #f5f5f5;
+    background: ${({ theme }) => theme.colors.gray[100]};
   }
 
   /* 상품명(3번째 열)만 왼쪽 정렬 */
@@ -297,12 +348,69 @@ const Table = styled.table`
   tbody td:nth-child(2) {
     text-align: left;
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    display: block;
+    tbody {
+      display: block;
+    }
+  }
 `;
 
 const ItemRow = styled.tr`
   td {
     vertical-align: middle;
     text-align: center;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    display: grid;
+    grid-template-columns: 40px 1.2fr 1fr;
+    grid-template-areas:
+      'check info info'
+      'check count price';
+    padding: 15px 0;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+    td {
+      display: block;
+      padding: 5px;
+      border: none;
+      text-align: left !important;
+    }
+
+    /* 1. 체크박스 영역 (왼쪽 고정) */
+    td:nth-child(1) {
+      grid-area: check;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    /* 2. 상품 정보 영역 */
+    td:nth-child(2) {
+      grid-area: info;
+      margin-bottom: 5px;
+    }
+
+    /* 3. 수량 조절 영역 (왼쪽 하단) */
+    td:nth-child(3) {
+      grid-area: count;
+      display: flex;
+      align-items: center;
+      z-index: 10;
+    }
+
+    /* 4. 금액 영역 (오른쪽 하단) */
+    td:nth-child(4) {
+      grid-area: price;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 0;
+      font-weight: bold;
+    }
   }
 `;
 
@@ -316,11 +424,23 @@ const ProductInfo = styled.div`
     height: 80px;
     border-radius: 8px;
     object-fit: cover;
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   }
 
   span {
     font-size: 16px;
     word-break: break-word;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 10px;
+    img {
+      width: 60px;
+      height: 60px;
+    }
+    span {
+      font-size: 14px;
+    }
   }
 `;
 
@@ -333,9 +453,14 @@ const CountControl = styled.div`
     width: 30px;
     height: 30px;
     font-size: 18px;
-    background: #eee;
+    background: ${({ theme }) => theme.colors.gray[100]};
+    color: ${({ theme }) => theme.colors.gray[600]};
     border: none;
     cursor: pointer;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    justify-content: flex-start;
   }
 `;
 
@@ -351,61 +476,93 @@ const ButtonActions = styled.div`
 `;
 
 const Summary = styled.div`
-  margin-top: 50px;
-  padding: 20px;
-  border-top: 2px solid #222;
+  margin-top: 40px;
+  padding: 30px 20px;
+  border-top: 2px solid ${({ theme }) => theme.colors.gray[700]};
+  background-color: ${({ theme }) => theme.colors.white};
   font-size: 16px;
 
-  p {
-    margin: 10px 0;
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 20px;
+    padding: 20px 15px;
+    text-align: center;
   }
 `;
 
 const FinalPrice = styled.p`
-  margin-top: 20px;
-  font-size: 20px;
+  display: flex;
+  justify-content: space-between; /* 양 끝으로 배치 */
+  align-items: center;
+  margin-bottom: 25px; /* 버튼과의 간격 확보 */
+  font-size: 18px;
   font-weight: bold;
-  color: #e60023;
+  color: ${({ theme }) => theme.colors.gray[800]};
 
   span {
-    margin-left: 20px;
     font-size: 24px;
+    color: ${({ theme }) => theme.colors.red};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 16px;
+    span {
+      font-size: 22px;
+    }
   }
 `;
 
 const GreenButton = styled.button`
-  margin-top: 20px;
-  width: 200px;
-  height: 50px;
-  background-color: rgb(85, 90, 130);
-  color: white;
+  width: 100%;
+  max-width: 400px;
+  height: 56px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
   border: none;
   font-size: 18px;
+  font-weight: bold;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s;
+
+  display: block;
+  margin: 0 auto;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    height: 52px;
+    font-size: 17px;
+  }
 `;
 
 const DeleteButton = styled.button`
   padding: 10px 20px;
-  background-color: #eee;
-  color: #333;
+  background-color: ${({ theme }) => theme.colors.gray[200]};
+  color: ${({ theme }) => theme.colors.gray[700]};
   border: none;
   font-size: 15px;
   border-radius: 8px;
   cursor: pointer;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+  }
 `;
 
 const Checkbox = styled.input`
   width: 18px;
   height: 18px;
   cursor: pointer;
+  accent-color: ${({ theme }) => theme.colors.primary};
 `;
 
 const EmptyCartMessage = styled.div`
   text-align: center;
   padding: 80px 20px;
   font-size: 18px;
-  color: #888;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
 `;

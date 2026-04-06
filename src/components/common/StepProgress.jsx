@@ -29,20 +29,25 @@ const StepsContainer = styled.div`
   display: flex;
   align-items: center;
   font-size: 14px;
-  color: #999;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 12px;
+  }
 `;
 
 const Step = styled.div`
   display: flex;
   align-items: center;
-  color: ${({ active }) => (active ? '#0b4da0' : '#999')};
-  font-weight: ${({ active }) => (active ? 'bold' : 'normal')};
+  color: ${({ active, theme }) =>
+    active ? theme.colors.primary : theme.colors.gray[600]};
+  font-weight: ${({ active }) => (active ? '700' : '400')};
 `;
 
 const StepNumber = styled.span`
   margin-right: 4px;
-  color: ${({ active }) => (active ? '#0b4da0' : '#999')};
-  font-weight: bold;
+  color: ${({ active, theme }) =>
+    active ? theme.colors.primary : theme.colors.gray[400]};
+  font-weight: 700;
 `;
 
 const StepLabel = styled.span`
@@ -51,5 +56,5 @@ const StepLabel = styled.span`
 
 const Separator = styled.span`
   margin-right: 6px;
-  color: #ccc;
+  color: ${({ theme }) => theme.colors.gray[300]};
 `;

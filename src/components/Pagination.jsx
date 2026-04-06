@@ -89,7 +89,7 @@ const PageButton = styled.button`
   padding: 8px 12px;
   margin: 0 4px;
   border: none;
-  background-color: #eee;
+  background-color: ${({ theme }) => theme.colors.gray[200]};
   cursor: pointer;
   &:disabled {
     opacity: 0.5;
@@ -101,11 +101,11 @@ const PageNumber = styled.button`
   padding: 8px 12px;
   margin: 0 4px;
   border: none;
-  background-color: #fff;
-  border: 1px solid #ccc;
+  background-color: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   cursor: pointer;
   &.active {
-    background-color: rgb(85, 90, 130);
+    background-color: ${({ theme }) => theme.colors.primary};
     color: white;
   }
 `;
@@ -116,5 +116,5 @@ const Ellipsis = styled.span`
   justify-content: center;
   min-width: 36px;
   height: 36px;
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;

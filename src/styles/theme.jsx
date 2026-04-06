@@ -27,7 +27,6 @@ const theme = {
     wish: '#ff4d4d',
     pale_pink: '#ffe6e6',
     pink_lace: '#fff4f4',
-    coral_sunset: '#ff4d4d',
     angel_pink: '#fff0f0',
 
     // 무채색 계열
