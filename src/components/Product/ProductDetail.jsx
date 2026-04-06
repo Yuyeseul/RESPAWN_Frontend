@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '../../api/axios';
-import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import ReviewList from './ReviewList';
 import InquiryList from './InquiryList';
 import { useAuth } from '../../AuthContext';
 import { BASE_URL } from '../../api/axios';
 import theme from '../../styles/theme';
+import styled, { keyframes } from 'styled-components';
 
 function ProductDetail() {
   const { user } = useAuth();
@@ -21,6 +21,10 @@ function ProductDetail() {
   const [wishCount, setWishCount] = useState(0);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -128,7 +132,14 @@ function ProductDetail() {
 
   const totalPrice = item ? item.price * count : 0;
 
-  if (!item) return <div>불러오는 중...</div>;
+  if (!item) {
+    return (
+      <LoadingContainer>
+        <Spinner />
+        <LoadingText>상품 정보를 불러오는 중입니다...</LoadingText>
+      </LoadingContainer>
+    );
+  }
 
   return (
     <Container>
@@ -570,5 +581,48 @@ export const DescriptionBox = styled.div`
     line-height: 1.6;
     font-size: 16px;
     color: ${theme.colors.gray[700]};
+  }
+`;
+
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+export const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh; /* 화면 중앙에 오도록 높이 설정 */
+  gap: 20px;
+`;
+
+export const Spinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 5px solid ${theme.colors.gray[200]};
+  border-top: 5px solid ${theme.colors.primary}; /* 메인 컬러로 포인트 */
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+export const LoadingText = styled.div`
+  font-size: 18px;
+  color: ${theme.colors.gray[600]};
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  animation: pulse 1.5s infinite ease-in-out;
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.6;
+    }
   }
 `;

@@ -212,8 +212,9 @@ const KeywordList = styled.ul`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(${(p) => p.$cols}, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px; /* 카드 사이 간격 */
+  width: 100%;
 
   @media ${({ theme }) => theme.mobile} {
     grid-template-columns: repeat(2, minmax(0, 1fr));
