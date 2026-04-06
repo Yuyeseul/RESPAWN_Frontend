@@ -8,6 +8,7 @@ const menuItems = [
     items: [
       { key: 'coupon', label: '쿠폰' },
       { key: 'orders', label: '주문목록/배송조회' },
+      { key: 'wishlist', label: '관심상품' },
     ],
   },
   {
@@ -17,7 +18,6 @@ const menuItems = [
       { key: 'refund', label: '환불내역 확인' },
       { key: 'review', label: '구매후기' },
       { key: 'point', label: '적립금' },
-      { key: 'wishlist', label: '관심상품' },
     ],
   },
   {

@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../../../api/axios';
 import TextareaAutosize from 'react-textarea-autosize';
+import MypageLayout from '../MypageLayout';
+import { BASE_URL } from '../../../api/axios';
 
 const ReviewPage = () => {
   const navigate = useNavigate();
@@ -99,12 +101,8 @@ const ReviewPage = () => {
   }
 
   return (
-    <Container>
-      <Header>
-        <Title>리뷰 작성</Title>
-        <Desc>상품에 대한 별점과 후기를 남겨주세요.</Desc>
-      </Header>
-
+    <MypageLayout title="리뷰 작성">
+      <Desc>상품에 대한 별점과 후기를 남겨주세요.</Desc>
       <Section>
         <SectionTitle>상품 정보</SectionTitle>
         <ItemRow>
@@ -113,7 +111,10 @@ const ReviewPage = () => {
               window.open(`/ProductDetail/${selectedItem.itemId}`, '_blank')
             }
           >
-            <img src={selectedItem.imageUrl} alt={selectedItem.itemName} />
+            <img
+              src={`${BASE_URL}${selectedItem.imageUrl}`}
+              alt={selectedItem.itemName}
+            />
           </Thumb>
           <ItemInfo>
             <div className="name">{selectedItem.itemName}</div>
@@ -138,7 +139,7 @@ const ReviewPage = () => {
 
           <FormRow>
             <Label htmlFor="content">리뷰 내용</Label>
-            <TextareaAutosize
+            <StyledTextarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -146,14 +147,6 @@ const ReviewPage = () => {
               required
               minRows={10}
               maxLength={499}
-              style={{
-                width: '100%',
-                padding: 12,
-                border: '1px solid #e5e7eb',
-                borderRadius: 8,
-                resize: 'none',
-                fontSize: '16px',
-              }}
             />
             <Hint>{content.length}/500</Hint>
           </FormRow>
@@ -173,55 +166,45 @@ const ReviewPage = () => {
           </ButtonGroup>
         </ActionBar>
       </Section>
-    </Container>
+    </MypageLayout>
   );
 };
 
 export default ReviewPage;
 
-const Container = styled.div`
-  max-width: 1000px;
-`;
-
-const Header = styled.header`
-  margin-bottom: 16px;
-`;
-
-const Title = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 0 6px;
-  color: #111827;
-`;
-
 const Desc = styled.p`
-  margin: 0;
-  color: #6b7280;
+  margin: 0 0 16px;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 16px;
 `;
 
 const Section = styled.section`
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px;
   margin-bottom: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+  }
 `;
 
 const SectionTitle = styled.h2`
   font-size: 18px;
   margin: 0 0 12px;
-  color: #111827;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
+
 const ItemRow = styled.div`
   display: grid;
   grid-template-columns: 84px 1fr;
   align-items: center;
   gap: 12px;
   padding: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 10px;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
 `;
 
 const Thumb = styled.div`
@@ -240,11 +223,11 @@ const Thumb = styled.div`
 const ItemInfo = styled.div`
   .name {
     font-weight: 600;
-    color: #111827;
+    color: ${({ theme }) => theme.colors.gray[700]};
     margin-bottom: 4px;
   }
   .meta {
-    color: #6b7280;
+    color: ${({ theme }) => theme.colors.gray[600]};
     font-size: 16px;
   }
 `;
@@ -262,7 +245,7 @@ const FormRow = styled.div`
 
 const Label = styled.label`
   font-weight: 600;
-  color: #111827;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
 const StarWrapper = styled.div`
@@ -273,25 +256,25 @@ const StarWrapper = styled.div`
 `;
 
 const Star = styled.span`
-  color: ${({ filled }) =>
-    filled ? '#facc15' : '#e5e7eb'}; // 채워진 노랑/회색
+  color: ${({ filled, theme }) =>
+    filled ? theme.colors.yellow : theme.colors.gray[300]};
   transition: color 0.2s ease;
 `;
 
 const RequiredMark = styled.span`
   font-size: 14px;
-  color: red;
+  color: ${({ theme }) => theme.colors.red};
   margin-left: 4px;
 `;
 
 const Hint = styled.div`
   font-size: 14px;
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const Divider = styled.hr`
   border: none;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   margin: 16px 0 8px;
 `;
 
@@ -304,44 +287,52 @@ const ActionBar = styled.div`
 `;
 
 const Note = styled.div`
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 14px;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 12px; /* 버튼 사이 간격 */
+  gap: 12px;
   align-items: center;
 `;
 
-const BackButton = styled.button`
+const ButtonBase = styled.button`
   padding: 10px 16px;
   font-weight: 700;
   border-radius: 10px;
-  background: #333; /* 제출버튼보다 연한 어두운 배경 */
-  color: #fff;
   border: none;
   cursor: pointer;
-  opacity: 1;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  color: ${({ theme }) => theme.colors.white};
+`;
 
+const BackButton = styled(ButtonBase)`
+  background: ${({ theme }) => theme.colors.gray[600]};
   &:hover {
-    background-color: #000; /* 제출버튼 배경색으로 호버 */
+    background-color: ${({ theme }) => theme.colors.gray[700]};
   }
 `;
 
-const SubmitButton = styled.button`
-  padding: 10px 16px;
-  font-weight: 700;
-  border-radius: 10px;
-  background: #333;
-  color: #fff;
-  border: none;
-  cursor: pointer;
+const SubmitButton = styled(ButtonBase)`
+  background: ${({ theme }) => theme.colors.gray[700]};
   opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
-  transition: background-color 0.2s ease;
+  pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
 
   &:hover {
-    background-color: #000; /* 호버 시 더 진한 검정 */
+    background-color: ${({ theme }) => theme.colors.gray[800]};
+  }
+`;
+
+const StyledTextarea = styled(TextareaAutosize)`
+  width: 100%;
+  padding: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 8px;
+  resize: none;
+  font-size: 16px;
+  outline: none;
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;

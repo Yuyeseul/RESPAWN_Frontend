@@ -13,6 +13,7 @@ const menuItems = [
     items: [
       { key: 'coupon', label: '쿠폰' },
       { key: 'orders', label: '주문목록/배송조회' },
+      { key: 'wishlist', label: '관심상품' },
     ],
   },
   {
