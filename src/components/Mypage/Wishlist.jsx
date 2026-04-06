@@ -65,17 +65,17 @@ function WishlistPage() {
       return renderEmpty('찜한 상품이 없습니다.');
 
     return (
-      <GridContainer scrollable={items.length > SCROLL_THRESHOLD}>
+      <CardContainer scrollable={items.length > SCROLL_THRESHOLD}>
         {items.map((item) => {
           return (
-            <GridCard
+            <StyledLink
               key={item.id}
               onClick={() => navigate(`/ProductDetail/${item.id}`)}
             >
               {/* 이미지 영역 */}
               <ImageWrapper>
                 {item.imageUrl ? (
-                  <Thumbnail
+                  <ProductImg
                     src={`${BASE_URL}${item.imageUrl}`}
                     alt={item.name}
                   />
@@ -89,15 +89,15 @@ function WishlistPage() {
                 </HeartBtn>
               </ImageWrapper>
 
-              {/* 텍스트 정보 영역 (삭제 버튼 지움) */}
-              <ContentWrapper>
-                <div className="title">{item.name}</div>
-                <div className="sub">{item.price?.toLocaleString()} 원</div>
-              </ContentWrapper>
-            </GridCard>
+              <Info>
+                <ProductStoreName>{item.company}</ProductStoreName>
+                <ProductName>{item.name}</ProductName>
+                <ProcuctPrice>{item.price.toLocaleString()}원</ProcuctPrice>
+              </Info>
+            </StyledLink>
           );
         })}
-      </GridContainer>
+      </CardContainer>
     );
   };
 
@@ -169,11 +169,14 @@ const ListContainer = styled.div`
   padding-bottom: 40px;
 `;
 
-const GridContainer = styled.div`
+const CardContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  /* 🌟 기본 상태 (768px 초과 화면): 1줄에 4개씩 배치 */
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
+  width: 100%;
 
+  /* 스크롤 설정 (스크롤이 길어질 경우 대비) */
   max-height: ${({ scrollable }) => (scrollable ? '650px' : 'unset')};
   overflow-y: ${({ scrollable }) => (scrollable ? 'auto' : 'visible')};
   padding-right: ${({ scrollable }) => (scrollable ? '6px' : '0')};
@@ -186,13 +189,14 @@ const GridContainer = styled.div`
     border-radius: 4px;
   }
 
-  @media ${({ theme }) => theme.mobile} {
-    grid-template-columns: repeat(2, 1fr); /* 모바일에선 무조건 한 줄에 2개 */
-    gap: 12px;
+  /* 🌟 768px 이하 화면: 1줄에 2개씩 배치 */
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px; /* 모바일에서는 간격을 조금 좁힘 */
   }
 `;
 
-const GridCard = styled.div`
+const StyledLink = styled.div`
   display: flex;
   flex-direction: column;
   background: ${({ theme }) => theme.colors.white};
@@ -211,16 +215,22 @@ const GridCard = styled.div`
 const ImageWrapper = styled.div`
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  background-color: ${({ theme }) => theme.colors.gray[100]};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  aspect-ratio: 3 / 3.5;
   overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    border-radius: 6px;
+  }
 `;
 
-const Thumbnail = styled.img`
+const ProductImg = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 `;
 
 const Placeholder = styled.div`
@@ -266,32 +276,45 @@ const StyledHeart = styled(FillHeartIcon)`
   }
 `;
 
-const ContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+const Info = styled.div`
   padding: 12px;
-  flex: 1;
 
-  .title {
-    font-size: 14px;
-    font-weight: 500;
-    color: ${({ theme }) => theme.colors.gray[800]};
-    line-height: 1.3;
-
-    /* 두 줄 말줄임 */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  @media ${({ theme }) => theme.mobile} {
+    padding: 8px 4px;
   }
+`;
 
-  .sub {
-    font-size: 15px;
-    color: ${({ theme }) => theme.colors.primary}; /* 강조 색상 */
-    font-weight: 700;
-    margin-top: auto; /* 가격 정보를 하단에 고정 */
-    padding-top: 4px;
+const ProductStoreName = styled.div`
+  margin-top: 5px;
+  font-size: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 12px;
+  }
+`;
+
+const ProductName = styled.h3`
+  margin: 5px 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
+  }
+`;
+
+const ProcuctPrice = styled.p`
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: bold;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 16px;
   }
 `;

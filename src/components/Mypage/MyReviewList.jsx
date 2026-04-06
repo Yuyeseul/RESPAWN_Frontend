@@ -149,6 +149,7 @@ const MyReviewList = () => {
     setHasMore(true);
     setInitialLoading(true);
     fetchMyReviews(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // IntersectionObserver 설정

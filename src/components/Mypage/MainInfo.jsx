@@ -93,7 +93,7 @@ function MainInfo() {
       active = false;
       controller.abort();
     };
-  }, [pageInfo.page, pageInfo.size]);
+  }, [pageInfo.page, pageInfo.size, loginUser]);
 
   // 정렬: 최신 주문이 먼저
   const sortedOrders = useMemo(
