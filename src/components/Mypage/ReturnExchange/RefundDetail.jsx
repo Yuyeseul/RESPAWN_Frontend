@@ -35,36 +35,36 @@ const RefundDetail = () => {
     setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
 
-  const fetchRefunds = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/orders/refund-requests', {
-        params: { page: pageInfo.page, size: pageInfo.size },
-      });
-
-      const data = response.data;
-      console.log(data);
-      setRefunds(data.content);
-      setPageInfo((prev) => ({
-        ...prev,
-        totalPages: data.totalPages,
-        totalElements: data.totalElements,
-        isFirst: data.first,
-        isLast: data.last,
-      }));
-      setLoading(false);
-    } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          '환불 내역을 불러오는 중 오류가 발생했습니다.'
-      );
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchRefunds = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('/orders/refund-requests', {
+          params: { page: pageInfo.page, size: pageInfo.size },
+        });
+
+        const data = response.data;
+        console.log(data);
+        setRefunds(data.content);
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          isFirst: data.first,
+          isLast: data.last,
+        }));
+        setLoading(false);
+      } catch (err) {
+        setError(
+          err.response?.data?.error ||
+            '환불 내역을 불러오는 중 오류가 발생했습니다.'
+        );
+        setLoading(false);
+      }
+    };
+
     fetchRefunds();
-  }, [pageInfo.page]);
+  }, [pageInfo.page, pageInfo.size]);
 
   if (loading)
     return (
