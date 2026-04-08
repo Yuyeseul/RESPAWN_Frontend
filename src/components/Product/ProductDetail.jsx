@@ -202,8 +202,8 @@ function ProductDetail() {
                   >
                     {isWished ? '❤️ 찜 취소' : '🤍 찜하기'}
                   </WishButton>
-                  <BuyButton onClick={handleBuyNow}>바로 구매</BuyButton>
                   <CartButton onClick={handleAddToCart}>장바구니</CartButton>
+                  <BuyButton onClick={handleBuyNow}>바로 구매</BuyButton>
                 </ButtonRow>
               </>
             )}
@@ -351,7 +351,7 @@ export const Title = styled.h2`
 export const Price = styled.div`
   font-size: 28px;
   font-weight: bold;
-  color: ${theme.colors.gray[700]};
+  color: ${theme.colors.gray[800]};
 `;
 
 export const InfoRow = styled.div`
@@ -475,7 +475,7 @@ export const ButtonRow = styled.div`
 `;
 
 export const WishButton = styled.button`
-  flex: 0.6;
+  flex: 1;
   background-color: ${({ $isWished }) =>
     $isWished ? theme.colors.angel_pink : theme.colors.white};
   color: ${({ $isWished }) =>
@@ -489,6 +489,7 @@ export const WishButton = styled.button`
   cursor: pointer;
   font-weight: ${({ $isWished }) => ($isWished ? 'bold' : 'normal')};
   transition: all 0.2s ease-in-out;
+  white-space: nowrap;
 
   &:hover {
     background-color: ${({ $isWished }) =>
@@ -497,7 +498,7 @@ export const WishButton = styled.button`
 `;
 
 export const BuyButton = styled.button`
-  flex: 1.2;
+  flex: 1.5;
   background-color: ${theme.colors.primary};
   color: ${theme.colors.white};
   border: none;
@@ -510,16 +511,16 @@ export const BuyButton = styled.button`
 
 export const CartButton = styled.button`
   flex: 1;
-  background-color: ${theme.colors.gray[100]};
+  background-color: ${theme.colors.white};
   color: ${theme.colors.gray[700]};
-  border: none;
+  border: 1px solid ${theme.colors.gray[300]};
   padding: 14px 0;
   font-size: 16px;
   border-radius: 6px;
   cursor: pointer;
 
   &:hover {
-    background-color: ${theme.colors.gray[300]};
+    background-color: ${theme.colors.gray[100]};
   }
 `;
 

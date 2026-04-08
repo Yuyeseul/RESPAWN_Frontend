@@ -72,15 +72,11 @@ const ToggleButton = styled.button`
   width: ${(props) => (props.isOpen ? '50px' : '150px')};
   height: 50px;
   border-radius: 25px;
-  background: #222;
-  color: #fff;
+  background: ${({ theme }) => theme.colors.gray[900]};
+  color: ${({ theme }) => theme.colors.white};
   border: none;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-  &:hover {
-    background: #444;
-  }
 `;
