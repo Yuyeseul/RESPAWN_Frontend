@@ -21,10 +21,11 @@ import {
 } from '../../styles/FindSendStyles';
 
 const FindPwSendStep = ({ userInfo, onNext, onPrev }) => {
-  const { loading, error, setError, sendEmail, sendPhone } = useSendForm({
+  const { loading, error, sendEmail, sendPhone } = useSendForm({
     sendApi: async ({ type }) => {
       const userId = sessionStorage.getItem('userId');
-      return sendPw({ userId, type });
+      const userType = sessionStorage.getItem('userType');
+      return sendPw({ userId, type, userType });
     },
     onNext,
   });
