@@ -57,6 +57,11 @@ const ResultContainer = styled.div`
   justify-content: center;
   align-items: center;
   background: #fafafa;
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    padding-top: 80px;
+  }
 `;
 
 const LogoWrapper = styled.div`
@@ -77,13 +82,21 @@ const ResultBox = styled.div`
   background: white;
   padding: 40px 30px;
   border-radius: 12px;
-  min-width: 480px;
+  width: 100%;
+  max-width: 480px;
   margin: 0 auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid #ddd;
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 768px) {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 20px 30px; /* 양쪽 여백을 20px로 수정하여 숨통을 틔워줍니다 */
+  }
 `;
 
 const Title = styled.h2`
@@ -136,17 +149,23 @@ const Radio = styled.input`
   width: 18px;
   height: 18px;
   cursor: pointer;
+  flex-shrink: 0;
 `;
 
 const IdText = styled.span`
   display: inline-block;
-  width: 220px; /* 고정 너비 조절 가능 */
+  width: 220px;
   font-size: 16px;
   font-weight: 600;
   color: #333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex: 1;
+  }
 `;
 
 const ButtonWrapper = styled.div`

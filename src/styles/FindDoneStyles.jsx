@@ -8,6 +8,12 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  /* 다른 화면과 동일하게 모바일에서 내용을 상단으로 끌어올림 */
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    padding-top: 80px;
+  }
 `;
 
 export const LogoWrapper = styled.div`
@@ -29,6 +35,14 @@ export const ResultContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  /* 모바일 화면일 때 박스 형태 제거 및 넉넉한 양쪽 여백(40px) 추가 */
+  @media (max-width: 768px) {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 20px 40px;
+  }
 `;
 
 export const SuccessText = styled.p`

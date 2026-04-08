@@ -8,6 +8,12 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  /* 다른 화면과 동일하게 모바일에서 내용을 상단으로 끌어올림 */
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    padding-top: 80px;
+  }
 `;
 
 export const LogoWrapper = styled.div`
@@ -29,6 +35,14 @@ export const Card = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  /* 모바일 화면일 때 박스 형태 제거 및 양쪽 여백 추가 */
+  @media (max-width: 768px) {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 20px 30px;
+  }
 `;
 
 export const Title = styled.h2`
@@ -68,6 +82,11 @@ export const OptionLabel = styled.span`
   flex: 0 0 140px;
   font-weight: 600;
   color: #555;
+
+  /* 모바일에서 라벨이 차지하는 영역을 살짝 줄여서 값(Value) 공간 확보 */
+  @media (max-width: 768px) {
+    flex: 0 0 100px;
+  }
 `;
 
 export const OptionValue = styled.span`
