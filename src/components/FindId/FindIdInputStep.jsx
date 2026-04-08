@@ -81,6 +81,7 @@ const FindIdInputStep = ({ onComplete }) => {
 
         if (data.token) sessionStorage.setItem('token', data.token);
         if (data.userId) sessionStorage.setItem('userId', data.userId);
+        sessionStorage.setItem('userType', userType);
 
         onComplete(
           {

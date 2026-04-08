@@ -21,11 +21,12 @@ import {
 } from '../../styles/FindSendStyles';
 
 const FindIdSendStep = ({ userInfo, onNext, onPrev }) => {
-  const { loading, error, setError, sendEmail, sendPhone } = useSendForm({
+  const { loading, error, sendEmail, sendPhone } = useSendForm({
     sendApi: async ({ type }) => {
       const token = sessionStorage.getItem('token');
       const userId = sessionStorage.getItem('userId');
-      return sendId({ userId, token, type });
+      const userType = sessionStorage.getItem('userType');
+      return sendId({ userId, token, type, userType });
     },
     onNext,
   });

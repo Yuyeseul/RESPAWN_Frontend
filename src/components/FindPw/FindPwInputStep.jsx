@@ -66,13 +66,14 @@ const FindPwInputStep = ({ onComplete }) => {
         ? { ...base, phoneNumber: v.phone }
         : { ...base, email: v.email };
     },
-    apiCaller: async (requestData) => {
+    sendApi: async (requestData) => {
       const data = await findPasswordApi(requestData);
       return data;
     },
     onSuccess: (data, v) => {
       if (data) {
         if (data.userId) sessionStorage.setItem('userId', data.userId);
+        sessionStorage.setItem('userType', userType);
         onComplete({
           name: v.name,
           phoneNumber: data.phoneNumber,
