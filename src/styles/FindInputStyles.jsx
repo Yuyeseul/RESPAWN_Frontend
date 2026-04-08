@@ -2,10 +2,10 @@ import styled from 'styled-components';
 
 export const Container = styled.div`
   min-height: 100vh;
-  padding: 20px 15px;
+  padding: 40px 20px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   background: #fafafa;
 `;
@@ -40,7 +40,9 @@ export const LogoWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 30px;
+
+  margin-top: 20px;
+  margin-bottom: 40px;
 
   & > div img {
     height: 70px;
@@ -58,6 +60,14 @@ export const Box = styled.form`
   border: 1px solid #ddd;
   display: flex;
   flex-direction: column;
+
+  /* 모바일 버전에서 박스 외형 지우기 + 양쪽 여백 살리기 */
+  @media (max-width: 768px) {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 20px 30px;
+  }
 `;
 
 export const Title = styled.h2`
@@ -85,7 +95,9 @@ export const Tab = styled.button.attrs({ type: 'button' })`
   border-bottom: ${(props) =>
     props.isActive ? '2px solid rgb(105, 111, 148)' : '2px solid transparent'};
   cursor: pointer;
-  transition: color 0.25s ease, border-bottom 0.25s ease;
+  transition:
+    color 0.25s ease,
+    border-bottom 0.25s ease;
 
   &:hover {
     color: rgb(105, 111, 148);
