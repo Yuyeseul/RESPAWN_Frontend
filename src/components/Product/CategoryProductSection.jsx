@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from '../../api/axios';
 import styled from 'styled-components';
 import ProductCard from '../Product/ProductCard';
+import CartConfirmModal from '../Cart/CartConfirmModal';
 
 const CategoryProductSection = ({
   categoryName,
@@ -11,6 +12,8 @@ const CategoryProductSection = ({
   gridCols = 4,
 }) => {
   const [products, setProducts] = useState([]);
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const [lastAddedProduct, setLastAddedProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -23,7 +26,8 @@ const CategoryProductSection = ({
         count: 1,
       });
 
-      alert(`${product.name}이(가) 장바구니에 담겼습니다.`);
+      setLastAddedProduct(product);
+      setIsCartModalOpen(true);
     } catch (err) {
       console.error('장바구니 담기 실패:', err);
 
@@ -119,6 +123,12 @@ const CategoryProductSection = ({
           ))}
         </Grid>
       </Body>
+
+      <CartConfirmModal
+        isOpen={isCartModalOpen}
+        onClose={() => setIsCartModalOpen(false)}
+        productName={lastAddedProduct?.itemName || lastAddedProduct?.name}
+      />
     </Section>
   );
 };
