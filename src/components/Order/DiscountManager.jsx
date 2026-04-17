@@ -230,7 +230,7 @@ const DiscountManager = ({ orderData, onUpdate, onPaymentRequest }) => {
               }
               onChange={handlePointChange}
               onBlur={handlePointBlur}
-              placeholder="사용 금액 입력"
+              placeholder="사용 금액"
               inputMode="numeric"
               disabled={!orderData}
             />
@@ -268,49 +268,24 @@ const DiscountManager = ({ orderData, onUpdate, onPaymentRequest }) => {
           <span>쿠폰할인</span>
           <span>
             {couponCode ? (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <strong>
-                  -{Number(couponDiscount ?? 0).toLocaleString()}원
-                </strong>
-                <button
+              <CouponApplyWrapper>
+                <span>-{Number(couponDiscount ?? 0).toLocaleString()}원</span>
+                <CancelButton
                   type="button"
-                  onClick={() => {
-                    handleCancelCoupon();
-                  }}
-                  style={{
-                    padding: '6px 10px',
-                    fontSize: '12px',
-                    border: '1px solid #ccc',
-                    borderRadius: '6px',
-                    background: '#fff',
-                    cursor: 'pointer',
-                  }}
+                  onClick={handleCancelCoupon}
+                  disabled={cancelLoading}
                 >
                   {cancelLoading ? '취소 중...' : '취소'}
-                </button>
-              </span>
+                </CancelButton>
+              </CouponApplyWrapper>
             ) : (
-              <button
+              <SelectCouponButton
                 type="button"
                 onClick={() => setIsCouponModalOpen(true)}
-                style={{
-                  padding: '8px 12px',
-                  fontSize: '14px',
-                  border: '1px solid #ccc',
-                  borderRadius: '6px',
-                  background: '#fff',
-                  cursor: 'pointer',
-                }}
                 disabled={!orderData}
               >
                 쿠폰 선택
-              </button>
+              </SelectCouponButton>
             )}
           </span>
         </PriceRow>
@@ -342,8 +317,8 @@ export default DiscountManager;
 
 const Summary = styled.div`
   padding: 20px;
-  border: 1px solid #ddd;
-  background-color: #fafafa;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background-color: ${({ theme }) => theme.colors.gray[50]};
   max-width: 400px;
   margin: 10px;
 
@@ -351,46 +326,66 @@ const Summary = styled.div`
     margin-bottom: 20px;
     font-size: 20px;
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    max-width: none;
+    margin: 10px 0;
+    border-left: none;
+    border-right: none;
+    padding: 16px;
+  }
 `;
 
 const PriceRow = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin: 8px 0;
   font-size: ${({ $total }) => ($total ? '18px' : '16px')};
   font-weight: ${({ $total }) => ($total ? 'bold' : 'normal')};
-  color: ${({ $total }) => ($total ? '#e60023' : '#000')};
+  color: ${({ $total, theme }) =>
+    $total ? theme.colors.red : theme.colors.gray[700]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: ${({ $total }) => ($total ? '20px' : '15px')};
+  }
 `;
 
 const PayButton = styled.button`
   width: 100%;
   padding: 16px;
-  background-color: #000;
-  color: #fff;
+  background-color: ${({ theme }) => theme.colors.gray[900]};
+  color: ${({ theme }) => theme.colors.white};
   font-size: 18px;
   font-weight: bold;
   border: none;
   margin-top: 20px;
   cursor: pointer;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 18px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
 `;
 
 const PointsBox = styled.div`
-  width: 100%; /* 너비를 100%로 설정 */
-  box-sizing: border-box; /* 패딩과 보더를 너비에 포함 */
+  width: 100%;
+  box-sizing: border-box;
   margin: 12px 0;
   padding: 16px;
-  background: #fafafa;
+  background: ${({ theme }) => theme.colors.gray[50]};
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
 `;
 
 const PointsInlineRow = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 10px; /* 구분자와의 간격 */
+  gap: 10px;
   margin: 6px 0;
-  flex-wrap: wrap; /* 모바일에서 줄바꿈 허용 */
+  flex-wrap: wrap;
 `;
 
 const InlineItem = styled.div`
@@ -400,12 +395,13 @@ const InlineItem = styled.div`
 
   span {
     font-size: 12px;
-    color: #666;
+    color: ${({ theme }) => theme.colors.gray[600]};
   }
 `;
+
 const PointsStrong = styled.strong`
-  font-weight: 600; /* 지나치게 튀지 않게 600 */
-  color: #222; /* Summary 텍스트 톤과 유사 */
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[800]};
   font-size: 14px;
 `;
 
@@ -415,35 +411,56 @@ const PointsControl = styled.div`
   align-items: center;
   margin-top: 8px;
 
+  @media ${({ theme }) => theme.mobile} {
+    flex-wrap: wrap;
+
+    input {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    button {
+      flex: 1;
+      min-width: 70px;
+      padding: 10px 4px;
+      font-size: 13px;
+    }
+  }
+
   input {
     min-width: 90px;
     padding: 10px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
     border-radius: 6px;
     font-size: 14px;
-    background: #fff;
+    background: ${({ theme }) => theme.colors.white};
+
+    &:focus {
+      outline: none;
+      border-color: ${({ theme }) => theme.colors.primary};
+    }
   }
 
   button {
     padding: 10px 12px;
     min-width: 90px;
     font-size: 14px;
-    border: 1px solid #ccc;
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
     border-radius: 6px;
-    background: #fff;
+    background: ${({ theme }) => theme.colors.white};
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover {
-      background: #f5f7ff; /* 기존 버튼 hover와 톤 맞춤 */
-      border-color: rgb(85, 90, 130);
-      color: rgb(85, 90, 130);
+      background: ${({ theme }) => theme.colors.gray[100]};
+      border-color: ${({ theme }) => theme.colors.primary};
+      color: ${({ theme }) => theme.colors.primary};
     }
 
     &:disabled {
-      background: #f2f2f2;
-      color: #999;
-      border-color: #ddd;
+      background: ${({ theme }) => theme.colors.gray[100]};
+      color: ${({ theme }) => theme.colors.gray[600]};
+      border-color: ${({ theme }) => theme.colors.gray[300]};
       cursor: not-allowed;
     }
   }
@@ -452,5 +469,54 @@ const PointsControl = styled.div`
 const PointsHelp = styled.div`
   margin-top: 8px;
   font-size: 12px;
-  color: #777; /* NoticeBox보다 톤을 낮춰 부드럽게 */
+  color: ${({ theme }) => theme.colors.gray[600]};
+`;
+
+const CouponApplyWrapper = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+`;
+
+const CancelButton = styled.button`
+  padding: 6px 10px;
+  font-size: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 6px;
+  background: ${({ theme }) => theme.colors.white};
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[700]};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray[100]};
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+`;
+
+const SelectCouponButton = styled.button`
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 6px;
+  background: ${({ theme }) => theme.colors.white};
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[700]};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray[100]};
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[100]};
+    cursor: not-allowed;
+  }
 `;
