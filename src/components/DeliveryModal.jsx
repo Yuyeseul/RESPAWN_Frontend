@@ -188,9 +188,10 @@ function DeliverModal({ onClose, onSaveComplete, initialData }) {
               <span>주소 검색</span>
               <button onClick={() => setIsDaumPostOpen(false)}>×</button>
             </PostcodeHeader>
+            {/* 컨테이너 높이에 맞춰지도록 style 변경 */}
             <DaumPostcode
               onComplete={handleComplete}
-              style={{ width: '100%', height: '450px' }}
+              style={{ width: '100%', height: '100%' }}
             />
           </PostcodeWrapper>
         )}
@@ -210,6 +211,11 @@ const ModalOverlay = styled.div`
   align-items: center;
   z-index: 2000;
   padding: 16px;
+
+  /* 모바일 환경에서는 꽉 차게 보이도록 패딩 제거 */
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0;
+  }
 `;
 
 const ModalContent = styled.div`
@@ -223,6 +229,14 @@ const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  /* 모바일 환경에서 전체화면 적용 및 모서리 둥글기 제거 */
+  @media ${({ theme }) => theme.mobile} {
+    max-width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
 `;
 
 const Header = styled.div`
@@ -231,6 +245,10 @@ const Header = styled.div`
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px 20px;
+  }
 `;
 
 const Title = styled.h2`
@@ -246,8 +264,13 @@ const CloseButton = styled.button`
   font-size: 24px;
   color: ${({ theme }) => theme.colors.gray[600]};
   cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   &:hover {
-    color: ${({ theme }) => theme.colors.gray[700]};
+    color: ${({ theme }) => theme.colors.gray[800]};
   }
 `;
 
@@ -255,6 +278,10 @@ const FormScrollArea = styled.form`
   padding: 24px;
   overflow-y: auto;
   flex: 1;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px;
+  }
 `;
 
 const FormSection = styled.div`
@@ -343,6 +370,7 @@ const AddressButton = styled.button`
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
+  transition: background 0.2s;
 
   &:hover {
     background: ${({ theme }) => theme.colors.gray[700]};
@@ -364,6 +392,7 @@ const CheckboxRow = styled.div`
   }
   label {
     cursor: pointer;
+    user-select: none;
   }
 `;
 
@@ -378,37 +407,58 @@ const SubmitButton = styled.button`
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+  transition: opacity 0.2s;
 
   &:hover {
-    padding: 16px;
     opacity: 0.9;
+  }
+
+  /* 모바일에서 버튼이 하단에 좀 더 밀착되도록 조정 */
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 40px;
   }
 `;
 
 const PostcodeWrapper = styled.div`
   width: 100%;
+  height: 500px; /* PC 환경 기본 높이 */
   background: ${({ theme }) => theme.colors.white};
   display: flex;
   flex-direction: column;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
   overflow: hidden;
+
+  @media ${({ theme }) => theme.mobile} {
+    height: 100%; /* 모바일에서 화면 전체 높이 사용 */
+    border-radius: 0;
+  }
 `;
 
 const PostcodeHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 16px 20px;
   background: ${({ theme }) => theme.colors.gray[100]};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
   span {
     font-weight: 600;
     font-size: 16px;
   }
+
   button {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
+    color: ${({ theme }) => theme.colors.gray[600]};
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    &:hover {
+      color: ${({ theme }) => theme.colors.gray[800]};
+    }
   }
 `;
