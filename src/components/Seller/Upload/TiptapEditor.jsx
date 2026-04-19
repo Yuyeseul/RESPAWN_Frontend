@@ -288,7 +288,6 @@ export default function TiptapEditor({ value = '', onChange }) {
 
   return (
     <EditorContainer>
-      <EditorLabel>내용</EditorLabel>
       <EditorWrapper>
         <MenuBar editor={editor} />
         <StyledEditorContent editor={editor} />
@@ -305,15 +304,6 @@ const EditorContainer = styled.div`
   font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
   box-shadow: 0 10px 25px rgb(0 0 0 / 0.08);
   padding: 24px 32px;
-`;
-
-const EditorLabel = styled.label`
-  display: block;
-  font-weight: 700;
-  font-size: 20px;
-  margin-bottom: 14px;
-  color: #212529;
-  user-select: none;
 `;
 
 const EditorWrapper = styled.div`

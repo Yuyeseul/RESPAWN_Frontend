@@ -30,7 +30,12 @@ const SellerHeader = () => {
             <span onClick={handleLogout} style={{ cursor: 'pointer' }}>
               로그아웃
             </span>
-            <span>고객센터</span>
+            <span
+              onClick={() => navigate('/customerCenter')} // <-- 실제 고객센터 URL 경로로 수정해주세요! (예: '/cs')
+              style={{ cursor: 'pointer' }}
+            >
+              고객센터
+            </span>
           </Right>
         </TopMenu>
       </TopBar>

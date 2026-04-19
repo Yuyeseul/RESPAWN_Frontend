@@ -25,49 +25,52 @@ const ReviewList = () => {
     setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
 
+  // 1. 상품 목록 불러오기 (마운트 시 1번만 실행)
   useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const res = await axios.get('/items/my-items/summary');
+        setItems(res.data);
+      } catch (err) {
+        console.error('상품 목록 불러오기 실패:', err);
+      }
+    };
     fetchItems();
   }, []);
 
+  // 2. 리뷰 목록 불러오기 (선택된 상품이나 페이지 변경 시 실행)
   useEffect(() => {
+    const fetchReviews = async (itemId) => {
+      try {
+        const res = await axios.get('/reviews/seller/my-reviews', {
+          params: { page: pageInfo.page, size: pageInfo.size, itemId },
+        });
+        const data = res.data;
+        setReviews(data.content);
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          isFirst: data.first,
+          isLast: data.last,
+        }));
+      } catch (err) {
+        console.error('리뷰 불러오기 실패:', err);
+      }
+    };
     fetchReviews(selectedItem);
-  }, [selectedItem, pageInfo.page]);
+  }, [selectedItem, pageInfo.page, pageInfo.size]);
 
-  // 상품 목록 불러오기
-  const fetchItems = async () => {
-    try {
-      const res = await axios.get('/items/my-items/summary');
-      console.log(res.data);
-      setItems(res.data);
-    } catch (err) {
-      console.error('상품 목록 불러오기 실패:', err);
-    }
-  };
-
-  const fetchReviews = async (itemId) => {
-    try {
-      const res = await axios.get('/reviews/seller/my-reviews', {
-        params: { page: pageInfo.page, size: pageInfo.size, itemId },
-      });
-      const data = res.data;
-      console.log(data);
-      setReviews(data.content);
-      setPageInfo((prev) => ({
-        ...prev,
-        totalPages: data.totalPages,
-        totalElements: data.totalElements,
-        isFirst: data.first,
-        isLast: data.last,
-      }));
-    } catch (err) {
-      console.error('리뷰 불러오기 실패:', err);
-    }
-  };
-
+  // 별점 렌더링 (디자인 적용)
   const renderStars = (rating) => {
     const filled = '★'.repeat(rating);
     const empty = '☆'.repeat(5 - rating);
-    return filled + empty;
+    return (
+      <Stars>
+        <span className="filled">{filled}</span>
+        <span className="empty">{empty}</span>
+      </Stars>
+    );
   };
 
   const handleRowClick = (review) => {
@@ -85,54 +88,91 @@ const ReviewList = () => {
     <Container>
       <Header>
         <Title>상품 리뷰 목록</Title>
-        <ItemSelector
-          value={selectedItem}
-          onChange={setSelectedItem}
-          productList={items}
-        />
+        <SelectorWrapper>
+          <ItemSelector
+            value={selectedItem}
+            onChange={setSelectedItem}
+            productList={items}
+          />
+        </SelectorWrapper>
       </Header>
-      <Table>
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>작성자</th>
-            <th>상품명</th>
-            <th>평점</th>
-            <th>리뷰 내용</th>
-            <th>작성일</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reviews.length > 0 ? (
-            reviews.map((review, index) => (
-              <tr
-                key={review.reviewId}
-                onClick={() => handleRowClick(review)}
-                style={{ cursor: 'pointer' }}
-              >
-                <td>{reviews.length - index}</td>
-                <td>{review.buyerId}</td>
-                <td>{review.itemName}</td>
-                <td>{renderStars(review.rating)}</td>
-                <td>{truncateContent(review.content)}</td>
-                <td>{new Date(review.createdDate).toLocaleDateString()}</td>
-              </tr>
-            ))
-          ) : (
+
+      {/* PC 환경: 테이블 뷰 */}
+      <DesktopTableWrapper>
+        <Table>
+          <thead>
             <tr>
-              <NoDataCell colSpan="6">{'리뷰 내역이 없습니다.'}</NoDataCell>
+              <th>번호</th>
+              <th>작성자</th>
+              <th>상품명</th>
+              <th>평점</th>
+              <th>리뷰 내용</th>
+              <th>작성일</th>
             </tr>
-          )}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {reviews.length > 0 ? (
+              reviews.map((review, index) => (
+                <tr
+                  key={review.reviewId}
+                  onClick={() => handleRowClick(review)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>{reviews.length - index}</td>
+                  <td>{review.buyerId}</td>
+                  <td>{review.itemName}</td>
+                  <td>{renderStars(review.rating)}</td>
+                  <td>{truncateContent(review.content, 25)}</td>
+                  <td>{new Date(review.createdDate).toLocaleDateString()}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <NoDataCell colSpan="6">{'리뷰 내역이 없습니다.'}</NoDataCell>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </DesktopTableWrapper>
+
+      {/* 모바일 환경: 카드형 리스트 뷰 */}
+      <MobileListWrapper>
+        {reviews.length > 0 ? (
+          reviews.map((review) => (
+            <MobileCard
+              key={review.reviewId}
+              onClick={() => handleRowClick(review)}
+            >
+              <CardHeader>
+                <BuyerId>{review.buyerId}</BuyerId>
+                <ReviewDate>
+                  {new Date(review.createdDate).toLocaleDateString()}
+                </ReviewDate>
+              </CardHeader>
+              <CardBody>
+                <ItemName>{review.itemName}</ItemName>
+                <RatingRow>{renderStars(review.rating)}</RatingRow>
+                <ReviewContent>
+                  {truncateContent(review.content, 40)}
+                </ReviewContent>
+              </CardBody>
+            </MobileCard>
+          ))
+        ) : (
+          <NoDataCard>리뷰 내역이 없습니다.</NoDataCard>
+        )}
+      </MobileListWrapper>
+
       {pageInfo.totalPages > 1 && (
-        <Pagination
-          currentPage={pageInfo.page + 1}
-          totalPages={pageInfo.totalPages}
-          onPageChange={handlePageChange}
-          isFirst={pageInfo.isFirst}
-          isLast={pageInfo.isLast}
-        />
+        <PaginationWrapper>
+          <Pagination
+            currentPage={pageInfo.page + 1}
+            totalPages={pageInfo.totalPages}
+            onPageChange={handlePageChange}
+            isFirst={pageInfo.isFirst}
+            isLast={pageInfo.isLast}
+          />
+        </PaginationWrapper>
       )}
     </Container>
   );
@@ -140,10 +180,23 @@ const ReviewList = () => {
 
 export default ReviewList;
 
+// --- 스타일 컴포넌트 영역 ---
+
 const Container = styled.div`
   max-width: 1600px;
   margin: 60px auto;
   padding: 0 20px;
+  font-family:
+    'Pretendard',
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+
+  @media (max-width: 768px) {
+    margin: 20px auto;
+    padding: 0 10px;
+  }
 `;
 
 const Header = styled.div`
@@ -151,13 +204,53 @@ const Header = styled.div`
   justify-content: space-between;
   margin-bottom: 20px;
   align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
 `;
 
 const Title = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 20px;
   color: #555a82;
+  margin: 0; /* 모바일 정렬 틀어짐 방지 */
+`;
+
+const SelectorWrapper = styled.div`
+  @media (max-width: 768px) {
+    width: 100%;
+
+    /* 내부 select 태그 넓이 100% 꽉 채우기 */
+    select {
+      width: 100%;
+    }
+  }
+`;
+
+/* 별점 스타일 */
+const Stars = styled.span`
+  display: inline-flex;
+  gap: 2px;
+  font-size: 15px;
+
+  .filled {
+    color: #f59e0b; /* 노란색 별 */
+  }
+  .empty {
+    color: #e2e8f0; /* 옅은 회색 별 */
+  }
+`;
+
+/* PC용 테이블 래퍼 */
+const DesktopTableWrapper = styled.div`
+  width: 100%;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Table = styled.table`
@@ -166,17 +259,21 @@ const Table = styled.table`
   background: white;
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
   th,
   td {
-    padding: 12px 15px;
+    padding: 14px 15px;
     text-align: center;
     border-bottom: 1px solid #eee;
+    vertical-align: middle;
   }
 
   th {
     background: #e6e8f4;
     color: #333;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   tr:hover {
@@ -188,5 +285,102 @@ const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
   color: #999;
-  font-size: 16px;
+  font-size: 15px;
+`;
+
+/* 모바일용 카드 리스트 래퍼 */
+const MobileListWrapper = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+`;
+
+/* 모바일 개별 카드 */
+const MobileCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background: #fcfcfc;
+  }
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+`;
+
+const BuyerId = styled.span`
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+`;
+
+const ReviewDate = styled.span`
+  font-size: 12px;
+  color: #999;
+`;
+
+const CardBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const ItemName = styled.div`
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+  word-break: keep-all;
+`;
+
+const RatingRow = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const ReviewContent = styled.div`
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #f1f5f9;
+`;
+
+const NoDataCard = styled.div`
+  padding: 40px 0;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #eee;
+`;
+
+const PaginationWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
 `;

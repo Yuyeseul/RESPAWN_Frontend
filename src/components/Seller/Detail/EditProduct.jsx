@@ -62,9 +62,43 @@ const categoryGroups = [
   },
 ];
 
+// 드롭다운(react-select) 커스텀 디자인
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    minHeight: '44px',
+    borderRadius: '8px',
+    borderColor: state.isFocused ? '#555a82' : '#e2e8f0',
+    boxShadow: state.isFocused ? '0 0 0 3px rgba(85, 90, 130, 0.1)' : 'none',
+    '&:hover': {
+      borderColor: state.isFocused ? '#555a82' : '#cbd5e1',
+    },
+    cursor: 'pointer',
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? '#555a82'
+      : state.isFocused
+        ? '#f0f2f8'
+        : 'white',
+    color: state.isSelected ? 'white' : '#333',
+    cursor: 'pointer',
+    '&:active': {
+      backgroundColor: '#555a82',
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    overflow: 'hidden',
+  }),
+};
+
 function EditProduct() {
   const navigate = useNavigate();
-  const { id } = useParams(); // 상품 ID
+  const { id } = useParams();
 
   const [item, setItem] = useState(null);
   const [image, setImage] = useState(null);
@@ -93,25 +127,17 @@ function EditProduct() {
   );
 
   const STATUS = {
-    SALE: 'SALE', // 판매중
-    PAUSED: 'PAUSED', // 일시중지(일시품절)
-    STOPPED: 'STOPPED', // 판매중지(품절)
+    SALE: 'SALE',
+    PAUSED: 'PAUSED',
+    STOPPED: 'STOPPED',
   };
 
   const openModal = (message, onConfirm) => {
-    setModal({
-      isOpen: true,
-      message,
-      onConfirm,
-    });
+    setModal({ isOpen: true, message, onConfirm });
   };
 
   const closeModal = () => {
-    setModal({
-      isOpen: false,
-      message: '',
-      onConfirm: null,
-    });
+    setModal({ isOpen: false, message: '', onConfirm: null });
   };
 
   const handleStatusChange = (newStatus) => {
@@ -149,14 +175,14 @@ function EditProduct() {
           <>
             <StatusButton
               type="button"
-              active={false}
+              $active={false}
               onClick={() => handleStatusChange(STATUS.PAUSED)}
             >
               일시 품절
             </StatusButton>
             <StatusButton
               type="button"
-              active={false}
+              $active={false}
               onClick={() => handleStatusChange(STATUS.STOPPED)}
             >
               품절
@@ -164,20 +190,11 @@ function EditProduct() {
           </>
         );
       case STATUS.PAUSED:
-        return (
-          <StatusButton
-            type="button"
-            active={true}
-            onClick={() => handleStatusChange(STATUS.SALE)}
-          >
-            판매 재개
-          </StatusButton>
-        );
       case STATUS.STOPPED:
         return (
           <StatusButton
             type="button"
-            active={true}
+            $active={true}
             onClick={() => handleStatusChange(STATUS.SALE)}
           >
             판매 재개
@@ -188,7 +205,6 @@ function EditProduct() {
     }
   };
 
-  //삭제
   const handleDelete = () => {
     openModal('정말로 삭제하시겠습니까?', handleConfirmDelete);
   };
@@ -205,14 +221,12 @@ function EditProduct() {
     }
   };
 
-  // 초기 데이터 불러오기
   useEffect(() => {
     const fetchItem = async () => {
       try {
         const res = await axios.get(`/items/${id}`);
-        console.log(res.data);
         setItem(res.data);
-        setPreview(res.data.imageUrl);
+        setPreview(`http://localhost:8080/api${res.data.imageUrl}`);
       } catch (err) {
         alert('상품 정보를 불러오지 못했습니다.');
         navigate(-1);
@@ -241,15 +255,16 @@ function EditProduct() {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleCancel = () => {
     navigate(-1);
   };
 
-  // 수정
   const handleSubmit = (e) => {
     e.preventDefault();
     openModal('상품 정보를 수정하시겠습니까?', handleConfirmSubmit);
@@ -262,13 +277,8 @@ function EditProduct() {
       new Blob([JSON.stringify(item)], { type: 'application/json' })
     );
 
-    // 이미지가 선택되어 있을 때만 formData에 append
     if (image) {
       formData.append('image', image);
-    } else {
-      // 이미지 파일이 없으면 빈 Blob으로라도 보내야할지 API에 따라 다름
-      // 백엔드에서 이미지 선택적 처리 가능하면 아래 부분 삭제 가능
-      // formData.append('image', new Blob([]));
     }
 
     try {
@@ -288,19 +298,19 @@ function EditProduct() {
     if (!isOpen) return null;
 
     return (
-      <ModalBackdrop>
+      <ModalBackdrop onClick={onCancel}>
         <ModalContent onClick={(e) => e.stopPropagation()}>
-          <p>{message}</p> {/* 메시지를 props로 받아서 표시 */}
+          <ModalMessage>{message}</ModalMessage>
           <ModalButtonContainer>
-            <ModalButton onClick={onCancel}>취소</ModalButton>
-            <ConfirmButton onClick={onConfirm}>확인</ConfirmButton>
+            <ModalCancelBtn onClick={onCancel}>취소</ModalCancelBtn>
+            <ModalConfirmBtn onClick={onConfirm}>확인</ModalConfirmBtn>
           </ModalButtonContainer>
         </ModalContent>
       </ModalBackdrop>
     );
   }
 
-  if (!item) return <div>로딩 중...</div>;
+  if (!item) return <LoadingScreen>로딩 중...</LoadingScreen>;
 
   const selectedCategory = allCategoryItems.find(
     (opt) => opt.value === item.categoryName
@@ -309,103 +319,137 @@ function EditProduct() {
   return (
     <Container>
       <PageLayout>
-        <NoticeBox />
+        {/* 주의사항 박스를 화면 상단 전체 넓이로 띄움 */}
+        <NoticeBoxWrapper>
+          <NoticeBox />
+        </NoticeBoxWrapper>
+
         <ContentWrapper>
-          <Title>상품 수정</Title>
+          <Header>
+            <Title>상품 수정</Title>
+            <Subtitle>등록된 상품의 상세 정보를 수정하고 관리하세요.</Subtitle>
+          </Header>
 
           <FormContainer onSubmit={handleSubmit} encType="multipart/form-data">
             <FormTopRow>
-              <ImageUpload>
-                <ImageBox>
-                  {preview ? (
-                    <PreviewImage src={preview} alt="미리보기" />
-                  ) : (
-                    <ImagePlaceholder>이미지</ImagePlaceholder>
-                  )}
-                </ImageBox>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </ImageUpload>
+              <ImageUploadSection>
+                <Label>상품 썸네일</Label>
+                <ImageUploadWrapper>
+                  <ImageBox htmlFor="image-upload">
+                    {preview ? (
+                      <PreviewImage src={preview} alt="미리보기" />
+                    ) : (
+                      <ImagePlaceholder>
+                        <UploadIcon>📷</UploadIcon>
+                        <span>이미지 등록</span>
+                      </ImagePlaceholder>
+                    )}
+                  </ImageBox>
+                  <HiddenInput
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </ImageUploadWrapper>
+              </ImageUploadSection>
 
               <Inputs>
-                <Input
-                  name="name"
-                  placeholder="상품명"
-                  value={item.name}
-                  onChange={handleChange}
-                />
-
-                <Row>
-                  <FlexRow>
-                    <Input
-                      name="price"
-                      type="number"
-                      placeholder="판매가"
-                      value={item.price}
-                      onChange={handleChange}
-                    />
-                    <Unit>원</Unit>
-                  </FlexRow>
-                </Row>
-
-                <Row>
-                  <FlexRow>
-                    <Input
-                      name="stockQuantity"
-                      placeholder="재고"
-                      type="number"
-                      value={item.stockQuantity}
-                      onChange={handleChange}
-                    />
-                    <Unit>개</Unit>
-                  </FlexRow>
-                </Row>
-
-                <Row>
-                  <FlexRow>
-                    <Input
-                      name="deliveryFee"
-                      type="number"
-                      placeholder="기본 배송비"
-                      value={item.deliveryFee}
-                      onChange={handleChange}
-                    />
-                    <Unit>원</Unit>
-                  </FlexRow>
-                </Row>
-
                 <InputGroup>
-                  <Label>배송방식</Label>
-                  <SelectStyled
-                    name="deliveryType"
-                    value={
-                      item.deliveryType
-                        ? { label: item.deliveryType, value: item.deliveryType }
-                        : null
-                    }
-                    options={[
-                      { value: '택배', label: '택배' },
-                      { value: '퀵', label: '퀵배송' },
-                      { value: '직접배송', label: '직접배송' },
-                    ]}
-                    onChange={(selected) =>
-                      handleChange({
-                        target: {
-                          name: 'deliveryType',
-                          value: selected?.value || '',
-                        },
-                      })
-                    }
+                  <Label>상품명</Label>
+                  <Input
+                    name="name"
+                    placeholder="상품명을 입력하세요"
+                    value={item.name}
+                    onChange={handleChange}
                   />
                 </InputGroup>
 
+                <InputGroupRow>
+                  <InputGroup>
+                    <Label>판매가</Label>
+                    <InputWrapper>
+                      <Input
+                        name="price"
+                        type="number"
+                        placeholder="0"
+                        value={item.price}
+                        onChange={handleChange}
+                        $hasUnit
+                      />
+                      <UnitAbsolute>원</UnitAbsolute>
+                    </InputWrapper>
+                  </InputGroup>
+
+                  <InputGroup>
+                    <Label>재고 수량</Label>
+                    <InputWrapper>
+                      <Input
+                        name="stockQuantity"
+                        placeholder="0"
+                        type="number"
+                        value={item.stockQuantity}
+                        onChange={handleChange}
+                        $hasUnit
+                      />
+                      <UnitAbsolute>개</UnitAbsolute>
+                    </InputWrapper>
+                  </InputGroup>
+                </InputGroupRow>
+
+                <InputGroupRow>
+                  <InputGroup>
+                    <Label>기본 배송비</Label>
+                    <InputWrapper>
+                      <Input
+                        name="deliveryFee"
+                        type="number"
+                        placeholder="0"
+                        value={item.deliveryFee}
+                        onChange={handleChange}
+                        $hasUnit
+                      />
+                      <UnitAbsolute>원</UnitAbsolute>
+                    </InputWrapper>
+                  </InputGroup>
+
+                  <InputGroup>
+                    <Label>배송 방식</Label>
+                    <Select
+                      name="deliveryType"
+                      styles={customSelectStyles}
+                      value={
+                        item.deliveryType
+                          ? {
+                              label: item.deliveryType,
+                              value: item.deliveryType,
+                            }
+                          : null
+                      }
+                      options={[
+                        { value: '택배', label: '택배' },
+                        { value: '퀵', label: '퀵배송' },
+                        { value: '직접배송', label: '직접배송' },
+                      ]}
+                      onChange={(selected) =>
+                        handleChange({
+                          target: {
+                            name: 'deliveryType',
+                            value: selected?.value || '',
+                          },
+                        })
+                      }
+                      placeholder="선택"
+                      isSearchable={false}
+                    />
+                  </InputGroup>
+                </InputGroupRow>
+
                 <InputGroup>
                   <Label>카테고리</Label>
-                  <SelectStyled
+                  <Select
                     name="categoryName"
+                    styles={customSelectStyles}
                     options={categoryOptions}
                     onChange={handleCategoryChange}
                     value={selectedCategory}
@@ -415,37 +459,54 @@ function EditProduct() {
               </Inputs>
             </FormTopRow>
 
+            <Divider />
+
             <EditorBox>
-              <EditorTitle>상품 상세 정보</EditorTitle>
-              <TiptapEditor
-                value={item.description}
-                onChange={handleDescriptionChange}
-              />
+              <Label>상품 상세 설명</Label>
+              <TiptapWrapper>
+                <TiptapEditor
+                  value={item.description}
+                  onChange={handleDescriptionChange}
+                />
+              </TiptapWrapper>
             </EditorBox>
 
-            <StatusButtons>{renderStatusButtons()}</StatusButtons>
+            <Divider />
+
+            <StatusSection>
+              <Label>상품 판매 상태 설정</Label>
+              <StatusButtons>{renderStatusButtons()}</StatusButtons>
+            </StatusSection>
 
             <BottomActions>
-              <CancelButton type="button" onClick={handleCancel}>
-                취소
-              </CancelButton>
-              <SubmitButton type="submit">수정하기</SubmitButton>
-              <DeleteButton
-                type="button"
-                onClick={handleDelete}
-                disabled={item.status === STATUS.SALE}
-                title={
-                  item.status === STATUS.SALE
-                    ? '배송 완료 후 품절 상태일 때만 삭제할 수 있습니다.'
-                    : '삭제하기'
-                }
-              >
-                삭제하기
-              </DeleteButton>
+              <LeftAction>
+                <DeleteButton
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={item.status === STATUS.SALE}
+                  title={
+                    item.status === STATUS.SALE
+                      ? '판매 중인 상품은 삭제할 수 없습니다. 품절 처리 후 삭제해주세요.'
+                      : '상품 영구 삭제'
+                  }
+                >
+                  상품 삭제
+                </DeleteButton>
+              </LeftAction>
+              <RightActions>
+                <CancelButton type="button" onClick={handleCancel}>
+                  취소
+                </CancelButton>
+                <SubmitButton type="submit">수정 완료</SubmitButton>
+              </RightActions>
             </BottomActions>
-            <NoticeMessage>
-              모든 배송이 완료되고 품절 상태일 때만 삭제할 수 있습니다.
-            </NoticeMessage>
+
+            {item.status === STATUS.SALE && (
+              <NoticeMessage>
+                💡 판매 중인 상품은 배송이 완료되고 <strong>품절 상태</strong>일
+                때만 삭제할 수 있습니다.
+              </NoticeMessage>
+            )}
           </FormContainer>
         </ContentWrapper>
       </PageLayout>
@@ -462,54 +523,179 @@ function EditProduct() {
 
 export default EditProduct;
 
+// --- 전면 개편된 스타일 영역 ---
+
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  box-sizing: border-box;
+  font-family:
+    'Pretendard',
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+
+  @media (max-width: 768px) {
+    padding: 20px 10px;
+  }
 `;
 
 const PageLayout = styled.div`
   display: flex;
-  gap: 80px;
-  justify-content: center;
-  margin-left: -170px;
+  flex-direction: column; /* 세로 정렬 */
+  gap: 30px;
+  align-items: center;
+  width: 100%;
+`;
+
+const NoticeBoxWrapper = styled.div`
+  width: 100%;
+
+  /* NoticeBox 컴포넌트 내부 너비 강제 확장 */
+  & > div,
+  & > section,
+  & > article {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+
+    @media (max-width: 768px) {
+      padding: 16px !important;
+    }
+  }
+
+  /* 🔥 추가된 부분: 내부 목록(ul)을 2단(Grid)으로 분할 */
+  ul {
+    display: grid !important;
+    grid-template-columns: repeat(
+      2,
+      1fr
+    ) !important; /* 공간을 정확히 반씩 나눔 (2줄) */
+    gap: 12px 24px !important; /* 세로 간격 12px, 가로 간격 24px */
+    margin-bottom: 0 !important;
+
+    /* 화면이 좁은 모바일(600px 이하)에서는 다시 1칸(4줄)으로 변경 */
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* 목록 항목(li) 텍스트 스타일 최적화 */
+  li {
+    margin-bottom: 0 !important; /* 기존 마진 제거하고 Grid gap으로 관리 */
+    line-height: 1.5;
+    word-break: keep-all; /* 단어가 중간에 잘리지 않게 보호 */
+  }
 `;
 
 const ContentWrapper = styled.div`
-  padding: 40px;
+  width: 100%;
+  background: #ffffff;
+  padding: 40px 50px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f0;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 24px;
+    border-radius: 16px;
+  }
+`;
+
+const Header = styled.div`
+  margin-bottom: 32px;
 `;
 
 const Title = styled.h2`
-  margin-bottom: 30px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+`;
+
+const Subtitle = styled.p`
+  font-size: 14px;
+  color: #888;
+  margin: 0;
 `;
 
 const FormContainer = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 32px;
 `;
 
+/* 1. 썸네일과 입력창을 감싸는 전체 행 */
 const FormTopRow = styled.div`
   display: flex;
-  gap: 60px;
+  gap: 40px;
+
+  /* 기존 850px -> 1100px로 올려서 애매한 사이즈일 때 일찍 세로로 떨어지게 만듭니다 */
+  @media (max-width: 1100px) {
+    flex-direction: column;
+    gap: 32px;
+  }
 `;
 
-const ImageUpload = styled.div`
+const ImageUploadSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex-shrink: 0;
 `;
 
-const ImageBox = styled.div`
-  width: 300px;
-  height: 320px;
-  background-color: #ddd;
+const ImageUploadWrapper = styled.div`
+  position: relative;
+`;
+
+/* 2. 썸네일 이미지 박스 */
+const ImageBox = styled.label`
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 280px;
+  aspect-ratio: 1 / 1;
+  background-color: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    border-color: #555a82;
+  }
+
+  /* FormTopRow와 똑같이 1100px에서 가운데 정렬되도록 맞춤 */
+  @media (max-width: 1100px) {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+`;
+
+const HiddenInput = styled.input`
+  display: none;
 `;
 
 const ImagePlaceholder = styled.div`
-  color: #aaa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+`;
+
+const UploadIcon = styled.span`
+  font-size: 28px;
 `;
 
 const PreviewImage = styled.img`
@@ -519,175 +705,273 @@ const PreviewImage = styled.img`
 `;
 
 const Inputs = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-`;
-
-const Input = styled.input`
-  padding: 8px;
-  border: 1px solid #ccc;
-  width: 300px;
-`;
-
-const FlexRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const Unit = styled.span`
-  color: #555;
-`;
-
-export const EditorBox = styled.div`
-  max-width: 800px;
-  background: #fff;
-  border-radius: 12px;
-  font-family: 'Pretendard', sans-serif;
-`;
-
-export const EditorTitle = styled.h2`
-  font-size: 24px;
-  font-weight: 700;
-`;
-
-const BottomActions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  align-items: center;
-  margin-top: 10px;
-  border-top: 1px solid #eee;
-  padding-top: 30px;
-`;
-
-const CancelButton = styled.button`
-  background: transparent;
-  border: 1.8px solid #999;
-  padding: 10px 26px;
-  border-radius: 6px;
-  font-weight: 500;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: #eee;
-    border-color: #666;
-    color: #333;
-  }
-`;
-
-const SubmitButton = styled.button`
-  background-color: #3b5998;
-  border: 1.8px solid #3b5998;
-  color: white;
-  padding: 10px 26px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: #2d4373;
-    background-color: #2d4373;
-  }
-`;
-
-const StatusButtons = styled.div`
-  display: flex;
-  justify-content: center;
   gap: 20px;
-  margin: 24px 0 40px 0;
+  width: 100%;
 `;
 
-const StatusButton = styled.button`
-  padding: 12px 28px;
-  border-radius: 30px;
-  font-weight: 600;
-  font-size: 16px;
-  border: 2px solid ${(props) => (props.active ? '#3b5998' : '#ccc')};
-  background-color: ${(props) => (props.active ? '#3b5998' : 'white')};
-  color: ${(props) => (props.active ? 'white' : '#444')};
-  cursor: pointer;
-  box-shadow: ${(props) =>
-    props.active ? '0 4px 10px rgba(59, 89, 152, 0.4)' : 'none'};
-  transition: all 0.25s ease;
+/* 3. 판매가, 재고수량 등 나란히 있는 입력창 그룹 */
+const InputGroupRow = styled.div`
+  display: flex;
+  gap: 20px;
+  width: 100%;
 
-  &:hover {
-    background-color: #3b5998;
-    color: white;
-    border-color: #3b5998;
-    box-shadow: 0 6px 14px rgba(59, 89, 152, 0.5);
+  /* 기존 500px -> 650px로 올려서, 좁아질 때 이 부분도 안전하게 1줄씩 떨어지도록 보호 */
+  @media (max-width: 650px) {
+    flex-direction: column;
+    gap: 20px;
   }
-`;
-
-const DeleteButton = styled.button`
-  background: #ff4d4f;
-  color: white;
-  border: 1.8px solid #ff4d4f;
-  padding: 10px 26px;
-  cursor: pointer;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: #d84144ff;
-    background-color: #d84144ff;
-  }
-
-  &:disabled {
-    background: #e5e7eb;
-    border-color: #e5e7eb;
-    color: #9ca3af;
-    cursor: default;
-    opacity: 1;
-    box-shadow: none;
-  }
-
-  &:disabled:hover {
-    background: #e5e7eb;
-    border-color: #e5e7eb;
-    color: #9ca3af;
-  }
-`;
-
-const NoticeMessage = styled.div`
-  margin-top: 28px;
-  font-size: 14px;
-  color: #555;
-  background-color: #f0f4ff;
-  padding: 16px 24px;
-  border-radius: 10px;
-  border: 1px solid #c3d0ff;
-  max-width: 440px;
-  font-family: 'Pretendard', sans-serif;
-  text-align: center;
-  box-shadow: 0 0 8px rgba(195, 208, 255, 0.5);
 `;
 
 const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  flex: 1;
+  min-width: 0; /* flex 자식 요소 밖으로 삐져나감(overflow) 완벽 방지 */
 `;
 
 const Label = styled.label`
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
+  color: #475569;
 `;
 
-const SelectStyled = styled(Select)`
-  width: 300px;
+/* 단위(원, 개)가 입력창 밖으로 밀려나지 않도록 감싸는 Wrapper 추가 */
+const InputWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  /* $hasUnit이 true일 때(단위가 있을 때) 우측 여백을 줘서 글자가 겹치지 않게 함 */
+  padding: 12px ${(props) => (props.$hasUnit ? '36px' : '14px')} 12px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 14px;
+  color: #1e293b;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: #cbd5e1;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #555a82;
+    box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
+  }
+`;
+
+/* 단위를 입력창 안쪽 우측에 고정 (Absolute) */
+const UnitAbsolute = styled.span`
+  position: absolute;
+  right: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  pointer-events: none; /* 클릭 방해 금지 */
+`;
+
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid #f1f5f9;
+  margin: 0;
+  width: 100%;
+`;
+
+const EditorBox = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const TiptapWrapper = styled.div`
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+
+  &:focus-within {
+    border-color: #555a82;
+    box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
+  }
+
+  /* 🔥 TiptapEditor 내부의 여백과 테두리를 완벽하게 없애서 겉 테두리에 딱 붙게 만듭니다 */
+  & > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important; /* 안쪽 여백 완전히 제거 */
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* 에디터 입력창이 너무 좁아지지 않도록 최소 높이 설정 (선택 사항) */
+  .ProseMirror {
+    min-height: 400px;
+  }
+`;
+
+const StatusSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const StatusButtons = styled.div`
+  display: flex;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
+`;
+
+const StatusButton = styled.button`
+  flex: 1;
+  max-width: 200px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1.5px solid ${(props) => (props.$active ? '#555a82' : '#e2e8f0')};
+  background-color: ${(props) => (props.$active ? '#f0f2f8' : '#ffffff')};
+  color: ${(props) => (props.$active ? '#555a82' : '#64748b')};
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #555a82;
+    color: #555a82;
+    background-color: ${(props) => (props.$active ? '#e6e8f4' : '#f8fafc')};
+  }
+
+  @media (max-width: 480px) {
+    max-width: 100%;
+  }
+`;
+
+const BottomActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+
+  @media (max-width: 600px) {
+    flex-direction: column-reverse;
+    gap: 16px;
+  }
+`;
+
+const LeftAction = styled.div`
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+`;
+
+const RightActions = styled.div`
+  display: flex;
+  gap: 12px;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    flex-direction: column;
+  }
+`;
+
+const ButtonBase = styled.button`
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+`;
+
+const CancelButton = styled(ButtonBase)`
+  background: white;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+
+  &:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #1e293b;
+  }
+`;
+
+const SubmitButton = styled(ButtonBase)`
+  background-color: #555a82;
+  border: 1.5px solid #555a82;
+  color: white;
+
+  &:hover {
+    background-color: #3e4263;
+    border-color: #3e4263;
+    box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
+  }
+`;
+
+const DeleteButton = styled(ButtonBase)`
+  background: white;
+  color: #ef4444;
+  border: 1.5px solid #fca5a5;
+
+  &:hover {
+    background-color: #fef2f2;
+    border-color: #ef4444;
+  }
+
+  &:disabled {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+  }
+`;
+
+const NoticeMessage = styled.div`
+  font-size: 13px;
+  color: #475569;
+  background-color: #f8fafc;
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  strong {
+    color: #ef4444;
+  }
+`;
+
+const LoadingScreen = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 16px;
+  color: #64748b;
+  font-weight: 500;
 `;
 
 const ModalBackdrop = styled.div`
@@ -696,39 +980,71 @@ const ModalBackdrop = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 20px;
 `;
 
 const ModalContent = styled.div`
   background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 32px 24px 24px;
+  border-radius: 16px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   text-align: center;
-  width: 360px;
+  width: 100%;
+  max-width: 340px;
+  animation: modalScale 0.2s ease-out;
+
+  @keyframes modalScale {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+`;
+
+const ModalMessage = styled.p`
+  margin: 0 0 24px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.5;
 `;
 
 const ModalButtonContainer = styled.div`
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 12px;
 `;
 
-const ModalButton = styled.button`
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background-color: #f0f0f0;
-  cursor: pointer;
-`;
-
-const ConfirmButton = styled(ModalButton)`
-  background-color: rgb(105, 111, 148);
-  color: white;
+const ModalCancelBtn = styled(ButtonBase)`
+  flex: 1;
+  background: #f1f5f9;
   border: none;
+  color: #475569;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+`;
+
+const ModalConfirmBtn = styled(ButtonBase)`
+  flex: 1;
+  background: #555a82;
+  border: none;
+  color: white;
+
+  &:hover {
+    background: #3e4263;
+  }
 `;
