@@ -312,12 +312,10 @@ const MessageWrapper = styled.div`
 const InputArea = styled.div`
   display: flex;
   padding: 15px;
+  padding-bottom: calc(15px + env(safe-area-inset-bottom));
   border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   background: ${({ theme }) => theme.colors.white};
-
-  @media ${({ theme }) => theme.mobile} {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+  flex-shrink: 0;
 `;
 
 const ChatInput = styled.input`
