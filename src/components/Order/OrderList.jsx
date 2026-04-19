@@ -430,32 +430,27 @@ const ProductTable = styled.table`
       border: none;
       font-size: 14px;
 
+      &[data-label='수량'],
+      &[data-label='상품가격'] {
+        display: none;
+      }
+
       /* 상품 정보 섹션 (이미지+이름) */
       &:first-child {
         display: block;
-        padding: 0 0 15px 0;
-        margin-bottom: 10px;
-        border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
-      }
-
-      /* 중간 항목들 (가격, 수량) */
-      &::before {
-        content: attr(data-label);
-        font-weight: 500;
-        color: ${({ theme }) => theme.colors.gray[600]};
       }
 
       /* 최종 주문금액 섹션 */
       &[data-label='주문금액'] {
-        margin-top: 10px;
-        padding-top: 12px;
-        border-top: 1px solid ${({ theme }) => theme.colors.gray[100]};
+        margin-top: 0;
         font-weight: bold;
         font-size: 17px;
         color: ${({ theme }) => theme.colors.primary};
+
         &::before {
           content: '최종 합계';
           color: ${({ theme }) => theme.colors.gray[800]};
+          font-weight: 500;
         }
       }
     }
@@ -465,42 +460,29 @@ const ProductTable = styled.table`
 const ProductInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 15px;
   text-align: left;
 
   img {
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
     border-radius: 8px;
     object-fit: cover;
-    background: ${({ theme }) => theme.colors.gray[100]};
-    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+    flex-shrink: 0;
   }
 
-  .info-text {
-    flex: 1;
-    text-align: left;
-
-    .name {
-      font-size: 16px;
-      font-weight: 600;
-      line-height: 1.4;
-      margin-bottom: 4px;
-      color: ${({ theme }) => theme.colors.gray[700]};
-      word-break: keep-all;
-    }
-
-    .mobile-only-price {
-      display: none;
-      font-size: 13px;
-      color: ${({ theme }) => theme.colors.gray[600]};
-    }
+  .name {
+    font-weight: 600;
+    font-size: 15px;
+    word-break: keep-all;
+    padding-bottom: 10px;
   }
 
   @media ${({ theme }) => theme.mobile} {
-    .mobile-only-price {
-      display: block;
-    }
+    width: 100%;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+    padding-bottom: 15px;
+    margin-bottom: 10px;
   }
 `;
 

@@ -251,6 +251,6 @@ const Sentinel = styled.div`
 `;
 const Status = styled.div`
   text-align: center;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   padding: 20px 0;
 `;
