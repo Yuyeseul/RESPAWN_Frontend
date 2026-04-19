@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components'; // keyframes 추가
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import Logo from '../components/common/Logo';
@@ -22,6 +22,8 @@ const LoginPage = (e) => {
   const navigate = useNavigate();
 
   const [seePassword, setSeePassword] = useState(false);
+  // 🔥 로딩 상태를 관리할 state 추가
+  const [isLoading, setIsLoading] = useState(false);
 
   const seePasswordHandler = () => {
     setSeePassword(!seePassword);
@@ -42,6 +44,10 @@ const LoginPage = (e) => {
       setMsg('비밀번호를 입력해주세요.');
       return;
     }
+
+    // 🔥 로그인 요청 시작 시 로딩 상태를 true로 변경
+    setIsLoading(true);
+    setMsg(''); // 기존 메시지 초기화
 
     try {
       const formData = new FormData();
@@ -71,15 +77,12 @@ const LoginPage = (e) => {
         }
 
         if (errorCode === 'expired') {
-          // 계정 잠김 안내
           alert('계정이 만료되었습니다. 관리자에게 문의하세요.');
         } else if (errorCode === 'locked') {
-          // 계정 잠김 안내
           alert(
             '비밀번호 5회 불일치로 계정이 잠겼습니다. 관리자에게 문의하세요. '
           );
         } else if (errorCode === 'invalid_credentials') {
-          // 비밀번호/아이디 불일치 안내
           alert(
             `아이디 또는 비밀번호가 올바르지 않습니다.(${
               failedLoginAttempts || 0
@@ -94,17 +97,16 @@ const LoginPage = (e) => {
         alert('서버와 통신 중 오류가 발생했습니다.');
       }
       console.error('Axios error:', error);
+    } finally {
+      // 🔥 성공하든 실패하든 통신이 끝나면 로딩 상태를 false로 변경
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    // 팝업창에서 보내준 메시지 처리
     const handleMessage = async (event) => {
       const data = event.data || {};
-      // origin 검증(권장): 동일 오리진만 허용
-      // if (event.origin !== 'http://localhost:3000') return;
 
-      // 1) 소셜 로그인 성공
       if (data.type === 'LOGIN_SUCCESS') {
         try {
           const res = await axios.get('/loginOk');
@@ -120,7 +122,6 @@ const LoginPage = (e) => {
         return;
       }
 
-      // 2) 소셜 로그인 실패 (서버 failure handler에서 postMessage로 전달)
       if (data.type === 'OAUTH_FAIL') {
         console.log(data.reason);
         try {
@@ -133,17 +134,13 @@ const LoginPage = (e) => {
             default:
               alert('소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
           }
-          // 필요 시 UI 상태 초기화
-          // setMsg('소셜 로그인 실패'); // 선택
-          // navigate('/'); // 필요 시 라우팅
         } finally {
-          setPopup(null); // 팝업 상태 정리
+          setPopup(null);
         }
         return;
       }
     };
 
-    // 다른 탭에서 로그인/로그아웃이 일어났을 때
     const onStorage = async (e) => {
       if (e.key === 'auth:updated') {
         try {
@@ -163,7 +160,6 @@ const LoginPage = (e) => {
     };
   }, [navigate, login]);
 
-  // 팝업창 닫힘 감지용 effect
   useEffect(() => {
     if (!popup) return;
 
@@ -171,8 +167,6 @@ const LoginPage = (e) => {
       if (popup.closed) {
         clearInterval(timer);
         setPopup(null);
-        // 팝업이 닫혔을 때 로그인이 안 됐으면 (서버에서 상태 확인이 안 된 상태) 현재 로그인 화면 유지하거나 알림 띄우는 등 처리 가능
-        // 여기선 아무 처리 안 함 (선택적)
       }
     }, 500);
 
@@ -191,7 +185,7 @@ const LoginPage = (e) => {
       );
       return;
     }
-    setPopup(win); // 팝업 레퍼런스 저장 (닫힘 감지 useEffect가 동작하도록)
+    setPopup(win);
   };
 
   return (
@@ -206,10 +200,11 @@ const LoginPage = (e) => {
               type="text"
               name="username"
               placeholder="아이디"
-              autocomplete="username"
+              autoComplete="username"
               value={user.username}
               onChange={handleChange}
               required
+              disabled={isLoading} // 로딩 중 입력 방지
             />
           </Field>
 
@@ -222,12 +217,14 @@ const LoginPage = (e) => {
               value={user.password}
               onChange={handleChange}
               required
+              disabled={isLoading} // 로딩 중 입력 방지
             />
             <IconButton
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={seePasswordHandler}
               aria-label="비밀번호 보기 전환"
+              disabled={isLoading}
             >
               {seePassword ? <FaEyeSlash /> : <FaEye />}
             </IconButton>
@@ -239,7 +236,17 @@ const LoginPage = (e) => {
               로그인 실패 횟수: {failCount}회 (5회 실패 시 계정이 잠깁니다)
             </FailCountMessage>
           )}
-          <Button type="submit">로그인</Button>
+
+          {/* 🔥 로딩 상태에 따라 버튼 내용과 비활성화 처리 */}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Spinner /> 로그인 중...
+              </>
+            ) : (
+              '로그인'
+            )}
+          </Button>
         </form>
         <LWrap>
           <LLink href="/signup">회원가입</LLink>
@@ -247,15 +254,24 @@ const LoginPage = (e) => {
           <LLink href="/findpw">비밀번호 찾기</LLink>
         </LWrap>
 
-        <SocialButton onClick={() => handleSocialLogin('google')}>
+        <SocialButton
+          onClick={() => handleSocialLogin('google')}
+          disabled={isLoading}
+        >
           <img src={google_icon} alt="google" />
         </SocialButton>
 
-        <SocialButton onClick={() => handleSocialLogin('kakao')}>
+        <SocialButton
+          onClick={() => handleSocialLogin('kakao')}
+          disabled={isLoading}
+        >
           <img src={kakao_icon} alt="kakao" />
         </SocialButton>
 
-        <SocialButton onClick={() => handleSocialLogin('naver')}>
+        <SocialButton
+          onClick={() => handleSocialLogin('naver')}
+          disabled={isLoading}
+        >
           <img src={naver_icon} alt="naver" />
         </SocialButton>
       </LogInBox>
@@ -264,6 +280,23 @@ const LoginPage = (e) => {
 };
 
 export default LoginPage;
+
+// --- 스타일 컴포넌트 영역 ---
+
+// 🔥 스피너(로딩) 애니메이션 추가
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const Spinner = styled.div`
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: ${spin} 1s linear infinite;
+`;
 
 const Container = styled.div`
   min-height: 100vh;
@@ -339,6 +372,11 @@ const Input = styled.input`
     outline: none;
     border-bottom: 2px solid ${({ theme }) => theme.colors.secondary};
   }
+
+  &:disabled {
+    background: transparent;
+    color: ${({ theme }) => theme.colors.gray[400]};
+  }
 `;
 
 const IconButton = styled.button`
@@ -355,6 +393,11 @@ const IconButton = styled.button`
   &:hover {
     color: ${({ theme }) => theme.colors.secondary};
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: ${({ theme }) => theme.colors.gray[300]};
+  }
 `;
 
 const Button = styled.button`
@@ -369,8 +412,22 @@ const Button = styled.button`
   cursor: pointer;
   margin-top: 10px;
 
-  &:hover {
+  /* 🔥 로딩 아이콘과 텍스트를 나란히 배치하기 위해 Flex 사용 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.primary};
+  }
+
+  /* 🔥 비활성화(로딩 중)일 때 스타일 */
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[400]};
+    cursor: not-allowed;
+    opacity: 0.8;
   }
 `;
 
@@ -428,9 +485,14 @@ const SocialButton = styled.button`
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 
-  &:hover img {
+  &:hover:not(:disabled) img {
     transform: scale(1.03);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 `;
 
