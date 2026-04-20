@@ -94,54 +94,56 @@ const DropdownHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: #ffffff;
-  border: 1.5px solid ${({ $isOpen }) => ($isOpen ? '#555a82' : '#e2e8f0')};
+  background-color: ${({ theme: { colors } }) => colors.white};
+  border: 1.5px solid
+    ${({ $isOpen, theme: { colors } }) =>
+      $isOpen ? colors.primary : colors.gray[200]};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: ${({ $isOpen }) =>
-    $isOpen ? '0 0 0 3px rgba(85, 90, 130, 0.1)' : 'none'};
+  box-shadow: ${({ $isOpen, theme: { colors } }) =>
+    $isOpen ? `0 0 0 3px ${colors.primary_alpha}` : 'none'};
 
   &:hover {
-    border-color: ${({ $isOpen }) => ($isOpen ? '#555a82' : '#cbd5e1')};
+    border-color: ${({ $isOpen, theme: { colors } }) =>
+      $isOpen ? colors.primary : colors.gray[300]};
   }
 `;
 
 const SelectedText = styled.span`
-  color: #1e293b;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 12px; /* 화살표와 텍스트 사이 간격 */
+  padding-right: 12px;
 `;
 
 const ArrowIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   transition: transform 0.3s ease;
   transform: ${({ $isOpen }) => ($isOpen ? 'rotate(180deg)' : 'rotate(0)')};
 `;
 
 const DropdownList = styled.ul`
   position: absolute;
-  top: calc(100% + 8px); /* 헤더 바로 8px 아래에 위치 */
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   margin: 0;
   padding: 8px;
   list-style: none;
-  background-color: #ffffff;
-  border: 1px solid #f1f5f9;
+  background-color: ${({ theme: { colors } }) => colors.white};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[100]};
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  max-height: 260px; /* 항목이 많으면 스크롤 생성 */
+  max-height: 260px;
   overflow-y: auto;
-  z-index: 100; /* 다른 요소들 위로 올라오도록 설정 */
-
-  /* 드롭다운 등장 애니메이션 */
+  z-index: 100;
   animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: top center;
 
@@ -156,7 +158,6 @@ const DropdownList = styled.ul`
     }
   }
 
-  /* 예쁜 커스텀 스크롤바 */
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -165,11 +166,11 @@ const DropdownList = styled.ul`
     margin: 8px 0;
   }
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: ${({ theme: { colors } }) => colors.gray[300]};
     border-radius: 10px;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: ${({ theme: { colors } }) => colors.gray[500]};
   }
 `;
 
@@ -177,9 +178,10 @@ const DropdownItem = styled.li`
   padding: 12px 14px;
   font-size: 14px;
   font-weight: ${({ $isSelected }) => ($isSelected ? '600' : '500')};
-  color: ${({ $isSelected }) => ($isSelected ? '#555a82' : '#334155')};
-  background-color: ${({ $isSelected }) =>
-    $isSelected ? '#f0f2f8' : 'transparent'};
+  color: ${({ $isSelected, theme: { colors } }) =>
+    $isSelected ? colors.primary : colors.gray[700]};
+  background-color: ${({ $isSelected, theme: { colors } }) =>
+    $isSelected ? colors.primary_light : 'transparent'};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -190,10 +192,8 @@ const DropdownItem = styled.li`
   &:not(:last-child) {
     margin-bottom: 2px;
   }
-
-  /* 마우스 오버 시 부드러운 회색 배경 */
   &:hover {
-    background-color: ${({ $isSelected }) =>
-      $isSelected ? '#e6e8f4' : '#f8fafc'};
+    background-color: ${({ $isSelected, theme: { colors } }) =>
+      $isSelected ? colors.primary_hover : colors.gray[50]};
   }
 `;

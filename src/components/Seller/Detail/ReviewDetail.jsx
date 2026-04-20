@@ -46,7 +46,7 @@ const ReviewDetail = () => {
         >
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
-        목록으로 돌아가기
+        뒤로가기
       </BackButton>
 
       <Header>
@@ -117,7 +117,7 @@ export default ReviewDetail;
 
 const Wrapper = styled.div`
   width: 100%;
-  max-width: 1000px; /* 상세 페이지에 맞게 폭 최적화 */
+  max-width: 1000px;
   margin: 40px auto 80px;
   padding: 0 20px;
   box-sizing: border-box;
@@ -140,7 +140,7 @@ const BackButton = styled.button`
   gap: 8px;
   background: none;
   border: none;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -149,7 +149,7 @@ const BackButton = styled.button`
   transition: color 0.2s ease;
 
   &:hover {
-    color: #0f172a;
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 `;
 
@@ -160,20 +160,20 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 26px;
   font-weight: 700;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   margin: 0 0 8px 0;
   letter-spacing: -0.02em;
 `;
 
 const Subtitle = styled.p`
   font-size: 14px;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   margin: 0;
 `;
 
 const Card = styled.section`
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
   border-radius: 16px;
   padding: 32px;
   margin-bottom: 24px;
@@ -188,7 +188,7 @@ const Card = styled.section`
 const SectionTitle = styled.h3`
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   margin: 0 0 24px 0;
   display: flex;
   align-items: center;
@@ -199,19 +199,18 @@ const SectionTitle = styled.h3`
     display: block;
     width: 4px;
     height: 18px;
-    background-color: #555a82;
+    background-color: ${({ theme }) => theme.colors.primary};
     border-radius: 4px;
   }
 `;
 
-/* 라벨과 데이터를 예쁘게 담는 Grid Box */
 const GridWrapper = styled.div`
   display: grid;
   grid-template-columns: ${(props) => `repeat(${props.$columns || 1}, 1fr)`};
   gap: 16px 24px;
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr; /* 화면이 좁아지면 무조건 1열 세로 배치 */
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 `;
@@ -219,24 +218,23 @@ const GridWrapper = styled.div`
 const InfoItem = styled.div`
   display: flex;
   align-items: stretch;
-  background: #ffffff;
-  border: 1.5px solid #f1f5f9;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
   border-radius: 10px;
   overflow: hidden;
 
-  /* 480px 이하 모바일에서는 상하 배치로 전환 */
   @media (max-width: 480px) {
     flex-direction: column;
     border: none;
-    border-bottom: 1.5px solid #f1f5f9;
+    border-bottom: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
     border-radius: 0;
     padding-bottom: 12px;
   }
 `;
 
 const Label = styled.div`
-  background: #f8fafc;
-  color: #64748b;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-weight: 600;
   font-size: 14px;
   width: 100px;
@@ -244,7 +242,7 @@ const Label = styled.div`
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  border-right: 1.5px solid #f1f5f9;
+  border-right: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
 
   @media (max-width: 480px) {
     width: 100%;
@@ -252,7 +250,7 @@ const Label = styled.div`
     border-right: none;
     padding: 4px 0 8px 0;
     font-size: 13px;
-    color: #94a3b8;
+    color: ${({ theme }) => theme.colors.gray[500]};
   }
 `;
 
@@ -260,7 +258,7 @@ const Value = styled.div`
   padding: 14px 16px;
   font-size: 15px;
   font-weight: 500;
-  color: #334155;
+  color: ${({ theme }) => theme.colors.gray[700]};
   flex: 1;
   display: flex;
   align-items: center;
@@ -268,7 +266,7 @@ const Value = styled.div`
 
   &.highlight {
     font-weight: 700;
-    color: #0f172a;
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 
   @media (max-width: 480px) {
@@ -283,8 +281,8 @@ const ProductBox = styled.div`
   gap: 20px;
   margin-top: 24px;
   padding: 20px;
-  background: #f8fafc;
-  border: 1.5px solid #f1f5f9;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
   border-radius: 12px;
 
   img {
@@ -292,15 +290,14 @@ const ProductBox = styled.div`
     height: 80px;
     object-fit: cover;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: #fff;
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    background: ${({ theme }) => theme.colors.white};
     flex-shrink: 0;
   }
 
   @media (max-width: 480px) {
     gap: 16px;
     padding: 16px;
-
     img {
       width: 64px;
       height: 64px;
@@ -317,7 +314,7 @@ const ProductInfo = styled.div`
 const ProductName = styled.div`
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   word-break: keep-all;
   line-height: 1.4;
 
@@ -328,7 +325,7 @@ const ProductName = styled.div`
 
 const ProductPrice = styled.div`
   font-size: 14px;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-weight: 500;
 `;
 
@@ -338,16 +335,16 @@ const Stars = styled.span`
   gap: 4px;
 
   .filled {
-    color: #f59e0b; /* 노란색 별 */
+    color: ${({ theme }) => theme.colors.star};
     letter-spacing: 2px;
   }
   .empty {
-    color: #e2e8f0; /* 회색 별 */
+    color: ${({ theme }) => theme.colors.gray[200]};
     letter-spacing: 2px;
   }
   .score {
     font-size: 14px;
-    color: #64748b;
+    color: ${({ theme }) => theme.colors.gray[600]};
     margin-left: 6px;
     font-weight: 600;
   }
@@ -356,24 +353,24 @@ const Stars = styled.span`
 const ReviewContentLabel = styled.div`
   font-size: 14px;
   font-weight: 600;
-  color: #475569;
+  color: ${({ theme }) => theme.colors.gray[650]};
   margin: 24px 0 12px 0;
 `;
 
 const DetailBox = styled.div`
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 10px;
   padding: 20px;
-  background: #ffffff;
+  background: ${({ theme }) => theme.colors.white};
   white-space: pre-wrap;
   min-height: 120px;
   font-size: 15px;
-  color: #334155;
+  color: ${({ theme }) => theme.colors.gray[700]};
   line-height: 1.6;
 
   &:focus-within {
-    border-color: #555a82;
-    box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary_alpha};
   }
 
   @media (max-width: 768px) {
@@ -390,9 +387,9 @@ const ButtonWrapper = styled.div`
 
 const SubmitButton = styled.button`
   padding: 14px 32px;
-  background-color: #555a82;
-  color: white;
-  border: 1.5px solid #555a82;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid ${({ theme }) => theme.colors.primary};
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
@@ -400,13 +397,12 @@ const SubmitButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: #3e4263;
-    border-color: #3e4263;
-    box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
+    background-color: ${({ theme }) => theme.colors.primary_dark};
+    border-color: ${({ theme }) => theme.colors.primary_dark};
   }
 
   @media (max-width: 480px) {
-    width: 100%; /* 모바일에서는 가로로 꽉 차게 */
+    width: 100%;
   }
 `;
 
@@ -415,6 +411,6 @@ const Message = styled.p`
   font-size: 16px;
   margin-top: 100px;
   margin-bottom: 30px;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-weight: 500;
 `;

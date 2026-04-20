@@ -232,14 +232,12 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  color: #555a82;
-  margin: 0; /* 모바일에서 겹침 방지 */
+  color: ${({ theme: { colors } }) => colors.primary};
+  margin: 0;
 `;
 
-/* PC용 테이블 래퍼 */
 const DesktopTableWrapper = styled.div`
   width: 100%;
-
   @media (max-width: 768px) {
     display: none;
   }
@@ -248,7 +246,7 @@ const DesktopTableWrapper = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -257,26 +255,24 @@ const Table = styled.table`
   td {
     padding: 15px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
     vertical-align: middle;
   }
 
   th {
-    background: #e6e8f4;
-    color: #333;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
+    color: ${({ theme: { colors } }) => colors.gray[800]};
     font-weight: 600;
     white-space: nowrap;
   }
 
   tr:hover {
-    background: #f5f7fa;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
-/* 모바일용 리스트 래퍼 */
 const MobileListWrapper = styled.div`
   display: none;
-
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
@@ -285,13 +281,12 @@ const MobileListWrapper = styled.div`
   }
 `;
 
-/* 모바일 카드 디자인 */
 const MobileCard = styled.div`
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -300,7 +295,7 @@ const MobileCard = styled.div`
 
   &:active {
     transform: scale(0.98);
-    background: #fcfcfc;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
@@ -308,19 +303,19 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   padding-bottom: 8px;
 `;
 
 const OrderId = styled.span`
   font-size: 13px;
-  color: #666;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   font-weight: 500;
 `;
 
 const OrderDate = styled.span`
   font-size: 12px;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
 `;
 
 const CardBody = styled.div`
@@ -332,17 +327,17 @@ const CardBody = styled.div`
 const ItemName = styled.div`
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: ${({ theme: { colors } }) => colors.gray[800]};
   line-height: 1.4;
   word-break: keep-all;
 `;
 
 const ItemDetails = styled.div`
   font-size: 14px;
-  color: #555;
+  color: ${({ theme: { colors } }) => colors.gray[650]};
 
   strong {
-    color: #555a82;
+    color: ${({ theme: { colors } }) => colors.primary};
     font-weight: 700;
   }
 `;
@@ -356,10 +351,9 @@ const CardFooter = styled.div`
 
 const Buyer = styled.span`
   font-size: 13px;
-  color: #555;
+  color: ${({ theme: { colors } }) => colors.gray[650]};
 `;
 
-/* 상태를 나타내는 뱃지 (PC/Mobile 공통 사용) */
 const StatusBadge = styled.span`
   display: inline-block;
   padding: 4px 10px;
@@ -370,30 +364,30 @@ const StatusBadge = styled.span`
     switch (props.$status) {
       case 'ORDERED':
       case 'PAID':
-        return '#e6e8f4';
+        return props.theme.colors.primary_hover;
       case 'REFUND_REQUESTED':
       case 'RETURNED':
-        return '#fff0f0';
+        return props.theme.colors.angel_pink;
       case 'CANCELED':
       case 'REFUNDED':
-        return '#f5f5f5';
+        return props.theme.colors.gray[100];
       default:
-        return '#e6e8f4';
+        return props.theme.colors.primary_hover;
     }
   }};
   color: ${(props) => {
     switch (props.$status) {
       case 'ORDERED':
       case 'PAID':
-        return '#555a82';
+        return props.theme.colors.primary;
       case 'REFUND_REQUESTED':
       case 'RETURNED':
-        return '#e74c3c';
+        return props.theme.colors.danger;
       case 'CANCELED':
       case 'REFUNDED':
-        return '#888';
+        return props.theme.colors.gray[550];
       default:
-        return '#555a82';
+        return props.theme.colors.primary;
     }
   }};
 `;
@@ -401,17 +395,17 @@ const StatusBadge = styled.span`
 const NoDataCard = styled.div`
   padding: 40px 0;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 14px;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;
 
 const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 16px;
 `;
 
@@ -424,8 +418,6 @@ const PaginationWrapper = styled.div`
 const SelectorWrapper = styled.div`
   @media (max-width: 768px) {
     width: 100%;
-
-    /* 내부 select 태그 넓이 100% 꽉 채우기 */
     select {
       width: 100%;
     }

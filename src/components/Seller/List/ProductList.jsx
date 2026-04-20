@@ -308,23 +308,22 @@ const TopBar = styled.div`
 const Title = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  color: #555a82;
+  color: ${({ theme: { colors } }) => colors.primary};
   margin: 0;
 `;
 
 const AddButton = styled.button`
   padding: 8px 16px;
-  background: #555a82;
+  background: ${({ theme: { colors } }) => colors.primary};
   border: none;
   border-radius: 6px;
-  color: white;
+  color: ${({ theme: { colors } }) => colors.white};
   cursor: pointer;
   white-space: nowrap;
 
   &:hover {
-    background: #4a4e70;
+    background: ${({ theme: { colors } }) => colors.primary_dark};
   }
-
   @media (max-width: 480px) {
     padding: 6px 12px;
     font-size: 14px;
@@ -337,7 +336,7 @@ const FilterBar = styled.div`
   align-items: center;
   margin-bottom: 20px;
   padding: 15px;
-  background-color: #f5f7fa;
+  background-color: ${({ theme: { colors } }) => colors.gray[50]};
   border-radius: 8px;
   gap: 10px;
 
@@ -349,7 +348,6 @@ const FilterBar = styled.div`
 
 const SearchContainer = styled.div`
   display: flex;
-
   @media (max-width: 768px) {
     width: 100%;
   }
@@ -357,16 +355,15 @@ const SearchContainer = styled.div`
 
 const SearchInput = styled.input`
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
   border-radius: 6px 0 0 6px;
   outline: none;
   font-size: 14px;
   width: 250px;
 
   &:focus {
-    border-color: #555a82;
+    border-color: ${({ theme: { colors } }) => colors.primary};
   }
-
   @media (max-width: 768px) {
     flex: 1;
     width: auto;
@@ -376,22 +373,20 @@ const SearchInput = styled.input`
 const SearchButton = styled.button`
   padding: 8px 16px;
   border: none;
-  background: #555a82;
-  color: white;
+  background: ${({ theme: { colors } }) => colors.primary};
+  color: ${({ theme: { colors } }) => colors.white};
   cursor: pointer;
   border-radius: 0 6px 6px 0;
   white-space: nowrap;
 
   &:hover {
-    background: #4a4e70;
+    background: ${({ theme: { colors } }) => colors.primary_dark};
   }
 `;
 
-// --- 커스텀 드롭다운 스타일 ---
 const DropdownContainer = styled.div`
   position: relative;
   width: 150px;
-
   @media (max-width: 768px) {
     width: 100%;
   }
@@ -402,23 +397,23 @@ const DropdownHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
   border-radius: 6px;
   font-size: 14px;
-  background-color: white;
+  background-color: ${({ theme: { colors } }) => colors.white};
   cursor: pointer;
   user-select: none;
-  color: #333;
+  color: ${({ theme: { colors } }) => colors.gray[800]};
   transition: border-color 0.2s;
 
   &:hover {
-    border-color: #555a82;
+    border-color: ${({ theme: { colors } }) => colors.primary};
   }
 `;
 
 const Arrow = styled.span`
   font-size: 10px;
-  color: #666;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   transition: transform 0.3s ease;
   transform: ${({ $isOpen }) => ($isOpen ? 'rotate(180deg)' : 'rotate(0)')};
 `;
@@ -431,8 +426,8 @@ const DropdownList = styled.ul`
   margin-top: 4px;
   padding: 0;
   list-style: none;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: ${({ theme: { colors } }) => colors.white};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -455,19 +450,18 @@ const DropdownItem = styled.li`
   padding: 10px 12px;
   font-size: 14px;
   cursor: pointer;
-  color: ${({ $isSelected }) => ($isSelected ? '#555a82' : '#333')};
-  background-color: ${({ $isSelected }) => ($isSelected ? '#f0f2f8' : 'white')};
+  color: ${({ $isSelected, theme: { colors } }) =>
+    $isSelected ? colors.primary : colors.gray[800]};
+  background-color: ${({ $isSelected, theme: { colors } }) =>
+    $isSelected ? colors.primary_light : colors.white};
   font-weight: ${({ $isSelected }) => ($isSelected ? 'bold' : 'normal')};
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f5f7fa;
+    background-color: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
-// --- 데스크톱 및 모바일 리스트 스타일 ---
-
-/* 데스크톱 테이블 래퍼 (모바일에서 숨김) */
 const DesktopTableWrapper = styled.div`
   width: 100%;
   @media (max-width: 768px) {
@@ -478,7 +472,7 @@ const DesktopTableWrapper = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   overflow: hidden;
 
@@ -486,24 +480,24 @@ const Table = styled.table`
   td {
     padding: 12px 15px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   }
 
   th {
-    background: #e6e8f4;
-    color: #333;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
+    color: ${({ theme: { colors } }) => colors.gray[800]};
     white-space: nowrap;
   }
 
   tr:hover {
-    background: #f5f7fa;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
 const Thumb = styled.div`
   width: 60px;
   height: 60px;
-  background: #f2f2f2;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -521,35 +515,39 @@ const ActionBtn = styled.button`
   border: none;
   border-radius: 6px;
   font-size: 14px;
-  color: white;
-  background: ${(props) => (props.$danger ? '#ff4d4f' : '#555a82')};
+  color: ${({ theme: { colors } }) => colors.white};
+  background: ${(props) =>
+    props.$danger
+      ? props.theme.colors.danger_light
+      : props.theme.colors.primary};
   cursor: pointer;
   transition: background 0.2s ease;
   white-space: nowrap;
 
   &:hover {
-    background: ${(props) => (props.$danger ? '#d9363e' : '#3e4263')};
+    background: ${(props) =>
+      props.$danger
+        ? props.theme.colors.danger
+        : props.theme.colors.primary_dark};
   }
 `;
 
 const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 16px;
 `;
 
 const Message = styled.div`
   text-align: center;
   padding: 20px;
-  color: #666;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   font-size: 15px;
 `;
 
-/* 모바일 카드 리스트 래퍼 (PC에서 숨김) */
 const MobileListWrapper = styled.div`
   display: none;
-
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
@@ -558,23 +556,21 @@ const MobileListWrapper = styled.div`
   }
 `;
 
-/* 모바일 개별 카드 디자인 */
 const MobileCard = styled.div`
   display: flex;
   align-items: center;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   padding: 15px;
   gap: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;
 
-/* 모바일 썸네일 */
 const MobileThumb = styled.div`
   width: 70px;
   height: 70px;
-  background: #f2f2f2;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
   border-radius: 8px;
   display: flex;
   justify-content: center;
@@ -587,14 +583,12 @@ const MobileThumb = styled.div`
     height: 100%;
     object-fit: cover;
   }
-
   span {
     font-size: 11px;
-    color: #999;
+    color: ${({ theme: { colors } }) => colors.gray[550]};
   }
 `;
 
-/* 모바일 텍스트 정보 영역 */
 const MobileInfo = styled.div`
   flex: 1;
   display: flex;
@@ -606,7 +600,7 @@ const MobileInfo = styled.div`
 const ItemName = styled.div`
   font-size: 15px;
   font-weight: 600;
-  color: #333;
+  color: ${({ theme: { colors } }) => colors.gray[800]};
   word-break: keep-all;
   line-height: 1.3;
 `;
@@ -614,15 +608,14 @@ const ItemName = styled.div`
 const ItemPrice = styled.div`
   font-size: 15px;
   font-weight: 700;
-  color: #555a82;
+  color: ${({ theme: { colors } }) => colors.primary};
 `;
 
 const ItemMeta = styled.div`
   font-size: 12px;
-  color: #888;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
 `;
 
-/* 관리 버튼 영역 */
 const MobileAction = styled.div`
   flex-shrink: 0;
 `;
@@ -630,9 +623,9 @@ const MobileAction = styled.div`
 const NoDataCard = styled.div`
   padding: 40px 0;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 14px;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;
