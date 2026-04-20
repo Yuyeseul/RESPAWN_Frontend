@@ -15,29 +15,94 @@ const SearchFilter = ({
   maxPrice,
   onPriceChange,
   onReset,
+  onApplyAll,
 }) => {
+  const [isDesktop, setIsDesktop] = useState(
+    window.matchMedia('(min-width: 769px)').matches
+  );
+  const [tempCategories, setTempCategories] = useState(selectedCategories);
+  const [tempCompanies, setTempCompanies] = useState(selectedCompanies);
+  const [tempDelivery, setTempDelivery] = useState(selectedDeliveryType);
   const [localMin, setLocalMin] = useState(minPrice ?? '');
   const [localMax, setLocalMax] = useState(maxPrice ?? '');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 769px)');
+
+    const handleChange = (e) => {
+      setIsDesktop(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
+    setTempCategories(selectedCategories);
+    setTempCompanies(selectedCompanies);
+    setTempDelivery(selectedDeliveryType);
+    setLocalMin(minPrice ?? '');
+    setLocalMax(maxPrice ?? '');
+
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isModalOpen]);
+  }, [
+    isModalOpen,
+    selectedCategories,
+    selectedCompanies,
+    selectedDeliveryType,
+    minPrice,
+    maxPrice,
+  ]);
 
-  useEffect(() => {
-    setLocalMin(minPrice ?? '');
-    setLocalMax(maxPrice ?? '');
-  }, [minPrice, maxPrice]);
+  const handleCategoryToggle = (id) => {
+    const next = tempCategories.includes(id)
+      ? tempCategories.filter((c) => c !== id)
+      : [...tempCategories, id];
 
-  const handleApplyPrice = () => {
-    onPriceChange?.({ min: localMin, max: localMax });
+    setTempCategories(next);
+    if (isDesktop) onCategoryChange?.(id);
+  };
+
+  const handleCompanyToggle = (id) => {
+    const next = tempCompanies.includes(id)
+      ? tempCompanies.filter((co) => co !== id)
+      : [...tempCompanies, id];
+
+    setTempCompanies(next);
+    if (isDesktop) onCompanyChange?.(id);
+  };
+
+  const handleDeliveryChange = (id) => {
+    setTempDelivery(id);
+    if (isDesktop) onDeliveryTypeChange?.(id);
+  };
+
+  const handleMobileApply = () => {
+    onApplyAll?.({
+      categories: tempCategories,
+      companies: tempCompanies,
+      delivery: tempDelivery,
+      price: { min: localMin, max: localMax },
+    });
+    setIsModalOpen(false);
+  };
+
+  const handleLocalReset = () => {
+    if (isDesktop) {
+      onReset?.();
+    } else {
+      setTempCategories([]);
+      setTempCompanies([]);
+      setTempDelivery('');
+      setLocalMin('');
+      setLocalMax('');
+    }
   };
 
   return (
@@ -50,7 +115,7 @@ const SearchFilter = ({
         <BarHeader>
           <BarTitle>상세 검색</BarTitle>
           <BarActions>
-            <TextButton type="button" onClick={onReset}>
+            <TextButton type="button" onClick={handleLocalReset}>
               초기화
             </TextButton>
             <MobileCloseIcon onClick={() => setIsModalOpen(false)}>
@@ -68,8 +133,8 @@ const SearchFilter = ({
                   <input
                     id={`cat-${c.id}`}
                     type="checkbox"
-                    checked={selectedCategories.includes(c.id)}
-                    onChange={() => onCategoryChange?.(c.id)}
+                    checked={tempCategories.includes(c.id)}
+                    onChange={() => handleCategoryToggle(c.id)}
                   />
                   <label htmlFor={`cat-${c.id}`}>{c.name}</label>
                 </CheckItem>
@@ -85,8 +150,8 @@ const SearchFilter = ({
                   <input
                     id={`co-${co.id}`}
                     type="checkbox"
-                    checked={selectedCompanies.includes(co.id)}
-                    onChange={() => onCompanyChange?.(co.id)}
+                    checked={tempCompanies.includes(co.id)}
+                    onChange={() => handleCompanyToggle(co.id)}
                   />
                   <label htmlFor={`co-${co.id}`}>{co.name}</label>
                 </CheckItem>
@@ -103,8 +168,8 @@ const SearchFilter = ({
                     id={`ship-${m.id}`}
                     type="radio"
                     name="delivery"
-                    checked={selectedDeliveryType === m.id}
-                    onChange={() => onDeliveryTypeChange?.(m.id)}
+                    checked={tempDelivery === m.id}
+                    onChange={() => handleDeliveryChange(m.id)}
                   />
                   <label htmlFor={`ship-${m.id}`}>{m.name}</label>
                 </RadioItem>
@@ -113,7 +178,7 @@ const SearchFilter = ({
           </Group>
 
           <InlineRow>
-            <Group small grow>
+            <Group>
               <Label>가격</Label>
               <PriceRow>
                 <Input
@@ -129,22 +194,29 @@ const SearchFilter = ({
                   value={localMax}
                   onChange={(e) => setLocalMax(e.target.value)}
                 />
-                <ApplyButton type="button" onClick={handleApplyPrice}>
-                  적용
-                </ApplyButton>
+                {!isModalOpen && (
+                  <ApplyButton
+                    type="button"
+                    onClick={() =>
+                      onPriceChange?.({ min: localMin, max: localMax })
+                    }
+                  >
+                    적용
+                  </ApplyButton>
+                )}
               </PriceRow>
             </Group>
           </InlineRow>
         </BarBody>
 
         <MobileApplyArea>
-          <FullApplyButton onClick={() => setIsModalOpen(false)}>
+          <FullApplyButton onClick={handleMobileApply}>
             결과 보기
           </FullApplyButton>
         </MobileApplyArea>
       </FilterBar>
 
-      {isModalOpen && <Overlay />}
+      {isModalOpen && <Overlay onClick={() => setIsModalOpen(false)} />}
     </>
   );
 };
@@ -152,8 +224,7 @@ const SearchFilter = ({
 export default SearchFilter;
 
 const FilterBar = styled.section`
-  position: sticky;
-  top: 10px;
+  position: relative;
   background: ${({ theme }) => theme.colors.white};
   border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;

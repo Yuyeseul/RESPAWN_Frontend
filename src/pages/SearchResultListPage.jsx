@@ -201,6 +201,18 @@ const SearchResultListPage = () => {
     { id: '스피커', name: '스피커' },
   ];
 
+  const handleApplyAll = (filters) => {
+    const { categories, companies, delivery, price } = filters;
+
+    navigateWithUpdate({
+      categoryIds: categories,
+      company: companies,
+      deliveryType: delivery,
+      minPrice: price.min,
+      maxPrice: price.max,
+    });
+  };
+
   return (
     <>
       <Header />
@@ -219,6 +231,7 @@ const SearchResultListPage = () => {
           maxPrice={maxPrice}
           onPriceChange={handlePriceChange}
           onReset={handleReset}
+          onApplyAll={handleApplyAll}
         />
         <SearchResultList
           query={query}
