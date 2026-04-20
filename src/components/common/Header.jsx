@@ -100,7 +100,6 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      alert('로그아웃 완료');
       navigate('/');
     } catch (error) {
       console.error('로그아웃 에러:', error);
