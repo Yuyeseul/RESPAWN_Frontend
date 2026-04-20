@@ -15,9 +15,6 @@ import {
   SendButton,
   ButtonRow,
   BackButton,
-  UserInfo,
-  Label,
-  Value,
 } from '../../styles/FindSendStyles';
 
 const FindIdSendStep = ({ userInfo, onNext, onPrev }) => {
@@ -39,11 +36,6 @@ const FindIdSendStep = ({ userInfo, onNext, onPrev }) => {
 
       <Card>
         <Title>아이디 찾기</Title>
-
-        <UserInfo>
-          <Label>이름</Label>
-          <Value>{userInfo.name}</Value>
-        </UserInfo>
 
         {error && <ErrorMsg>{error}</ErrorMsg>}
 

@@ -7,7 +7,7 @@ export const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background: #fafafa;
+  background: ${({ theme }) => theme.colors.gray[50]};
 `;
 
 export const TopBar = styled.div`
@@ -22,14 +22,14 @@ export const BackButton = styled.button`
   background: none;
   border: none;
   font-size: 16px;
-  color: rgb(105, 111, 148);
+  color: ${({ theme }) => theme.colors.secondary};
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 8px;
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: rgba(105, 111, 148, 0.15);
+    background: ${({ theme }) => theme.colors.gray[200]};
   }
 `;
 
@@ -45,8 +45,18 @@ export const LogoWrapper = styled.div`
   margin-bottom: 40px;
 
   & > div img {
-    height: 70px;
+    height: 80px;
     object-fit: contain;
+    transition: height 0.2s ease;
+
+    @media ${({ theme }) => theme.mobile} {
+      height: 56px;
+    }
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 27px;
+    margin-bottom: 30px;
   }
 `;
 
@@ -57,12 +67,12 @@ export const Box = styled.form`
   max-width: 480px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   display: flex;
   flex-direction: column;
 
   /* 모바일 버전에서 박스 외형 지우기 + 양쪽 여백 살리기 */
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     background: transparent;
     box-shadow: none;
     border: none;
@@ -73,14 +83,14 @@ export const Box = styled.form`
 export const Title = styled.h2`
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[800]};
   margin-bottom: 28px;
   text-align: center;
 `;
 
 export const TabWrapper = styled.div`
   display: flex;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 2px solid ${({ theme }) => theme.colors.gray[300]};
   margin-bottom: 24px;
 `;
 
@@ -91,16 +101,19 @@ export const Tab = styled.button.attrs({ type: 'button' })`
   padding: 14px 0;
   font-size: 16px;
   font-weight: 600;
-  color: ${(props) => (props.isActive ? 'rgb(105, 111, 148)' : '#888')};
+  color: ${(props) =>
+    props.isActive
+      ? props.theme.colors.secondary
+      : props.theme.colors.gray[550]};
   border-bottom: ${(props) =>
-    props.isActive ? '2px solid rgb(105, 111, 148)' : '2px solid transparent'};
+    props.isActive
+      ? `2px solid ${props.theme.colors.secondary}`
+      : '2px solid transparent'};
   cursor: pointer;
-  transition:
-    color 0.25s ease,
-    border-bottom 0.25s ease;
+  transition: all 0.25s ease;
 
   &:hover {
-    color: rgb(105, 111, 148);
+    color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -113,13 +126,13 @@ export const RadioGroup = styled.div`
 export const RadioLabel = styled.label`
   font-size: 15px;
   font-weight: 600;
-  color: #444;
+  color: ${({ theme }) => theme.colors.gray[700]};
   display: flex;
   align-items: center;
   gap: 6px;
 
   input {
-    accent-color: rgb(105, 111, 148);
+    accent-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -133,7 +146,7 @@ export const Label = styled.label`
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 6px;
-  color: #555;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 export const Input = styled.input`
@@ -142,23 +155,23 @@ export const Input = styled.input`
   padding: 12px 14px;
   font-size: 16px;
   border: none;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   background: transparent;
 
   &:focus {
     outline: none;
-    border-bottom: 2px solid rgb(105, 111, 148);
+    border-bottom: 2px solid ${({ theme }) => theme.colors.secondary};
   }
 
   &::placeholder {
-    color: #a3a9c1;
+    color: ${({ theme }) => theme.colors.gray[600]};
   }
 `;
 
 export const SubmitButton = styled.button`
   width: 100%;
   height: 48px;
-  background: rgb(105, 111, 148);
+  background: ${({ theme }) => theme.colors.secondary};
   color: white;
   border: none;
   border-radius: 6px;
@@ -169,7 +182,7 @@ export const SubmitButton = styled.button`
   margin-top: 4px;
 
   &:hover {
-    background: rgb(85, 90, 130);
+    background: ${({ theme }) => theme.colors.primary};
   }
 
   &:disabled {
@@ -179,7 +192,7 @@ export const SubmitButton = styled.button`
 `;
 
 export const Message = styled.p`
-  color: #d93025;
+  color: ${({ theme }) => theme.colors.red};
   font-size: 14px;
   margin-top: 8px;
   text-align: center;

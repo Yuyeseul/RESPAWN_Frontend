@@ -72,12 +72,14 @@ const FindPwInputStep = ({ onComplete }) => {
     },
     onSuccess: (data, v) => {
       if (data) {
+        const receivedPhoneNumber = data.maskedPhoneNumber;
+        const receivedEmail = data.maskedEmail;
         if (data.userId) sessionStorage.setItem('userId', data.userId);
         sessionStorage.setItem('userType', userType);
         onComplete({
           name: v.name,
-          phoneNumber: data.phoneNumber,
-          email: data.email,
+          phoneNumber: receivedPhoneNumber,
+          email: receivedEmail,
         });
       } else {
         setError(data?.message || '조회 실패');

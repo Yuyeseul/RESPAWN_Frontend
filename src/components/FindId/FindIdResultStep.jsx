@@ -56,9 +56,9 @@ const ResultContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #fafafa;
+  background: ${({ theme }) => theme.colors.gray[50]};
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     justify-content: flex-start;
     padding-top: 80px;
   }
@@ -73,36 +73,46 @@ const LogoWrapper = styled.div`
   margin-bottom: 30px;
 
   & > div img {
-    height: 70px;
+    height: 80px;
     object-fit: contain;
+    transition: height 0.2s ease;
+
+    @media ${({ theme }) => theme.mobile} {
+      height: 56px;
+    }
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 35px;
+    margin-bottom: 30px;
   }
 `;
 
 const ResultBox = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.white};
   padding: 40px 30px;
   border-radius: 12px;
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     background: transparent;
     box-shadow: none;
     border: none;
-    padding: 20px 30px; /* 양쪽 여백을 20px로 수정하여 숨통을 틔워줍니다 */
+    padding: 20px 30px;
   }
 `;
 
 const Title = styled.h2`
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[800]};
   margin-bottom: 18px;
   text-align: center;
 `;
@@ -110,16 +120,24 @@ const Title = styled.h2`
 const Content = styled.h3`
   font-size: 18px;
   font-weight: 500;
-  color: #555;
+  color: ${({ theme }) => theme.colors.gray[700]};
   text-align: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 16px;
+  }
 `;
 
 const SubContent = styled.h3`
   font-size: 14px;
   font-weight: 400;
-  color: #888;
+  color: ${({ theme }) => theme.colors.gray[600]};
   margin-bottom: 28px;
   text-align: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 12px;
+  }
 `;
 
 const ListWrapper = styled.div`
@@ -136,13 +154,9 @@ const IdRow = styled.label`
   align-items: center;
   gap: 14px;
   padding: 12px 16px;
-  background: #fafafa;
-  border: 1px solid #ddd;
+  background: ${({ theme }) => theme.colors.gray[50]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
-
-  &:hover {
-    background: #f0f2fa;
-  }
 `;
 
 const Radio = styled.input`
@@ -150,6 +164,7 @@ const Radio = styled.input`
   height: 18px;
   cursor: pointer;
   flex-shrink: 0;
+  accent-color: ${({ theme }) => theme.colors.primary};
 `;
 
 const IdText = styled.span`
@@ -157,12 +172,12 @@ const IdText = styled.span`
   width: 220px;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[800]};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     flex: 1;
   }
@@ -179,7 +194,7 @@ const BackButton = styled.button`
   background: none;
   border: none;
   font-size: 16px;
-  color: rgb(105, 111, 148);
+  color: ${({ theme }) => theme.colors.secondary};
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 8px;
@@ -191,8 +206,8 @@ const BackButton = styled.button`
 `;
 
 const ConfirmButton = styled.button`
-  background: rgb(105, 111, 148);
-  color: white;
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -202,6 +217,6 @@ const ConfirmButton = styled.button`
   transition: background 0.2s ease;
 
   &:hover {
-    background: rgb(85, 90, 130);
+    background: ${({ theme }) => theme.colors.primary};
   }
 `;

@@ -157,9 +157,8 @@ export function useFindInputForm({
       const data = await sendApi(requestData);
       onSuccess(data, values);
     } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        '일시적인 오류가 발생했습니다. 다시 시도해주세요.';
+      console.log('API 응답:', err);
+      const message = err?.response?.data?.error;
       setError(message);
     } finally {
       setLoading(false);
