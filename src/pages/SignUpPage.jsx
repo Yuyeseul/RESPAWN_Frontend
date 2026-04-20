@@ -880,7 +880,7 @@ const BackButton = styled.button`
   background: none;
   border: none;
   font-size: 16px;
-  color: rgb(105, 111, 148);
+  color: ${({ theme }) => theme.colors.secondary};
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 8px;
@@ -903,6 +903,10 @@ const LogoWrapper = styled.div`
       height: 56px;
     }
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 27px;
+  }
 `;
 
 const SignupBox = styled.div`
@@ -919,7 +923,7 @@ const SignupBox = styled.div`
   @media ${({ theme }) => theme.mobile} {
     border: none;
     box-shadow: none;
-    margin-top: 20px;
+    margin-top: 0px;
     background: ${({ theme }) => theme.colors.gray[50]};
   }
 `;
