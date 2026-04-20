@@ -18,20 +18,34 @@ const theme = {
     overlay: 'rgba(0, 0, 0, 0.5)', // 모달 배경용 반투명 검정
     overlay_line: 'rgba(0, 0, 0, 0.15)', // 모달 배경용 더 연한 반투명 검정
     primary: 'rgb(85, 90, 130)', // 메인 네이비
+    primary_dark: '#3e4263', // Hover용 어두운 프라이머리
+    primary_light: '#f0f2f8', // 연한 배경용 프라이머리
+    primary_hover: '#e6e8f4', // 옅은 프라이머리 Hover
+    primary_alpha: 'rgba(85, 90, 130, 0.1)', // 포커스/그림자용
     secondary: 'rgb(105, 111, 148)', // 보조 네이비
     lightNavy: 'rgb(215, 219, 235)', // 연한 네이비
 
     // 상태 컬러
     success: '#28a745',
+    success_light: '#4caf50',
     danger: '#dc3545',
+    danger_light: '#ef4444', // 밝은 에러 레드
+    danger_bg: '#fef2f2', // 에러 배경
+    danger_border: '#fca5a5', // 에러 테두리
     green: '#45a745',
     red: '#d32f2f',
     yellow: '#ffc107',
+    star: '#f59e0b', // 별점 노란색
     orange: '#ff9500',
     wish: '#ff4d4d',
     pale_pink: '#ffe6e6',
     pink_lace: '#fff4f4',
     angel_pink: '#fff0f0',
+    blue: '#2196f3',
+    purple: '#673ab7',
+    purple_dark: '#9c27b0',
+    sky_light: '#e0f2fe', // 뱃지 배경 블루
+    sky_dark: '#0284c7', // 뱃지 텍스트 블루
 
     // 무채색 계열
     white: '#ffffff', // #fff

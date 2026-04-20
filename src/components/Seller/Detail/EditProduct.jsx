@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import TiptapEditor from '../Upload/TiptapEditor';
 import Select from 'react-select';
+import theme from '../../../styles/theme';
 
 const categoryGroups = [
   {
@@ -68,24 +69,30 @@ const customSelectStyles = {
     ...provided,
     minHeight: '44px',
     borderRadius: '8px',
-    borderColor: state.isFocused ? '#555a82' : '#e2e8f0',
-    boxShadow: state.isFocused ? '0 0 0 3px rgba(85, 90, 130, 0.1)' : 'none',
+    borderColor: state.isFocused
+      ? theme.colors.primary
+      : theme.colors.gray[200],
+    boxShadow: state.isFocused
+      ? `0 0 0 3px ${theme.colors.primary_alpha}`
+      : 'none',
     '&:hover': {
-      borderColor: state.isFocused ? '#555a82' : '#cbd5e1',
+      borderColor: state.isFocused
+        ? theme.colors.primary
+        : theme.colors.gray[300],
     },
     cursor: 'pointer',
   }),
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? '#555a82'
+      ? theme.colors.primary
       : state.isFocused
-        ? '#f0f2f8'
-        : 'white',
-    color: state.isSelected ? 'white' : '#333',
+        ? theme.colors.primary_light
+        : theme.colors.white,
+    color: state.isSelected ? theme.colors.white : theme.colors.gray[800],
     cursor: 'pointer',
     '&:active': {
-      backgroundColor: '#555a82',
+      backgroundColor: theme.colors.primary,
     },
   }),
   menu: (provided) => ({
@@ -545,7 +552,7 @@ const Container = styled.div`
 
 const PageLayout = styled.div`
   display: flex;
-  flex-direction: column; /* 세로 정렬 */
+  flex-direction: column;
   gap: 30px;
   align-items: center;
   width: 100%;
@@ -553,8 +560,6 @@ const PageLayout = styled.div`
 
 const NoticeBoxWrapper = styled.div`
   width: 100%;
-
-  /* NoticeBox 컴포넌트 내부 너비 강제 확장 */
   & > div,
   & > section,
   & > article {
@@ -562,43 +567,33 @@ const NoticeBoxWrapper = styled.div`
     max-width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
-
     @media (max-width: 768px) {
       padding: 16px !important;
     }
   }
-
-  /* 🔥 추가된 부분: 내부 목록(ul)을 2단(Grid)으로 분할 */
   ul {
     display: grid !important;
-    grid-template-columns: repeat(
-      2,
-      1fr
-    ) !important; /* 공간을 정확히 반씩 나눔 (2줄) */
-    gap: 12px 24px !important; /* 세로 간격 12px, 가로 간격 24px */
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px 24px !important;
     margin-bottom: 0 !important;
-
-    /* 화면이 좁은 모바일(600px 이하)에서는 다시 1칸(4줄)으로 변경 */
     @media (max-width: 600px) {
       grid-template-columns: 1fr !important;
     }
   }
-
-  /* 목록 항목(li) 텍스트 스타일 최적화 */
   li {
-    margin-bottom: 0 !important; /* 기존 마진 제거하고 Grid gap으로 관리 */
+    margin-bottom: 0 !important;
     line-height: 1.5;
-    word-break: keep-all; /* 단어가 중간에 잘리지 않게 보호 */
+    word-break: keep-all;
   }
 `;
 
 const ContentWrapper = styled.div`
   width: 100%;
-  background: #ffffff;
+  background: ${({ theme }) => theme.colors.white};
   padding: 40px 50px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-  border: 1px solid #f0f0f0;
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
   box-sizing: border-box;
 
   @media (max-width: 768px) {
@@ -614,13 +609,13 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 26px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: ${({ theme }) => theme.colors.gray[900]};
   margin: 0 0 8px 0;
 `;
 
 const Subtitle = styled.p`
   font-size: 14px;
-  color: #888;
+  color: ${({ theme }) => theme.colors.gray[550]};
   margin: 0;
 `;
 
@@ -630,12 +625,9 @@ const FormContainer = styled.form`
   gap: 32px;
 `;
 
-/* 1. 썸네일과 입력창을 감싸는 전체 행 */
 const FormTopRow = styled.div`
   display: flex;
   gap: 40px;
-
-  /* 기존 850px -> 1100px로 올려서 애매한 사이즈일 때 일찍 세로로 떨어지게 만듭니다 */
   @media (max-width: 1100px) {
     flex-direction: column;
     gap: 32px;
@@ -653,26 +645,23 @@ const ImageUploadWrapper = styled.div`
   position: relative;
 `;
 
-/* 2. 썸네일 이미지 박스 */
 const ImageBox = styled.label`
   display: flex;
   justify-content: center;
   align-items: center;
   width: 280px;
   aspect-ratio: 1 / 1;
-  background-color: #f8fafc;
-  border: 2px dashed #cbd5e1;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
+  border: 2px dashed ${({ theme }) => theme.colors.gray[300]};
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: #f1f5f9;
-    border-color: #555a82;
+    background-color: ${({ theme }) => theme.colors.gray[200]};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
-
-  /* FormTopRow와 똑같이 1100px에서 가운데 정렬되도록 맞춤 */
   @media (max-width: 1100px) {
     width: 100%;
     max-width: 320px;
@@ -689,7 +678,7 @@ const ImagePlaceholder = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: #94a3b8;
+  color: ${({ theme }) => theme.colors.gray[500]};
   font-size: 14px;
   font-weight: 500;
 `;
@@ -712,13 +701,10 @@ const Inputs = styled.div`
   width: 100%;
 `;
 
-/* 3. 판매가, 재고수량 등 나란히 있는 입력창 그룹 */
 const InputGroupRow = styled.div`
   display: flex;
   gap: 20px;
   width: 100%;
-
-  /* 기존 500px -> 650px로 올려서, 좁아질 때 이 부분도 안전하게 1줄씩 떨어지도록 보호 */
   @media (max-width: 650px) {
     flex-direction: column;
     gap: 20px;
@@ -730,16 +716,15 @@ const InputGroup = styled.div`
   flex-direction: column;
   gap: 8px;
   flex: 1;
-  min-width: 0; /* flex 자식 요소 밖으로 삐져나감(overflow) 완벽 방지 */
+  min-width: 0;
 `;
 
 const Label = styled.label`
   font-weight: 600;
   font-size: 13px;
-  color: #475569;
+  color: ${({ theme }) => theme.colors.gray[650]};
 `;
 
-/* 단위(원, 개)가 입력창 밖으로 밀려나지 않도록 감싸는 Wrapper 추가 */
 const InputWrapper = styled.div`
   position: relative;
   display: flex;
@@ -749,40 +734,37 @@ const InputWrapper = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  /* $hasUnit이 true일 때(단위가 있을 때) 우측 여백을 줘서 글자가 겹치지 않게 함 */
   padding: 12px ${(props) => (props.$hasUnit ? '36px' : '14px')} 12px 14px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 8px;
   font-size: 14px;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   transition: all 0.2s ease;
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.white};
   box-sizing: border-box;
 
   &::placeholder {
-    color: #cbd5e1;
+    color: ${({ theme }) => theme.colors.gray[300]};
   }
-
   &:focus {
     outline: none;
-    border-color: #555a82;
-    box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary_alpha};
   }
 `;
 
-/* 단위를 입력창 안쪽 우측에 고정 (Absolute) */
 const UnitAbsolute = styled.span`
   position: absolute;
   right: 14px;
   font-size: 14px;
   font-weight: 500;
-  color: #64748b;
-  pointer-events: none; /* 클릭 방해 금지 */
+  color: ${({ theme }) => theme.colors.gray[600]};
+  pointer-events: none;
 `;
 
 const Divider = styled.hr`
   border: none;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[100]};
   margin: 0;
   width: 100%;
 `;
@@ -795,28 +777,24 @@ const EditorBox = styled.div`
 `;
 
 const TiptapWrapper = styled.div`
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 8px;
   overflow: hidden;
   width: 100%;
 
   &:focus-within {
-    border-color: #555a82;
-    box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary_alpha};
   }
-
-  /* 🔥 TiptapEditor 내부의 여백과 테두리를 완벽하게 없애서 겉 테두리에 딱 붙게 만듭니다 */
   & > div {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important; /* 안쪽 여백 완전히 제거 */
+    padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
   }
-
-  /* 에디터 입력창이 너무 좁아지지 않도록 최소 높이 설정 (선택 사항) */
   .ProseMirror {
     min-height: 400px;
   }
@@ -831,7 +809,6 @@ const StatusSection = styled.div`
 const StatusButtons = styled.div`
   display: flex;
   gap: 12px;
-
   @media (max-width: 480px) {
     flex-direction: column;
   }
@@ -844,18 +821,28 @@ const StatusButton = styled.button`
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
-  border: 1.5px solid ${(props) => (props.$active ? '#555a82' : '#e2e8f0')};
-  background-color: ${(props) => (props.$active ? '#f0f2f8' : '#ffffff')};
-  color: ${(props) => (props.$active ? '#555a82' : '#64748b')};
+  border: 1.5px solid
+    ${(props) =>
+      props.$active
+        ? props.theme.colors.primary
+        : props.theme.colors.gray[200]};
+  background-color: ${(props) =>
+    props.$active
+      ? props.theme.colors.primary_light
+      : props.theme.colors.white};
+  color: ${(props) =>
+    props.$active ? props.theme.colors.primary : props.theme.colors.gray[600]};
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #555a82;
-    color: #555a82;
-    background-color: ${(props) => (props.$active ? '#e6e8f4' : '#f8fafc')};
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+    background-color: ${(props) =>
+      props.$active
+        ? props.theme.colors.primary_hover
+        : props.theme.colors.gray[100]};
   }
-
   @media (max-width: 480px) {
     max-width: 100%;
   }
@@ -866,7 +853,6 @@ const BottomActions = styled.div`
   justify-content: space-between;
   align-items: center;
   padding-top: 10px;
-
   @media (max-width: 600px) {
     flex-direction: column-reverse;
     gap: 16px;
@@ -878,11 +864,9 @@ const LeftAction = styled.div`
     width: 100%;
   }
 `;
-
 const RightActions = styled.div`
   display: flex;
   gap: 12px;
-
   @media (max-width: 600px) {
     width: 100%;
     flex-direction: column;
@@ -899,68 +883,64 @@ const ButtonBase = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-
   @media (max-width: 600px) {
     width: 100%;
   }
 `;
 
 const CancelButton = styled(ButtonBase)`
-  background: white;
-  border: 1.5px solid #cbd5e1;
-  color: #475569;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  color: ${({ theme }) => theme.colors.gray[650]};
 
   &:hover {
-    background-color: #f8fafc;
-    border-color: #94a3b8;
-    color: #1e293b;
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+    border-color: ${({ theme }) => theme.colors.gray[500]};
+    color: ${({ theme }) => theme.colors.gray[800]};
   }
 `;
 
 const SubmitButton = styled(ButtonBase)`
-  background-color: #555a82;
-  border: 1.5px solid #555a82;
-  color: white;
+  background-color: ${({ theme }) => theme.colors.primary};
+  border: 1.5px solid ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
 
   &:hover {
-    background-color: #3e4263;
-    border-color: #3e4263;
-    box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
+    background-color: ${({ theme }) => theme.colors.primary_dark};
+    border-color: ${({ theme }) => theme.colors.primary_dark};
   }
 `;
 
 const DeleteButton = styled(ButtonBase)`
-  background: white;
-  color: #ef4444;
-  border: 1.5px solid #fca5a5;
+  background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.danger_light};
+  border: 1.5px solid ${({ theme }) => theme.colors.danger_border};
 
   &:hover {
-    background-color: #fef2f2;
-    border-color: #ef4444;
+    background-color: ${({ theme }) => theme.colors.danger_bg};
+    border-color: ${({ theme }) => theme.colors.danger_light};
   }
-
   &:disabled {
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    color: #94a3b8;
+    background: ${({ theme }) => theme.colors.gray[100]};
+    border-color: ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[500]};
     cursor: not-allowed;
   }
 `;
 
 const NoticeMessage = styled.div`
   font-size: 13px;
-  color: #475569;
-  background-color: #f8fafc;
+  color: ${({ theme }) => theme.colors.gray[650]};
+  background-color: ${({ theme }) => theme.colors.gray[100]};
   padding: 16px 20px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  text-align: center;
+  word-break: keep-all;
+  line-height: 1.5;
 
   strong {
-    color: #ef4444;
+    color: ${({ theme }) => theme.colors.danger_light};
   }
 `;
 
@@ -970,7 +950,7 @@ const LoadingScreen = styled.div`
   align-items: center;
   height: 50vh;
   font-size: 16px;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-weight: 500;
 `;
 
@@ -980,7 +960,7 @@ const ModalBackdrop = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.4);
+  background-color: ${({ theme }) => theme.colors.overlay};
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -990,7 +970,7 @@ const ModalBackdrop = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.white};
   padding: 32px 24px 24px;
   border-radius: 16px;
   box-shadow:
@@ -1000,7 +980,6 @@ const ModalContent = styled.div`
   width: 100%;
   max-width: 340px;
   animation: modalScale 0.2s ease-out;
-
   @keyframes modalScale {
     from {
       transform: scale(0.95);
@@ -1017,7 +996,7 @@ const ModalMessage = styled.p`
   margin: 0 0 24px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   line-height: 1.5;
 `;
 
@@ -1028,23 +1007,23 @@ const ModalButtonContainer = styled.div`
 
 const ModalCancelBtn = styled(ButtonBase)`
   flex: 1;
-  background: #f1f5f9;
+  background: ${({ theme }) => theme.colors.gray[100]};
   border: none;
-  color: #475569;
+  color: ${({ theme }) => theme.colors.gray[650]};
 
   &:hover {
-    background: #e2e8f0;
-    color: #1e293b;
+    background: ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[800]};
   }
 `;
 
 const ModalConfirmBtn = styled(ButtonBase)`
   flex: 1;
-  background: #555a82;
+  background: ${({ theme }) => theme.colors.primary};
   border: none;
-  color: white;
+  color: ${({ theme }) => theme.colors.white};
 
   &:hover {
-    background: #3e4263;
+    background: ${({ theme }) => theme.colors.primary_dark};
   }
 `;

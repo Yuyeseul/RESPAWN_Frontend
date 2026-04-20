@@ -193,7 +193,7 @@ export default UserInfo;
 
 const Wrapper = styled.div`
   width: 100%;
-  max-width: 800px; /* 너무 넓게 퍼지지 않도록 폭 제한 */
+  max-width: 800px;
   margin: 60px auto;
   padding: 0 20px;
   box-sizing: border-box;
@@ -217,7 +217,7 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 26px;
   font-weight: 700;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   margin: 0 0 8px 0;
   letter-spacing: -0.02em;
 
@@ -228,16 +228,16 @@ const Title = styled.h2`
 
 const Subtitle = styled.p`
   font-size: 14px;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   margin: 0;
 `;
 
 const Card = styled.section`
-  background: #ffffff;
+  background: ${({ theme }) => theme.colors.white};
   border-radius: 16px;
   padding: 32px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  border: 1px solid #f1f5f9;
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
 
   @media (max-width: 600px) {
     padding: 24px 20px;
@@ -248,7 +248,7 @@ const Card = styled.section`
 const SectionTitle = styled.h3`
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   margin: 0 0 24px 0;
   display: flex;
   align-items: center;
@@ -259,34 +259,32 @@ const SectionTitle = styled.h3`
     display: block;
     width: 4px;
     height: 16px;
-    background-color: #555a82;
+    background-color: ${({ theme }) => theme.colors.primary};
     border-radius: 4px;
   }
 `;
 
-/* 라벨과 데이터를 감싸는 반응형 Grid Box */
 const InfoRow = styled.div`
   display: flex;
   align-items: stretch;
-  background: #ffffff;
-  border: 1.5px solid #f1f5f9;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 12px;
 
-  /* 모바일 화면에서는 상하 배치로 전환 */
   @media (max-width: 600px) {
     flex-direction: column;
     border: none;
-    border-bottom: 1.5px solid #f1f5f9;
+    border-bottom: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
     border-radius: 0;
     padding-bottom: 12px;
   }
 `;
 
 const Label = styled.div`
-  background: #f8fafc;
-  color: #475569;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  color: ${({ theme }) => theme.colors.gray[650]};
   font-weight: 600;
   font-size: 14px;
   width: 140px;
@@ -294,7 +292,7 @@ const Label = styled.div`
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  border-right: 1.5px solid #f1f5f9;
+  border-right: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
 
   @media (max-width: 600px) {
     width: 100%;
@@ -302,7 +300,7 @@ const Label = styled.div`
     border-right: none;
     padding: 12px 0 8px 0;
     font-size: 13px;
-    color: #94a3b8;
+    color: ${({ theme }) => theme.colors.gray[500]};
   }
 `;
 
@@ -311,21 +309,19 @@ const Value = styled.div`
   padding: 12px 16px;
   font-size: 15px;
   font-weight: 500;
-  color: #334155;
+  color: ${({ theme }) => theme.colors.gray[700]};
   display: flex;
   align-items: center;
   word-break: keep-all;
 
   strong {
-    color: #0f172a;
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
-
   @media (max-width: 600px) {
     padding: 0;
   }
 `;
 
-/* 입력 필드 영역 */
 const Field = styled.div`
   position: relative;
   display: flex;
@@ -340,23 +336,22 @@ const Field = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px 44px 12px 14px; /* 눈알 아이콘 공간 확보 */
-  border: 1.5px solid #e2e8f0;
+  padding: 12px 44px 12px 14px;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 8px;
   font-size: 14px;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[800]};
   transition: all 0.2s ease;
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.white};
   box-sizing: border-box;
 
   &::placeholder {
-    color: #cbd5e1;
+    color: ${({ theme }) => theme.colors.gray[300]};
   }
-
   &:focus {
     outline: none;
-    border-color: #555a82;
-    box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary_alpha};
   }
 `;
 
@@ -365,7 +360,7 @@ const IconButton = styled.button`
   right: 12px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: ${({ theme }) => theme.colors.gray[500]};
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -374,11 +369,11 @@ const IconButton = styled.button`
   transition: color 0.2s ease;
 
   &:hover {
-    color: #475569;
+    color: ${({ theme }) => theme.colors.gray[650]};
   }
   &:focus {
     outline: none;
-    color: #555a82;
+    color: ${({ theme }) => theme.colors.primary};
   }
 
   svg {
@@ -387,7 +382,6 @@ const IconButton = styled.button`
   }
 `;
 
-/* 하단 확인 버튼 컨테이너 */
 const ActionContainer = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -395,10 +389,10 @@ const ActionContainer = styled.div`
 `;
 
 const SubmitButton = styled.button`
-  background-color: #555a82;
-  color: #fff;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
   padding: 14px 32px;
-  border: 1.5px solid #555a82;
+  border: 1.5px solid ${({ theme }) => theme.colors.primary};
   border-radius: 8px;
   font-weight: 600;
   font-size: 15px;
@@ -406,21 +400,19 @@ const SubmitButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: #3e4263;
-    border-color: #3e4263;
-    box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
+    background-color: ${({ theme }) => theme.colors.primary_dark};
+    border-color: ${({ theme }) => theme.colors.primary_dark};
   }
-
   @media (max-width: 600px) {
     width: 100%;
   }
 `;
 
 const ResetButton = styled.button`
-  background-color: #ffffff;
-  color: #475569;
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[650]};
   padding: 8px 16px;
-  border: 1.5px solid #cbd5e1;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 6px;
   font-weight: 600;
   font-size: 13px;
@@ -428,13 +420,12 @@ const ResetButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: #f8fafc;
-    color: #1e293b;
-    border-color: #94a3b8;
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+    color: ${({ theme }) => theme.colors.gray[800]};
+    border-color: ${({ theme }) => theme.colors.gray[500]};
   }
 `;
 
-/* 권한(Role) 배지 */
 const RoleBadge = styled.span`
   display: inline-block;
   padding: 4px 12px;
@@ -442,6 +433,11 @@ const RoleBadge = styled.span`
   font-size: 13px;
   font-weight: 700;
   background-color: ${(props) =>
-    props.$role === 'ROLE_SELLER' ? '#e0f2fe' : '#f1f5f9'};
-  color: ${(props) => (props.$role === 'ROLE_SELLER' ? '#0284c7' : '#475569')};
+    props.$role === 'ROLE_SELLER'
+      ? props.theme.colors.sky_light
+      : props.theme.colors.gray[100]};
+  color: ${(props) =>
+    props.$role === 'ROLE_SELLER'
+      ? props.theme.colors.sky_dark
+      : props.theme.colors.gray[650]};
 `;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components'; // keyframes 추가
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import Logo from '../components/common/Logo';
@@ -22,8 +22,14 @@ const LoginPage = (e) => {
   const navigate = useNavigate();
 
   const [seePassword, setSeePassword] = useState(false);
-  // 🔥 로딩 상태를 관리할 state 추가
   const [isLoading, setIsLoading] = useState(false);
+
+  // ⭐️ 예쁜 알람(모달)을 위한 상태 추가
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    message: '',
+    onClose: null,
+  });
 
   const seePasswordHandler = () => {
     setSeePassword(!seePassword);
@@ -32,6 +38,18 @@ const LoginPage = (e) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
+  };
+
+  // ⭐️ 모달 띄우기 함수
+  const showModal = (message, onClose = null) => {
+    setModalConfig({ isOpen: true, message, onClose });
+  };
+
+  // ⭐️ 모달 닫기 함수
+  const closeModal = () => {
+    const { onClose } = modalConfig;
+    setModalConfig({ isOpen: false, message: '', onClose: null });
+    if (onClose) onClose();
   };
 
   const handleLogIn = async (e) => {
@@ -45,14 +63,14 @@ const LoginPage = (e) => {
       return;
     }
 
-    // 🔥 로그인 요청 시작 시 로딩 상태를 true로 변경
     setIsLoading(true);
-    setMsg(''); // 기존 메시지 초기화
+    setMsg('');
 
     try {
       const formData = new FormData();
       formData.append('username', user.username);
       formData.append('password', user.password);
+      formData.append('loginType', 'user');
 
       const response = await axios.post('/loginProc', formData);
       await fetchUser();
@@ -76,29 +94,27 @@ const LoginPage = (e) => {
           setFailCount(failedLoginAttempts);
         }
 
+        // ⭐️ 모든 alert를 showModal로 변경
         if (errorCode === 'expired') {
-          alert('계정이 만료되었습니다. 관리자에게 문의하세요.');
+          showModal('계정이 만료되었습니다.\n관리자에게 문의하세요.');
         } else if (errorCode === 'locked') {
-          alert(
-            '비밀번호 5회 불일치로 계정이 잠겼습니다. 관리자에게 문의하세요. '
+          showModal(
+            '비밀번호 5회 불일치로 계정이 잠겼습니다.\n관리자에게 문의하세요.'
           );
         } else if (errorCode === 'invalid_credentials') {
-          alert(
-            `아이디 또는 비밀번호가 올바르지 않습니다.(${
-              failedLoginAttempts || 0
-            }회 실패)`
+          showModal(
+            `아이디 또는 비밀번호가 올바르지 않습니다.\n(${failedLoginAttempts || 0}회 실패)`
           );
         } else if (errorCode === 'disabled') {
-          alert(`정지된 계정입니다. 관리자에게 문의하세요.`);
+          showModal(`정지된 계정입니다.\n관리자에게 문의하세요.`);
         } else {
-          alert('로그인 실패: ' + JSON.stringify(error.response.data));
+          showModal('로그인 실패: ' + JSON.stringify(error.response.data));
         }
       } else {
-        alert('서버와 통신 중 오류가 발생했습니다.');
+        showModal('서버와 통신 중 오류가 발생했습니다.');
       }
       console.error('Axios error:', error);
     } finally {
-      // 🔥 성공하든 실패하든 통신이 끝나면 로딩 상태를 false로 변경
       setIsLoading(false);
     }
   };
@@ -115,7 +131,9 @@ const LoginPage = (e) => {
           navigate('/');
         } catch (err) {
           console.error('로그인 세션 확인 실패:', err);
-          alert('로그인 상태 확인에 실패했습니다. 잠시 후 다시 시도해주세요.');
+          showModal(
+            '로그인 상태 확인에 실패했습니다.\n잠시 후 다시 시도해주세요.'
+          ); // alert 대체
         } finally {
           setPopup(null);
         }
@@ -127,12 +145,14 @@ const LoginPage = (e) => {
         try {
           switch (data.reason) {
             case 'account_conflict':
-              alert(
-                '이미 다른 소셜 계정과 연결된 이메일입니다. 다른 방법을 선택해 주세요.'
-              );
+              showModal(
+                '이미 다른 소셜 계정과 연결된 이메일입니다.\n다른 방법을 선택해 주세요.'
+              ); // alert 대체
               break;
             default:
-              alert('소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+              showModal(
+                '소셜 로그인에 실패했습니다.\n잠시 후 다시 시도해 주세요.'
+              ); // alert 대체
           }
         } finally {
           setPopup(null);
@@ -180,9 +200,9 @@ const LoginPage = (e) => {
       'width=600,height=700,resizable=yes,scrollbars=yes'
     );
     if (!win) {
-      alert(
-        '팝업이 차단되어 새 창을 열 수 없습니다. 팝업 차단을 해제해주세요.'
-      );
+      showModal(
+        '팝업이 차단되어 새 창을 열 수 없습니다.\n팝업 차단을 해제해주세요.'
+      ); // alert 대체
       return;
     }
     setPopup(win);
@@ -204,7 +224,7 @@ const LoginPage = (e) => {
               value={user.username}
               onChange={handleChange}
               required
-              disabled={isLoading} // 로딩 중 입력 방지
+              disabled={isLoading}
             />
           </Field>
 
@@ -217,7 +237,7 @@ const LoginPage = (e) => {
               value={user.password}
               onChange={handleChange}
               required
-              disabled={isLoading} // 로딩 중 입력 방지
+              disabled={isLoading}
             />
             <IconButton
               type="button"
@@ -237,7 +257,6 @@ const LoginPage = (e) => {
             </FailCountMessage>
           )}
 
-          {/* 🔥 로딩 상태에 따라 버튼 내용과 비활성화 처리 */}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
@@ -275,6 +294,23 @@ const LoginPage = (e) => {
           <img src={naver_icon} alt="naver" />
         </SocialButton>
       </LogInBox>
+
+      {/* ⭐️ 모달 렌더링 영역 */}
+      {modalConfig.isOpen && (
+        <ModalOverlay onClick={closeModal}>
+          <ModalBox onClick={(e) => e.stopPropagation()}>
+            <ModalMessage>
+              {modalConfig.message.split('\n').map((line, index) => (
+                <React.Fragment key={index}>
+                  {line}
+                  <br />
+                </React.Fragment>
+              ))}
+            </ModalMessage>
+            <ModalButton onClick={closeModal}>확인</ModalButton>
+          </ModalBox>
+        </ModalOverlay>
+      )}
     </Container>
   );
 };
@@ -283,7 +319,6 @@ export default LoginPage;
 
 // --- 스타일 컴포넌트 영역 ---
 
-// 🔥 스피너(로딩) 애니메이션 추가
 const spin = keyframes`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -412,7 +447,6 @@ const Button = styled.button`
   cursor: pointer;
   margin-top: 10px;
 
-  /* 🔥 로딩 아이콘과 텍스트를 나란히 배치하기 위해 Flex 사용 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -423,7 +457,6 @@ const Button = styled.button`
     background: ${({ theme }) => theme.colors.primary};
   }
 
-  /* 🔥 비활성화(로딩 중)일 때 스타일 */
   &:disabled {
     background: ${({ theme }) => theme.colors.gray[400]};
     cursor: not-allowed;
@@ -502,4 +535,63 @@ const FailCountMessage = styled.p`
   margin-top: 4px;
   text-align: center;
   font-weight: 600;
+`;
+
+// === ⭐️ 새롭게 추가된 모달 스타일 (테마 연동) ===
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${({ theme }) => theme.colors.overlay || 'rgba(0,0,0,0.5)'};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalBox = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  min-width: 320px;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+const ModalMessage = styled.div`
+  font-size: 16px;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  margin-bottom: 24px;
+  line-height: 1.6;
+  font-weight: 500;
+`;
+
+const ModalButton = styled.button`
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  padding: 10px 28px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;

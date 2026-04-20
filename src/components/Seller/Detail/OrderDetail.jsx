@@ -147,9 +147,8 @@ const Wrapper = styled.div`
   margin: 40px auto 80px;
   padding: 0 20px;
   font-family: 'Noto Sans KR', sans-serif;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[800]};
 
-  /* 모바일 여백 축소 */
   @media (max-width: 768px) {
     margin: 20px auto 40px;
     padding: 0 15px;
@@ -159,11 +158,10 @@ const Wrapper = styled.div`
 const Title = styled.h1`
   font-size: 28px;
   font-weight: 700;
-  color: #111;
+  color: ${({ theme }) => theme.colors.gray[900]};
   margin-bottom: 40px;
   letter-spacing: -0.02em;
 
-  /* 모바일 폰트 축소 */
   @media (max-width: 768px) {
     font-size: 24px;
     margin-bottom: 24px;
@@ -171,14 +169,13 @@ const Title = styled.h1`
 `;
 
 const Section = styled.section`
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 10px;
   padding: 24px 32px;
   margin-bottom: 32px;
   box-shadow: 0 6px 15px rgb(0 0 0 / 0.07);
 
-  /* 모바일 섹션 여백 축소 */
   @media (max-width: 768px) {
     padding: 20px 20px;
     margin-bottom: 24px;
@@ -189,11 +186,10 @@ const SectionTitle = styled.h2`
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 28px;
-  color: #000;
-  border-bottom: 2px solid #555a82;
+  color: ${({ theme }) => theme.colors.black};
+  border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
   padding-bottom: 10px;
 
-  /* 모바일 폰트 축소 */
   @media (max-width: 768px) {
     font-size: 18px;
     margin-bottom: 20px;
@@ -210,32 +206,31 @@ const Table = styled.table`
     padding: 14px 16px;
     font-size: 15px;
     vertical-align: middle;
-    word-break: keep-all; /* 모바일에서 단어 잘림 방지 */
+    word-break: keep-all;
   }
 
   th {
     width: 130px;
     font-weight: 600;
-    color: #555a82;
+    color: ${({ theme }) => theme.colors.primary};
     text-align: left;
-    background: #f3f4f6;
+    background: ${({ theme }) => theme.colors.gray[100]};
     border-radius: 6px 0 0 6px;
   }
 
   td {
-    background: #f9fafb;
+    background: ${({ theme }) => theme.colors.gray[50]};
     border-radius: 0 6px 6px 0;
     font-weight: 500;
-    color: #111;
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 
   .highlight {
     font-weight: 700;
     font-size: 16px;
-    color: #000;
+    color: ${({ theme }) => theme.colors.black};
   }
 
-  /* 🔥 모바일 반응형 처리: 테이블 구조를 유지하면서 2열 리스트로 변환 */
   @media (max-width: 768px) {
     border-spacing: 0;
     display: block;
@@ -247,8 +242,8 @@ const Table = styled.table`
 
     tr {
       display: grid;
-      grid-template-columns: 110px 1fr; /* 제목 110px, 나머지 값 */
-      gap: 8px 0; /* 주문 정보처럼 4칸(2쌍)인 경우 위아래 8px 간격 생성 */
+      grid-template-columns: 110px 1fr;
+      gap: 8px 0;
       margin-bottom: 16px;
     }
 
@@ -284,14 +279,11 @@ const FlexContainer = styled.div`
   & > section {
     flex: 1;
     min-width: 400px;
-
-    /* 모바일에서는 섹션이 세로로 떨어지고 100% 꽉 차도록 변경 */
     @media (max-width: 768px) {
       min-width: 100%;
       margin-bottom: 0;
     }
   }
-
   @media (max-width: 768px) {
     gap: 24px;
     flex-direction: column;
@@ -301,7 +293,7 @@ const FlexContainer = styled.div`
 const BackButton = styled.button`
   background: none;
   border: none;
-  color: #555a82;
+  color: ${({ theme }) => theme.colors.primary};
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -323,27 +315,27 @@ const StatusBadge = styled.span`
   border-radius: 20px;
   font-weight: 600;
   font-size: 14px;
-  color: white;
-  white-space: nowrap; /* 글자 줄바꿈 방지 */
+  color: ${({ theme }) => theme.colors.white};
+  white-space: nowrap;
 
-  background-color: ${(props) => {
-    switch (props.status) {
+  background-color: ${({ status, theme }) => {
+    switch (status) {
       case 'TEMPORARY':
-        return '#bdbdbd';
+        return theme.colors.gray[400];
       case 'ORDERED':
-        return '#4caf50';
+        return theme.colors.success_light;
       case 'PAID':
-        return '#2196f3';
+        return theme.colors.blue;
       case 'CANCELED':
-        return '#f44336';
+        return theme.colors.danger;
       case 'RETURNED':
-        return '#ff9800';
+        return theme.colors.orange;
       case 'REFUND_REQUESTED':
-        return '#673ab7';
+        return theme.colors.purple;
       case 'REFUNDED':
-        return '#9c27b0';
+        return theme.colors.purple_dark;
       default:
-        return '#696f94';
+        return theme.colors.secondary;
     }
   }};
 `;
