@@ -1,9 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import axios from '../../api/axios';
 import OrderCard from './OrderHistory/OrderCard';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
+
+import icon_basic from '../../assets/grade_BASIC.png';
+import icon_vip from '../../assets/grade_VIP.png';
+import icon_vvip from '../../assets/grade_VVIP.png';
+import icon_vvip_plus from '../../assets/grade_VVIP_PLUS.png';
+import icon_default from '../../assets/grade_default.png';
 
 const Order_Months = 3;
 
@@ -30,6 +36,23 @@ const menuItems = [
     items: [{ key: 'profile', label: '개인정보확인/수정' }],
   },
 ];
+
+const getGradeImage = (grade) => {
+  if (!grade) return icon_default;
+
+  switch (grade.toUpperCase()) {
+    case 'BASIC':
+      return icon_basic;
+    case 'VIP':
+      return icon_vip;
+    case 'VVIP':
+      return icon_vvip;
+    case 'VVIP_PLUS':
+      return icon_vvip_plus;
+    default:
+      return icon_default;
+  }
+};
 
 function MainInfo() {
   const navigate = useNavigate();
@@ -107,14 +130,26 @@ function MainInfo() {
     [recentOrders]
   );
 
-  if (loading) return <LoadingText>로딩 중...</LoadingText>;
+  if (loading) {
+    return (
+      <LoadingContainer>
+        <Spinner />
+        <span>정보를 불러오는 중입니다...</span>
+      </LoadingContainer>
+    );
+  }
 
   return (
     <Container>
       <MainContent>
         <TopInfoBox>
           <ProfileSection>
-            <Avatar>N</Avatar>
+            <Avatar>
+              <img
+                src={getGradeImage(user?.grade)}
+                alt={`${user?.grade} 등급`}
+              />
+            </Avatar>
             <UserInfoSection>
               <div className="grade">{user?.grade}</div>
               <div className="name">{loginUser.name}님</div>
@@ -202,6 +237,36 @@ function MainInfo() {
 
 export default MainInfo;
 
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 100px 20px;
+  min-height: 50vh;
+  gap: 16px;
+
+  span {
+    color: ${({ theme }) => theme.colors.gray[600]};
+    font-size: 15px;
+    font-weight: 500;
+  }
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top: 4px solid ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
 const Container = styled.div`
   max-width: ${({ theme }) => theme.maxWidth};
   margin: 0 auto;
@@ -252,15 +317,19 @@ const ProfileSection = styled.div`
 const Avatar = styled.div`
   width: 50px;
   height: 50px;
-  background: ${({ theme }) => theme.colors.gray[100]};
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 20px;
-  color: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.gray[100]};
   margin-right: 15px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 const UserInfoSection = styled.div`
@@ -401,10 +470,4 @@ const NoOrderText = styled.p`
   color: ${({ theme }) => theme.colors.gray[700]};
   text-align: center;
   font-size: 16px;
-`;
-
-const LoadingText = styled.div`
-  text-align: center;
-  padding: 50px;
-  color: ${({ theme }) => theme.colors.gray[600]};
 `;
