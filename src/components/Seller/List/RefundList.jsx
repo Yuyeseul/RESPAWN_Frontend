@@ -220,23 +220,26 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 22px;
   font-weight: 700;
-  color: #1e293b;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
   margin: 0;
 `;
 
 const TabMenu = styled.div`
   display: flex;
   gap: 10px;
-
   @media (max-width: 768px) {
     width: 100%;
   }
 `;
 
 const TabButton = styled.button`
-  background: ${({ $active }) => ($active ? '#555a82' : '#f1f5f9')};
-  color: ${({ $active }) => ($active ? '#ffffff' : '#64748b')};
-  border: 1.5px solid ${({ $active }) => ($active ? '#555a82' : '#f1f5f9')};
+  background: ${({ $active, theme: { colors } }) =>
+    $active ? colors.primary : colors.gray[100]};
+  color: ${({ $active, theme: { colors } }) =>
+    $active ? colors.white : colors.gray[600]};
+  border: 1.5px solid
+    ${({ $active, theme: { colors } }) =>
+      $active ? colors.primary : colors.gray[100]};
   padding: 10px 24px;
   font-size: 14px;
   font-weight: 600;
@@ -245,21 +248,22 @@ const TabButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${({ $active }) => ($active ? '#3e4263' : '#e2e8f0')};
-    border-color: ${({ $active }) => ($active ? '#3e4263' : '#e2e8f0')};
-    color: ${({ $active }) => ($active ? '#ffffff' : '#1e293b')};
+    background: ${({ $active, theme: { colors } }) =>
+      $active ? colors.primary_dark : colors.gray[200]};
+    border-color: ${({ $active, theme: { colors } }) =>
+      $active ? colors.primary_dark : colors.gray[200]};
+    color: ${({ $active, theme: { colors } }) =>
+      $active ? colors.white : colors.gray[900]};
   }
 
   @media (max-width: 768px) {
-    flex: 1; /* 모바일에서는 탭 버튼이 화면을 반씩 꽉 채우도록 설정 */
+    flex: 1;
     padding: 12px 0;
   }
 `;
 
-/* PC용 테이블 래퍼 */
 const DesktopTableWrapper = styled.div`
   width: 100%;
-
   @media (max-width: 768px) {
     display: none;
   }
@@ -268,7 +272,7 @@ const DesktopTableWrapper = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -278,20 +282,19 @@ const Table = styled.table`
   td {
     padding: 14px 15px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
     vertical-align: middle;
   }
 
   th {
-    background: #e6e8f4;
-    color: #333;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
+    color: ${({ theme: { colors } }) => colors.gray[800]};
     font-weight: 600;
   }
 
   tr:hover {
-    background: #f5f7fa;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
-
   td {
     word-break: keep-all;
   }
@@ -304,7 +307,7 @@ const Th = styled.th`
 const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
-  color: #94a3b8;
+  color: ${({ theme: { colors } }) => colors.gray[500]};
   font-size: 15px;
 `;
 
@@ -314,10 +317,8 @@ const PaginationWrapper = styled.div`
   margin-top: 30px;
 `;
 
-/* 모바일용 카드 리스트 래퍼 */
 const MobileListWrapper = styled.div`
   display: none;
-
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
@@ -326,13 +327,12 @@ const MobileListWrapper = styled.div`
   }
 `;
 
-/* 모바일 개별 카드 */
 const MobileCard = styled.div`
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -343,7 +343,7 @@ const MobileCard = styled.div`
 
   &:active {
     transform: scale(0.98);
-    background: #fcfcfc;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
@@ -351,19 +351,19 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   padding-bottom: 8px;
 `;
 
 const OrderId = styled.span`
   font-size: 13px;
-  color: #64748b;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   font-weight: 500;
 `;
 
 const DateText = styled.span`
   font-size: 12px;
-  color: #94a3b8;
+  color: ${({ theme: { colors } }) => colors.gray[500]};
 `;
 
 const CardBody = styled.div`
@@ -375,18 +375,18 @@ const CardBody = styled.div`
 const ItemName = styled.div`
   font-size: 15px;
   font-weight: 600;
-  color: #1e293b;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
   line-height: 1.4;
   word-break: keep-all;
 `;
 
 const PriceRow = styled.div`
   font-size: 14px;
-  color: #475569;
+  color: ${({ theme: { colors } }) => colors.gray[650]};
   margin-top: 4px;
 
   strong {
-    color: #555a82;
+    color: ${({ theme: { colors } }) => colors.primary};
     font-size: 15px;
     font-weight: 700;
   }
@@ -395,9 +395,9 @@ const PriceRow = styled.div`
 const NoDataCard = styled.div`
   padding: 40px 0;
   text-align: center;
-  color: #94a3b8;
+  color: ${({ theme: { colors } }) => colors.gray[500]};
   font-size: 14px;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;

@@ -215,39 +215,34 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  color: #555a82;
-  margin: 0; /* 모바일 정렬 틀어짐 방지 */
+  color: ${({ theme: { colors } }) => colors.primary};
+  margin: 0;
 `;
 
 const SelectorWrapper = styled.div`
   @media (max-width: 768px) {
     width: 100%;
-
-    /* 내부 select 태그 넓이 100% 꽉 채우기 */
     select {
       width: 100%;
     }
   }
 `;
 
-/* 별점 스타일 */
 const Stars = styled.span`
   display: inline-flex;
   gap: 2px;
   font-size: 15px;
 
   .filled {
-    color: #f59e0b; /* 노란색 별 */
+    color: ${({ theme: { colors } }) => colors.star};
   }
   .empty {
-    color: #e2e8f0; /* 옅은 회색 별 */
+    color: ${({ theme: { colors } }) => colors.gray[200]};
   }
 `;
 
-/* PC용 테이블 래퍼 */
 const DesktopTableWrapper = styled.div`
   width: 100%;
-
   @media (max-width: 768px) {
     display: none;
   }
@@ -256,7 +251,7 @@ const DesktopTableWrapper = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -265,33 +260,31 @@ const Table = styled.table`
   td {
     padding: 14px 15px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
     vertical-align: middle;
   }
 
   th {
-    background: #e6e8f4;
-    color: #333;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
+    color: ${({ theme: { colors } }) => colors.gray[800]};
     font-weight: 600;
     white-space: nowrap;
   }
 
   tr:hover {
-    background: #f5f7fa;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
 const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 15px;
 `;
 
-/* 모바일용 카드 리스트 래퍼 */
 const MobileListWrapper = styled.div`
   display: none;
-
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
@@ -300,13 +293,12 @@ const MobileListWrapper = styled.div`
   }
 `;
 
-/* 모바일 개별 카드 */
 const MobileCard = styled.div`
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -317,7 +309,7 @@ const MobileCard = styled.div`
 
   &:active {
     transform: scale(0.98);
-    background: #fcfcfc;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
@@ -325,19 +317,19 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   padding-bottom: 8px;
 `;
 
 const BuyerId = styled.span`
   font-size: 13px;
-  color: #666;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   font-weight: 600;
 `;
 
 const ReviewDate = styled.span`
   font-size: 12px;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
 `;
 
 const CardBody = styled.div`
@@ -349,7 +341,7 @@ const CardBody = styled.div`
 const ItemName = styled.div`
   font-size: 15px;
   font-weight: 600;
-  color: #1e293b;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
   line-height: 1.4;
   word-break: keep-all;
 `;
@@ -361,22 +353,22 @@ const RatingRow = styled.div`
 
 const ReviewContent = styled.div`
   font-size: 14px;
-  color: #475569;
+  color: ${({ theme: { colors } }) => colors.gray[650]};
   line-height: 1.5;
-  background: #f8fafc;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
   padding: 10px;
   border-radius: 6px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[100]};
 `;
 
 const NoDataCard = styled.div`
   padding: 40px 0;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 14px;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;
 
 const PaginationWrapper = styled.div`

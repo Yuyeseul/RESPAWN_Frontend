@@ -330,25 +330,21 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  color: #555a82;
+  color: ${({ theme: { colors } }) => colors.primary};
   margin: 0;
 `;
 
 const SelectorWrapper = styled.div`
   @media (max-width: 768px) {
     width: 100%;
-
-    /* 내부 select 태그 넓이 100% 꽉 채우기 */
     select {
       width: 100%;
     }
   }
 `;
 
-/* PC용 테이블 래퍼 */
 const DesktopTableWrapper = styled.div`
   width: 100%;
-
   @media (max-width: 768px) {
     display: none;
   }
@@ -357,7 +353,7 @@ const DesktopTableWrapper = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -366,26 +362,26 @@ const Table = styled.table`
   td {
     padding: 14px 15px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
     vertical-align: middle;
   }
 
   th {
-    background: #e6e8f4;
-    color: #333;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
+    color: ${({ theme: { colors } }) => colors.gray[800]};
     font-weight: 600;
     white-space: nowrap;
   }
 
   tr:hover {
-    background: #f5f7fa;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
 const DetailWrapper = styled.div`
   padding: 16px 24px;
-  background: #f8fafc;
-  border-bottom: 1px solid #eee;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 `;
 
@@ -407,18 +403,20 @@ const DetailRow = styled.div`
 const DetailLabel = styled.span`
   font-size: 13px;
   font-weight: 700;
-  color: #555a82;
+  color: ${({ theme: { colors } }) => colors.primary};
 `;
 
 const DetailContent = styled.p`
   margin: 0;
   font-size: 14px;
-  color: #334155;
+  color: ${({ theme: { colors } }) => colors.gray[700]};
   line-height: 1.5;
-  background: ${(props) => (props.$isAnswer ? '#ffffff' : 'transparent')};
+  background: ${(props) =>
+    props.$isAnswer ? props.theme.colors.white : 'transparent'};
   padding: ${(props) => (props.$isAnswer ? '12px' : '0')};
   border-radius: ${(props) => (props.$isAnswer ? '8px' : '0')};
-  border: ${(props) => (props.$isAnswer ? '1px solid #e2e8f0' : 'none')};
+  border: ${(props) =>
+    props.$isAnswer ? `1px solid ${props.theme.colors.gray[200]}` : 'none'};
   white-space: pre-wrap;
 `;
 
@@ -432,22 +430,22 @@ const AnswerInput = styled.input`
   flex: 1;
   padding: 12px 14px;
   border-radius: 8px;
-  border: 1.5px solid #cbd5e1;
+  border: 1.5px solid ${({ theme: { colors } }) => colors.gray[300]};
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
 
   &:focus {
-    border-color: #555a82;
-    box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
+    border-color: ${({ theme: { colors } }) => colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme: { colors } }) => colors.primary_alpha};
   }
 `;
 
 const AnswerButton = styled.button`
   padding: 0 24px;
   border: none;
-  background: #555a82;
-  color: white;
+  background: ${({ theme: { colors } }) => colors.primary};
+  color: ${({ theme: { colors } }) => colors.white};
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
@@ -456,18 +454,17 @@ const AnswerButton = styled.button`
   white-space: nowrap;
 
   &:hover {
-    background: #3e4263;
+    background: ${({ theme: { colors } }) => colors.primary_dark};
   }
 `;
 
 const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 15px;
 `;
 
-/* 상태를 나타내는 뱃지 (통일된 디자인) */
 const StatusBadge = styled.span`
   display: inline-block;
   padding: 4px 10px;
@@ -475,8 +472,13 @@ const StatusBadge = styled.span`
   font-size: 12px;
   font-weight: 600;
   background-color: ${(props) =>
-    props.$status === 'ANSWERED' ? '#e6e8f4' : '#fff0f0'};
-  color: ${(props) => (props.$status === 'ANSWERED' ? '#555a82' : '#e74c3c')};
+    props.$status === 'ANSWERED'
+      ? props.theme.colors.primary_hover
+      : props.theme.colors.angel_pink};
+  color: ${(props) =>
+    props.$status === 'ANSWERED'
+      ? props.theme.colors.primary
+      : props.theme.colors.danger};
 `;
 
 const PaginationWrapper = styled.div`
@@ -485,10 +487,8 @@ const PaginationWrapper = styled.div`
   margin-top: 30px;
 `;
 
-/* 모바일용 리스트 래퍼 */
 const MobileListWrapper = styled.div`
   display: none;
-
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
@@ -497,13 +497,12 @@ const MobileListWrapper = styled.div`
   }
 `;
 
-/* 모바일 카드 디자인 */
 const MobileCard = styled.div`
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -511,7 +510,7 @@ const MobileCard = styled.div`
   transition: background 0.2s ease;
 
   &:active {
-    background: #fcfcfc;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
@@ -519,19 +518,19 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   padding-bottom: 8px;
 `;
 
 const ItemName = styled.span`
   font-size: 13px;
-  color: #64748b;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   font-weight: 500;
 `;
 
 const DateText = styled.span`
   font-size: 12px;
-  color: #94a3b8;
+  color: ${({ theme: { colors } }) => colors.gray[500]};
   white-space: nowrap;
   margin-left: 10px;
 `;
@@ -545,13 +544,13 @@ const CardBody = styled.div`
 const QuestionTitle = styled.div`
   font-size: 15px;
   font-weight: 600;
-  color: #1e293b;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
   line-height: 1.4;
 `;
 
 const MetaInfo = styled.div`
   font-size: 13px;
-  color: #64748b;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
 `;
 
 const CardFooter = styled.div`
@@ -560,16 +559,15 @@ const CardFooter = styled.div`
   padding-top: 4px;
 `;
 
-/* 모바일 카드 내부의 아코디언(확장) 영역 */
 const MobileDetailBox = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: #f8fafc;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
   border-radius: 10px;
   padding: 16px;
   margin-top: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   cursor: default;
 `;
 
@@ -583,7 +581,6 @@ const MobileAnswerForm = styled.form`
     width: 100%;
     box-sizing: border-box;
   }
-
   button {
     width: 100%;
     padding: 12px;
@@ -593,9 +590,9 @@ const MobileAnswerForm = styled.form`
 const NoDataCard = styled.div`
   padding: 40px 0;
   text-align: center;
-  color: #999;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
   font-size: 14px;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
-  border: 1px solid #eee;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;
