@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../api/axios';
 import Logo from '../common/Logo';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaUser } from 'react-icons/fa';
 
 const Login = (e) => {
   const [failCount, setFailCount] = useState(0);
@@ -16,7 +16,6 @@ const Login = (e) => {
 
   const [seePassword, setSeePassword] = useState(false);
 
-  // ⭐️ 예쁜 알람(모달)을 위한 상태 추가
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     message: '',
@@ -32,12 +31,10 @@ const Login = (e) => {
     setUser({ ...user, [name]: value });
   };
 
-  // 모달 띄우기 함수
   const showModal = (message, onClose = null) => {
     setModalConfig({ isOpen: true, message, onClose });
   };
 
-  // 모달 닫기 함수
   const closeModal = () => {
     const { onClose } = modalConfig;
     setModalConfig({ isOpen: false, message: '', onClose: null });
@@ -62,9 +59,8 @@ const Login = (e) => {
       formData.append('loginType', 'admin');
 
       const response = await axios.post('/loginProc', formData);
-      const data = response.data; // 서버에서 받은 유저 정보
+      const data = response.data;
 
-      // ⭐️ 권한 체크 로직 추가
       if (data.role !== 'ROLE_ADMIN') {
         try {
           await axios.post('/logout');
@@ -72,12 +68,10 @@ const Login = (e) => {
           console.error('강제 로그아웃 중 오류 발생:', logoutError);
         }
 
-        // 세션 스토리지 비우기 및 알림 띄우기 (alert 대신 showModal 사용)
         sessionStorage.clear();
         showModal(
           '접근 권한이 없는 계정입니다.\n관리자 계정으로 로그인해주세요.',
           () => {
-            // 모달을 닫을 때 입력창 초기화
             setUser({ username: '', password: '' });
             navigate('/adminlogin');
           }
@@ -98,7 +92,6 @@ const Login = (e) => {
           setFailCount(failedLoginAttempts);
         }
 
-        // ⭐️ 모든 alert를 showModal로 교체
         if (errorCode === 'expired') {
           showModal('계정이 만료되었습니다. 관리자에게 문의하세요.');
         } else if (errorCode === 'locked') {
@@ -139,6 +132,10 @@ const Login = (e) => {
 
   return (
     <Container>
+      <UserLoginLink onClick={() => navigate('/login')}>
+        <FaUser /> 일반 로그인
+      </UserLoginLink>
+
       <LogoWrapper>
         <Logo />
       </LogoWrapper>
@@ -185,12 +182,10 @@ const Login = (e) => {
         </form>
       </LogInBox>
 
-      {/* ⭐️ 모달 렌더링 영역 */}
       {modalConfig.isOpen && (
         <ModalOverlay onClick={closeModal}>
           <ModalBox onClick={(e) => e.stopPropagation()}>
             <ModalMessage>
-              {/* \n 문자를 <br/> 태그로 변환하여 줄바꿈 처리 */}
               {modalConfig.message.split('\n').map((line, index) => (
                 <React.Fragment key={index}>
                   {line}
@@ -208,8 +203,40 @@ const Login = (e) => {
 
 export default Login;
 
-// === 스타일 영역 (theme.jsx 적용) ===
+// === 스타일 영역 ===
+
+const UserLoginLink = styled.div`
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
+  background: ${({ theme: { colors } }) => colors.white};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+
+  svg {
+    font-size: 14px;
+  }
+
+  &:hover {
+    color: ${({ theme: { colors } }) => colors.secondary};
+    border-color: ${({ theme: { colors } }) => colors.secondary};
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+`;
+
 const Container = styled.div`
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
