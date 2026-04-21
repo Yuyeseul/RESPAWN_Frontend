@@ -1,8 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '../Pagination';
+
+const formatDate = (s) => {
+  if (!s) return '-';
+  return s.slice(0, 10);
+};
+
+const ymdToCompact = (yyyyMMdd) => {
+  if (!yyyyMMdd) return '';
+  const v = String(yyyyMMdd).trim();
+  if (v.length !== 10) return '';
+  const compact = v.replaceAll('-', '');
+  if (!/^\d{8}$/.test(compact)) return '';
+  return compact;
+};
+
+const buildDateRange = (from, to) => {
+  const f = ymdToCompact(from);
+  const t = ymdToCompact(to);
+  if (!f && !t) return '';
+  return `${f}~${t}`;
+};
 
 const Members = () => {
   const navigate = useNavigate();
@@ -19,15 +40,13 @@ const Members = () => {
   const currentPage = pageInfo.page + 1;
   const totalPages = pageInfo.totalPages;
   const handlePageChange = (page1) => {
-    // 안전 가드
     if (page1 < 1 || page1 > currentPage) return;
     setPageInfo((p) => ({ ...p, page: page1 - 1 }));
   };
 
-  // 입력 폼 상태
   const [filters, setFilters] = useState({
-    from: '', // yyyy-MM-dd
-    to: '', // yyyy-MM-dd
+    from: '',
+    to: '',
     keyword: '',
     field: 'name',
   });
@@ -39,90 +58,69 @@ const Members = () => {
     field: 'name',
   });
 
-  // const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [data, setData] = useState([]); // 정렬 적용 후 화면용
+  const [data, setData] = useState([]);
   const [sort, setSort] = useState({ field: 'username', dir: 'asc' });
 
-  const formatDate = (s) => {
-    if (!s) return '-';
-    // "2025-08-19T20:11:49.562796" → "2025-08-19"
-    return s.slice(0, 10);
-  };
+  const fetchMembers = useCallback(
+    async (page = pageInfo.page, size = pageInfo.size) => {
+      setLoading(true);
+      setError('');
+      try {
+        const url =
+          roleTab === 'buyer' ? '/admin/buyers/paged' : '/admin/sellers/paged';
 
-  const ymdToCompact = (yyyyMMdd) => {
-    if (!yyyyMMdd) return '';
-    const v = String(yyyyMMdd).trim();
-    // 기대 포맷 길이: 10 (YYYY-MM-DD)
-    if (v.length !== 10) return '';
-    const compact = v.replaceAll('-', '');
-    // 숫자 8자리인지 확인
-    if (!/^\d{8}$/.test(compact)) return '';
-    return compact;
-  };
+        const dateRange = buildDateRange(
+          appliedFilters.from,
+          appliedFilters.to
+        );
+        const params = {
+          page,
+          size,
+          sort: sort.field,
+          dir: sort.dir,
+          keyword: appliedFilters.keyword || undefined,
+          field: appliedFilters.keyword ? appliedFilters.field : undefined,
+          dateRange: dateRange || undefined,
+        };
+        const res = await axios.get(url, { params });
 
-  const buildDateRange = (from, to) => {
-    const f = ymdToCompact(from);
-    const t = ymdToCompact(to);
-    if (!f && !t) return '';
-    return `${f}~${t}`;
-  };
+        const content = res.data.content || [];
+        const normalized = content.map((u) => ({
+          userId: u.id,
+          username: u.username ?? '',
+          name: u.name ?? '',
+          email: u.email ?? '',
+          phone: roleTab === 'buyer' ? (u.phoneNumber ?? '') : '',
+          company: roleTab === 'seller' ? (u.company ?? '') : '',
+          createdAt: u.createdAt ?? '',
+          grade: u.grade ?? '',
+          userType: u.userType ?? roleTab,
+        }));
+        setData(normalized);
+        setPageInfo({
+          page: res.data.number,
+          size: res.data.size,
+          totalPages: res.data.totalPages,
+          totalElements: res.data.totalElements,
+          isFirst: res.data.first,
+          isLast: res.data.last,
+        });
+      } catch (e) {
+        console.error(e);
+        setError('회원 데이터를 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [roleTab, appliedFilters, sort, pageInfo.page, pageInfo.size]
+  );
 
-  const fetchMembers = async (page = pageInfo.page, size = pageInfo.size) => {
-    setLoading(true);
-    setError('');
-    try {
-      const url =
-        roleTab === 'buyer' ? '/admin/buyers/paged' : '/admin/sellers/paged';
-
-      const dateRange = buildDateRange(appliedFilters.from, appliedFilters.to);
-      const params = {
-        page,
-        size,
-        sort: sort.field,
-        dir: sort.dir,
-        keyword: appliedFilters.keyword || undefined,
-        field: appliedFilters.keyword ? appliedFilters.field : undefined,
-        dateRange: dateRange || undefined,
-      };
-      const res = await axios.get(url, { params });
-      console.log(res.data);
-
-      const content = res.data.content || [];
-      const normalized = content.map((u) => ({
-        userId: u.id,
-        username: u.username ?? '',
-        name: u.name ?? '',
-        email: u.email ?? '',
-        phone: roleTab === 'buyer' ? u.phoneNumber ?? '' : '',
-        company: roleTab === 'seller' ? u.company ?? '' : '',
-        createdAt: u.createdAt ?? '',
-        grade: u.grade ?? '',
-        userType: u.userType ?? roleTab,
-      }));
-      setData(normalized);
-      setPageInfo({
-        page: res.data.number,
-        size: res.data.size,
-        totalPages: res.data.totalPages,
-        totalElements: res.data.totalElements,
-        isFirst: res.data.first,
-        isLast: res.data.last,
-      });
-    } catch (e) {
-      console.error(e);
-      setError('회원 데이터를 불러오는 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // roleTab 변경, page 변경될 때마다 fetch
   useEffect(() => {
     fetchMembers(pageInfo.page, pageInfo.size);
-  }, [roleTab, pageInfo.page, pageInfo.size, appliedFilters, sort]);
+  }, [fetchMembers, pageInfo.page, pageInfo.size]);
 
   const onChangeFilter = (e) => {
     const { name, value } = e.target;
@@ -146,29 +144,6 @@ const Members = () => {
     navigate(`/admin/members/${type}/${member.userId}`);
   };
 
-  const getValue = (item, field) => {
-    const v = item?.[field];
-    return v ?? ''; // null/undefined 보호
-  };
-
-  const compare = (a, b, field) => {
-    const va = getValue(a, field);
-    const vb = getValue(b, field);
-
-    // 날짜 필드 처리(ISO 또는 yyyy-MM-dd 형태)
-    if (field === 'createdAt') {
-      const ta = va ? new Date(va).getTime() : 0;
-      const tb = vb ? new Date(vb).getTime() : 0;
-      return ta - tb;
-    }
-
-    // 기본: 문자열 비교
-    return String(va).localeCompare(String(vb), 'ko', {
-      sensitivity: 'base',
-      numeric: true,
-    });
-  };
-
   const onSort = (field) => {
     setPageInfo((p) => ({ ...p, page: 0 }));
     setSort((prev) => {
@@ -182,11 +157,19 @@ const Members = () => {
     setSort({ field: 'username', dir: 'asc' });
   }, [roleTab]);
 
-  const SortableTh = ({ field, label, onClick, activeField, dir }) => {
+  const SortableTh = ({
+    field,
+    label,
+    onClick,
+    activeField,
+    dir,
+    className,
+  }) => {
     const isActive = activeField === field;
     const arrow = isActive ? (dir === 'asc' ? '▲' : '▼') : '↕';
     return (
       <th
+        className={className}
         aria-sort={
           isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'
         }
@@ -280,7 +263,7 @@ const Members = () => {
         <table>
           <thead>
             <tr>
-              <th>번호</th>
+              <th className="col-no">번호</th>
               <SortableTh
                 field="name"
                 label="이름"
@@ -342,47 +325,55 @@ const Members = () => {
                 dir={sort.dir}
                 className="col-joined"
               />
-              <th>관리</th>
+              <th className="col-actions">관리</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: 24 }}>
-                  로딩중...
-                </td>
+              <tr className="status-row">
+                <td colSpan={8}>로딩중...</td>
               </tr>
             ) : error ? (
-              <tr>
-                <td
-                  colSpan={8}
-                  style={{ textAlign: 'center', padding: 24, color: 'red' }}
-                >
-                  {error}
-                </td>
+              <tr className="status-row error">
+                <td colSpan={8}>{error}</td>
               </tr>
             ) : data.length === 0 ? (
-              <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: 24 }}>
-                  조건에 맞는 회원이 없습니다.
-                </td>
+              <tr className="status-row">
+                <td colSpan={8}>조건에 맞는 회원이 없습니다.</td>
               </tr>
             ) : (
               data.map((m, idx) => (
                 <tr key={m.userId}>
-                  <td className="col-no">{idx + 1}</td>
-                  <td className="col-name">{m.name}</td>
-                  <td className="col-username">{m.username}</td>
+                  {/* ⭐️ 모바일용 데이터 라벨 추가 (data-label) */}
+                  <td className="col-no" data-label="번호">
+                    {idx + 1}
+                  </td>
+                  <td className="col-name" data-label="이름">
+                    <strong>{m.name}</strong>
+                  </td>
+                  <td className="col-username" data-label="아이디">
+                    {m.username}
+                  </td>
                   {roleTab === 'buyer' ? (
-                    <td className="col-phone">{m.phone}</td>
+                    <td className="col-phone" data-label="전화번호">
+                      {m.phone}
+                    </td>
                   ) : (
-                    <td className="col-company">{m.company}</td>
+                    <td className="col-company" data-label="회사명">
+                      {m.company}
+                    </td>
                   )}
-                  <td className="col-email">{m.email}</td>
+                  <td className="col-email" data-label="이메일">
+                    {m.email}
+                  </td>
                   {roleTab === 'buyer' && (
-                    <td className="col-grade">{m.grade || '-'}</td>
+                    <td className="col-grade" data-label="등급">
+                      <GradeBadge grade={m.grade}>{m.grade || '-'}</GradeBadge>
+                    </td>
                   )}
-                  <td className="col-joined">{formatDate(m.createdAt)}</td>
+                  <td className="col-joined" data-label="가입일">
+                    {formatDate(m.createdAt)}
+                  </td>
                   <td className="col-actions">
                     <ManageBtn onClick={() => onClickManage(m)}>관리</ManageBtn>
                   </td>
@@ -408,6 +399,19 @@ const Members = () => {
 
 export default Members;
 
+// === ⭐️ 스타일 영역 (모바일 카드 반응형 처리 완료) ===
+
+const GradeBadge = styled.span`
+  display: inline-block;
+  padding: 4px 8px;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
+  color: ${({ theme: { colors } }) => colors.secondary};
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+`;
+
 const Wrap = styled.div`
   display: grid;
   gap: 12px;
@@ -415,38 +419,45 @@ const Wrap = styled.div`
 
 const Tabs = styled.div`
   display: inline-flex;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   border-radius: 10px;
   padding: 4px;
   gap: 4px;
+  background: ${({ theme: { colors } }) => colors.gray[50]};
 `;
 
 const TabButton = styled.button`
   all: unset;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
-  color: #374151;
+  font-weight: 500;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   border: 1px solid transparent;
+  transition: all 0.2s ease;
+
   &[data-active='true'] {
-    background: #ffffff;
-    border-color: rgba(15, 23, 42, 0.12);
+    background: ${({ theme: { colors } }) => colors.white};
+    color: ${({ theme: { colors } }) => colors.secondary};
+    border-color: ${({ theme: { colors } }) => colors.gray[300]};
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 `;
 
 const Filters2Rows = styled.div`
   display: grid;
-  gap: 12px; /* 살짝 넓혀 시각적 그룹 구분 */
+  gap: 16px;
 `;
 
 const Row = styled.div`
   display: grid;
-  grid-template-columns: 260px 260px 260px 1fr; /* 3 고정 + 1fr */
-  gap: 10px;
+  grid-template-columns: 260px 260px 260px 1fr;
+  gap: 12px;
   align-items: end;
 
-  @media (max-width: 1000px) {
-    grid-template-columns: 1fr 1fr;
+  @media ${({ theme }) => theme.mobile} {
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 `;
@@ -456,49 +467,52 @@ const Field = styled.div`
   gap: 6px;
 
   label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+    color: ${({ theme: { colors } }) => colors.gray[650]};
   }
 
   select,
   input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid rgba(15, 23, 42, 0.12);
+    border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
     border-radius: 8px;
     outline: none;
-    background: #fff;
-    color: #111827;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    background: ${({ theme: { colors } }) => colors.white};
+    color: ${({ theme: { colors } }) => colors.gray[900]};
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   select:hover,
   input:hover {
-    border-color: rgba(15, 23, 42, 0.18);
+    border-color: ${({ theme: { colors } }) => colors.gray[400]};
   }
 
   select:focus,
   input:focus {
-    border-color: #25324d;
-    box-shadow: 0 0 0 3px rgba(37, 50, 77, 0.15);
-  }
-
-  input::placeholder {
-    color: #9ca3af;
+    border-color: ${({ theme: { colors } }) => colors.secondary};
+    box-shadow: 0 0 0 3px ${({ theme: { colors } }) => colors.primary_alpha};
   }
 `;
 
-const Spacer = styled.div``;
+const Spacer = styled.div`
+  @media ${({ theme }) => theme.mobile} {
+    display: none;
+  }
+`;
 
 const ActionsRow = styled.div`
   display: flex;
   gap: 8px;
-  align-items: end; /* 인풋과 베이스라인 맞춤 */
+  align-items: end;
 
-  @media (max-width: 1000px) {
-    justify-content: flex-start;
-    grid-column: 1 / -1;
+  @media ${({ theme }) => theme.mobile} {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 8px;
   }
 `;
 
@@ -507,14 +521,13 @@ const ButtonBase = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 40px; /* 인풋 높이와 맞춤 */
-  padding: 0 14px; /* 좌우 패딩 */
+  height: 42px;
+  padding: 0 16px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
-    transform 0.05s ease;
+  transition: all 0.15s ease;
 
   &:active {
     transform: translateY(1px);
@@ -522,147 +535,320 @@ const ButtonBase = styled.button`
 `;
 
 const SearchBtn = styled(ButtonBase)`
-  background: #25324d;
-  color: #fff;
+  background: ${({ theme: { colors } }) => colors.secondary};
+  color: ${({ theme: { colors } }) => colors.white};
   border: 1px solid transparent;
 
   &:hover {
-    background: #1d2741;
+    background: ${({ theme: { colors } }) => colors.primary};
   }
 `;
 
 const ResetBtn = styled(ButtonBase)`
-  background: #fff;
-  color: #374151;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: ${({ theme: { colors } }) => colors.white};
+  color: ${({ theme: { colors } }) => colors.gray[700]};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
 
   &:hover {
-    border-color: rgba(15, 23, 42, 0.24);
-    background: #f8fafc;
+    border-color: ${({ theme: { colors } }) => colors.gray[400]};
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
 const TableWrap = styled.div`
   width: 100%;
   max-width: 1300px;
-  background: #fff;
-  margin-top: 20px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: ${({ theme: { colors } }) => colors.white};
+  margin-top: 16px;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme: { colors } }) => colors.gray[300]};
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
   table {
     width: 100%;
+    min-width: 900px; /* PC 환경에서는 900px 보장 */
     border-collapse: collapse;
     table-layout: fixed;
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   th,
   td {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    padding: 12px 12px;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: center;
-    color: #111827;
+    color: ${({ theme: { colors } }) => colors.gray[800]};
   }
 
   th {
-    background: #f9fafb;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
     font-weight: 600;
-    color: #374151;
+    color: ${({ theme: { colors } }) => colors.gray[700]};
   }
 
   .col-no {
-    width: 100px;
+    width: 80px;
   }
   .col-name {
-    width: 160px;
+    width: 140px;
   }
   .col-username {
-    width: 160px;
+    width: 140px;
   }
   .col-phone,
   .col-company {
-    width: 180px;
+    width: 160px;
   }
   .col-email {
-    width: auto;
+    width: 220px;
   }
   .col-grade {
-    width: 120px;
-  } /* 신규 */
+    width: 100px;
+  }
   .col-joined {
-    width: 160px;
+    width: 140px;
   }
   .col-actions {
-    width: 160px;
+    width: 100px;
   }
 
   tbody tr:hover {
-    background: #f6f7fb;
+    background: ${({ theme: { colors } }) => colors.primary_light};
+  }
+
+  /* ⭐️ 모바일 반응형 */
+  @media ${({ theme }) => theme.mobile} {
+    background: transparent;
+    border: none;
+    overflow: visible;
+
+    table,
+    thead,
+    tbody,
+    th,
+    td,
+    tr {
+      display: block;
+    }
+
+    /* ⭐️ 핵심 버그 수정: PC용 강제 크기(900px) 해제하여 화면 크기에 꽉 맞게 변경 */
+    table {
+      min-width: auto;
+    }
+
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      position: relative;
+      background: ${({ theme: { colors } }) => colors.white};
+      border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+      border-radius: 12px;
+      margin-bottom: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+      box-sizing: border-box; /* 패딩이 너비를 초과하지 않도록 설정 */
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+        background: ${({ theme: { colors } }) => colors.white};
+      }
+    }
+
+    td {
+      border: none;
+      padding: 0;
+      text-align: left;
+      width: 100%;
+      white-space: normal;
+      box-sizing: border-box;
+    }
+
+    /* 1. 상단 (번호 & 가입일) */
+    .col-no {
+      font-size: 13px;
+      color: ${({ theme: { colors } }) => colors.gray[600]};
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[100]};
+    }
+    .col-no::before {
+      content: '번호: ';
+    }
+
+    .col-joined {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: auto;
+      font-size: 13px;
+      color: ${({ theme: { colors } }) => colors.gray[500]};
+    }
+
+    /* 2. 메인 정보 (이름, 아이디, 전화번호, 이메일) */
+    .col-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: ${({ theme: { colors } }) => colors.gray[900]};
+      margin-bottom: 6px;
+    }
+
+    .col-username {
+      display: inline-block;
+      width: auto;
+      font-size: 14px;
+      font-weight: 600;
+      color: ${({ theme: { colors } }) => colors.secondary};
+    }
+
+    .col-phone,
+    .col-company {
+      display: inline-block;
+      width: auto;
+      font-size: 14px;
+      color: ${({ theme: { colors } }) => colors.gray[600]};
+    }
+    .col-phone::before,
+    .col-company::before {
+      content: '/';
+      display: inline-block;
+      margin: 0 6px;
+      color: ${({ theme: { colors } }) => colors.gray[300]};
+    }
+
+    .col-email {
+      font-size: 13px;
+      color: ${({ theme: { colors } }) => colors.gray[500]};
+      margin-top: 4px;
+      margin-bottom: 16px;
+    }
+
+    /* 3. 하단 (등급 뱃지 & 관리 버튼) */
+    .col-grade {
+      display: inline-block;
+      width: auto;
+    }
+
+    .col-actions {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: auto;
+    }
+
+    .status-row {
+      box-shadow: none;
+      background: transparent;
+      border: none;
+      &:hover {
+        transform: none;
+      }
+      td {
+        text-align: center;
+      }
+    }
   }
 `;
 
 const ManageBtn = styled.button`
   all: unset;
   display: inline-block;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 6px;
-  background: #25324d;
-  color: #fff;
-  font-size: 12px;
+  background: ${({ theme: { colors } }) => colors.secondary};
+  color: ${({ theme: { colors } }) => colors.white};
+  font-size: 13px;
   font-weight: 600;
   text-align: center;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.05s ease;
+  transition: all 0.15s ease;
 
   &:hover {
-    background: #1f2937;
+    background: ${({ theme: { colors } }) => colors.primary};
   }
 
   &:active {
     transform: translateY(1px);
+  }
+
+  /* ⭐️ 모바일 반응형: 사진처럼 둥근 알약 모양의 뱃지 버튼 스타일 */
+  @media ${({ theme }) => theme.mobile} {
+    width: auto;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: ${({ theme: { colors } }) => colors.primary_light};
+    color: ${({ theme: { colors } }) => colors.secondary};
+    font-size: 13px;
+    font-weight: 700;
+
+    &:hover {
+      background: ${({ theme: { colors } }) => colors.primary_hover};
+    }
   }
 `;
 
 const PaginationBar = styled.div`
   display: flex;
   max-width: 1300px;
-  justify-content: center; /* 테이블 폭 기준 중앙 */
-  padding: 12px 12px 16px; /* 테이블과의 간격 */
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  justify-content: center;
+  padding: 16px 12px;
+  border-top: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+
+  @media ${({ theme }) => theme.mobile} {
+    border-top: none;
+  }
 `;
 
 const SortBtn = styled.button`
   all: unset;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 6px;
   cursor: pointer;
-  color: #374151;
-  padding: 0 4px; /* 클릭 영역 확보 */
+  color: ${({ theme: { colors } }) => colors.gray[700]};
+  padding: 0 4px;
 
   &:hover {
-    color: #111827;
+    color: ${({ theme: { colors } }) => colors.secondary};
   }
 
   &[data-active='true'] {
     font-weight: 700;
+    color: ${({ theme: { colors } }) => colors.secondary};
   }
 
   .arrow {
-    font-style: normal; /* i 태그 기울임 제거 */
-    font-size: 11px;
-    color: #25324d;
+    font-style: normal;
+    font-size: 10px;
+    color: ${({ theme: { colors } }) => colors.secondary};
     opacity: 0.9;
   }
 
   &:focus-visible {
-    outline: 2px solid rgba(37, 50, 77, 0.35);
+    outline: 2px solid ${({ theme: { colors } }) => colors.primary_alpha};
     outline-offset: 2px;
     border-radius: 4px;
   }

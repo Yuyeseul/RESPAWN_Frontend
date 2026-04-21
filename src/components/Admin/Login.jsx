@@ -233,6 +233,17 @@ const UserLoginLink = styled.div`
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    top: 16px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+
+    svg {
+      font-size: 12px;
+    }
+  }
 `;
 
 const Container = styled.div`
@@ -242,17 +253,29 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: ${({ theme: { colors } }) => colors.gray[100]};
+  background: ${({ theme: { colors } }) => colors.gray[50]};
   padding: 40px 20px;
+
+  @media ${({ theme }) => theme.mobile} {
+    justify-content: flex-start;
+    padding-top: 120px;
+    background: ${({ theme: { colors } }) => colors.white};
+  }
 `;
 
 const LogoWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
   & > div img {
     height: 80px;
     object-fit: contain;
+    transition: height 0.2s ease;
+
+    @media ${({ theme }) => theme.mobile} {
+      height: 56px;
+    }
   }
 `;
 
@@ -261,13 +284,27 @@ const LogInBox = styled.div`
   padding: 40px;
   border-radius: 12px;
   width: 100%;
-  max-width: 480px;
+  max-width: 440px; /* 조금 더 타이트하게 잡아 모던함 강조 */
   margin-top: 40px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* 은은한 그림자 */
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 32px 16px;
+    margin-top: 24px;
+    border: none;
+    box-shadow: none;
+  }
 `;
 
 const Title = styled.h2`
@@ -276,11 +313,17 @@ const Title = styled.h2`
   margin-bottom: 24px;
   color: ${({ theme: { colors } }) => colors.gray[800]};
   text-align: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
 `;
 
 const Field = styled.div`
   position: relative;
-  width: 300px;
+  width: 100%; /* 고정값(300px)에서 반응형으로 변경 */
+  max-width: 320px;
   margin-bottom: 16px;
 `;
 
@@ -288,13 +331,24 @@ const Input = styled.input`
   width: 100%;
   padding: 12px 40px 12px 12px;
   border: none;
-  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[400]};
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
   font-size: 16px;
   background: transparent;
+  color: ${({ theme: { colors } }) => colors.gray[800]};
+  transition: border-color 0.2s ease;
 
   &:focus {
     outline: none;
     border-bottom: 2px solid ${({ theme: { colors } }) => colors.secondary};
+  }
+
+  &::placeholder {
+    color: ${({ theme: { colors } }) => colors.gray[400]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 15px;
+    padding: 10px 36px 10px 10px;
   }
 `;
 
@@ -306,27 +360,41 @@ const IconButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: ${({ theme: { colors } }) => colors.gray[600]};
+  color: ${({ theme: { colors } }) => colors.gray[500]};
   font-size: 1.1rem;
+  transition: color 0.2s ease;
 
   &:hover {
     color: ${({ theme: { colors } }) => colors.secondary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 1rem;
   }
 `;
 
 const Button = styled.button`
   width: 100%;
+  max-width: 320px; /* Field와 동일한 크기로 매칭 */
   background: ${({ theme: { colors } }) => colors.secondary};
   color: ${({ theme: { colors } }) => colors.white};
   padding: 14px;
   font-size: 16px;
+  font-weight: 600;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 16px;
+  transition: background 0.2s ease;
 
   &:hover {
     background: ${({ theme: { colors } }) => colors.primary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 12px;
+    font-size: 15px;
+    margin-top: 12px;
   }
 `;
 
@@ -352,7 +420,7 @@ const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: ${({ theme: { colors } }) => colors.overlay};
+  background: ${({ theme: { colors } }) => colors.overlay || 'rgba(0,0,0,0.5)'};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -378,6 +446,11 @@ const ModalBox = styled.div`
       transform: translateY(0);
     }
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    min-width: 280px;
+    padding: 24px 20px;
+  }
 `;
 
 const ModalMessage = styled.div`
@@ -386,6 +459,10 @@ const ModalMessage = styled.div`
   margin-bottom: 24px;
   line-height: 1.6;
   font-weight: 500;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 15px;
+  }
 `;
 
 const ModalButton = styled.button`
@@ -401,5 +478,10 @@ const ModalButton = styled.button`
 
   &:hover {
     background: ${({ theme: { colors } }) => colors.primary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 8px 24px;
+    font-size: 14px;
   }
 `;
