@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../../../api/axios';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -97,7 +97,14 @@ const ReviewPage = () => {
   const handleGoBack = () => navigate(-1);
 
   if (!selectedItem) {
-    return <div>상품 정보를 불러오는 중입니다...</div>;
+    return (
+      <MypageLayout title="리뷰 작성">
+        <LoadingWrapper>
+          <Spinner />
+          <LoadingText>상품 정보를 불러오는 중입니다...</LoadingText>
+        </LoadingWrapper>
+      </MypageLayout>
+    );
   }
 
   return (
@@ -171,6 +178,42 @@ const ReviewPage = () => {
 };
 
 export default ReviewPage;
+
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const Desc = styled.p`
   margin: 0 0 16px;

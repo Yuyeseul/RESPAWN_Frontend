@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../../api/axios';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -48,16 +48,13 @@ const RefundPage = () => {
 
   const handleGoBack = () => navigate(-1);
 
-  // 폼 상태 (사유/상세내용만)
   const [reason, setReason] = useState('');
   const [detail, setDetail] = useState('');
 
-  // 유효성: 사유만 필수 (orderId도 있어야 함)
   const isValid = useMemo(() => {
     return Boolean(orderId && reason);
   }, [orderId, reason]);
 
-  // 제출 (orderId, reason, detail만 전송)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -84,7 +81,10 @@ const RefundPage = () => {
   if (isLoading) {
     return (
       <MypageLayout title="환불 신청">
-        <div>데이터를 확인 중입니다...</div>
+        <LoadingWrapper>
+          <Spinner />
+          <LoadingText>데이터를 확인 중입니다...</LoadingText>
+        </LoadingWrapper>
       </MypageLayout>
     );
   }
@@ -100,7 +100,6 @@ const RefundPage = () => {
   return (
     <MypageLayout title="환불 신청">
       <Desc>환불을 요청합니다. 사유와 상세 내용을 입력해 주세요.</Desc>
-      {/* 주문 요약 (읽기 전용) */}
       <Section>
         <SectionTitle>주문 정보</SectionTitle>
         {order && selectedItem && (
@@ -114,7 +113,6 @@ const RefundPage = () => {
               )}
             </OrderMeta>
 
-            {/* selectedItem만 보여주기 */}
             <ItemList>
               <ItemRow key={selectedItem.itemId}>
                 <Thumb
@@ -147,7 +145,6 @@ const RefundPage = () => {
         )}
       </Section>
 
-      {/* 환불 사유/내용만 입력 */}
       <Section as="form" onSubmit={handleSubmit}>
         <SectionTitle>환불 정보</SectionTitle>
 
@@ -187,7 +184,9 @@ const RefundPage = () => {
         <ActionBar>
           <Note>※ 환불은 판매자 정책 및 기간에 따라 제한될 수 있습니다.</Note>
           <ButtonGroup>
-            <BackButton onClick={handleGoBack}>뒤로가기</BackButton>
+            <BackButton type="button" onClick={handleGoBack}>
+              뒤로가기
+            </BackButton>
             <SubmitButton type="submit" disabled={!isValid}>
               환불 신청하기
             </SubmitButton>
@@ -199,6 +198,42 @@ const RefundPage = () => {
 };
 
 export default RefundPage;
+
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const Desc = styled.p`
   margin: 0 0 16px;

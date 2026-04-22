@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../../api/axios';
 import { BASE_URL } from '../../../api/axios';
@@ -186,7 +186,12 @@ const OrderDetailModal = ({ open, onClose, orderId, triggerRef }) => {
         </DialogHeader>
 
         <DialogBody id="order-detail-desc">
-          {isLoading && <Muted>불러오는 중...</Muted>}
+          {isLoading && (
+            <LoadingWrapper>
+              <Spinner />
+              <LoadingText>주문 상세 정보를 불러오는 중입니다...</LoadingText>
+            </LoadingWrapper>
+          )}
           {error && <ErrorText>{error}</ErrorText>}
           {!isLoading && !error && data && (
             <>
@@ -495,6 +500,42 @@ const OrderDetailModal = ({ open, onClose, orderId, triggerRef }) => {
 
 export default OrderDetailModal;
 
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
+
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
@@ -573,12 +614,6 @@ const PrimaryButton = styled.button`
   &:hover {
     background: ${({ theme }) => theme.colors.primary};
   }
-`;
-
-const Muted = styled.div`
-  color: ${({ theme }) => theme.colors.gray[500]};
-  padding: 40px 0;
-  text-align: center;
 `;
 
 const ErrorText = styled.div`

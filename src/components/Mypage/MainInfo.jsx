@@ -134,7 +134,7 @@ function MainInfo() {
     return (
       <LoadingContainer>
         <Spinner />
-        <span>정보를 불러오는 중입니다...</span>
+        <LoadingText>내 정보를 불러오는 중입니다...</LoadingText>
       </LoadingContainer>
     );
   }
@@ -237,9 +237,15 @@ function MainInfo() {
 
 export default MainInfo;
 
+// === 스타일 영역 ===
 const spin = keyframes`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 `;
 
 const LoadingContainer = styled.div`
@@ -250,21 +256,22 @@ const LoadingContainer = styled.div`
   padding: 100px 20px;
   min-height: 50vh;
   gap: 16px;
-
-  span {
-    color: ${({ theme }) => theme.colors.gray[600]};
-    font-size: 15px;
-    font-weight: 500;
-  }
 `;
 
 const Spinner = styled.div`
   width: 40px;
   height: 40px;
   border: 4px solid ${({ theme }) => theme.colors.gray[200]};
-  border-top: 4px solid ${({ theme }) => theme.colors.secondary};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
 `;
 
 const Container = styled.div`

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import axios from '../../api/axios';
 import AddressListModal from '../AddressListModal';
 import ResetPasswordModal from '../ResetPasswordModal';
@@ -12,6 +12,7 @@ function UserInfo() {
   const [password, setPassword] = useState('');
   const [seePassword, setSeePassword] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isUserLoading, setIsUserLoading] = useState(true);
 
   const [user, setUser] = useState({
     name: '',
@@ -31,14 +32,11 @@ function UserInfo() {
 
   const [loading, setLoading] = useState(false);
 
-  // 타이머
   const [timer, setTimer] = useState(0);
   const intervalRef = useRef(null);
 
-  // 주소지입력
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  // 비밀번호 재설정 모달
   const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] =
     useState(false);
 
@@ -71,6 +69,8 @@ function UserInfo() {
         setUser(response.data.result);
       } catch (error) {
         console.error('회원 정보 조회 실패', error);
+      } finally {
+        setIsUserLoading(false);
       }
     };
 
@@ -84,11 +84,9 @@ function UserInfo() {
       intervalRef.current = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            // 만료 시 인터벌 정리
             clearInterval(intervalRef.current);
-            // phoneAuth 통합 상태로 만료 처리
             setPhoneAuth((p) => {
-              if (p.isVerified) return p; // 이미 인증완료면 아무것도 하지 않음
+              if (p.isVerified) return p;
               alert('인증 시간이 만료되었습니다. 다시 시도해주세요.');
               return {
                 ...p,
@@ -103,13 +101,11 @@ function UserInfo() {
         });
       }, 1000);
 
-      // 변경된 타이머 틱마다 이전 인터벌 정리
       return () => {
         clearInterval(intervalRef.current);
       };
     }
 
-    // timer가 0 이하인 상태에서의 정리
     return () => {
       clearInterval(intervalRef.current);
     };
@@ -135,7 +131,6 @@ function UserInfo() {
     setPhoneAuth((prev) => ({ ...prev, newPhoneNumber: e.target.value }));
   };
 
-  // 인증번호 발송 요청
   const sendVerificationCode = async () => {
     if (phoneAuth.newPhoneNumber.trim() === '') {
       alert('전화번호를 입력하세요.');
@@ -161,7 +156,6 @@ function UserInfo() {
     setPhoneAuth((prev) => ({ ...prev, verificationCode: e.target.value }));
   };
 
-  // 인증번호 확인
   const verifyCode = async () => {
     if (phoneAuth.verificationCode.trim() === '') {
       alert('인증번호를 입력하세요.');
@@ -185,7 +179,6 @@ function UserInfo() {
     }
   };
 
-  // 인증 완료 후 전화번호 저장
   const handleSavePhoneNumber = async () => {
     if (!phoneAuth.isVerified) {
       alert('전화번호 인증을 먼저 완료하세요.');
@@ -215,16 +208,6 @@ function UserInfo() {
     }
   };
 
-  // const handleCancelAddPhoneNumber = () => {
-  //   setIsAddingPhone(false);
-  //   setNewPhoneNumber('');
-  //   setVerificationCode('');
-  //   setIsCodeSent(false);
-  //   setIsVerified(false);
-  //   resetTimer();
-  // };
-
-  // 시간 형식 변환(분:초)
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -249,6 +232,17 @@ function UserInfo() {
     setIsResetPasswordModalOpen(false);
   };
 
+  if (isUserLoading) {
+    return (
+      <MypageLayout title="내 정보 관리">
+        <LoadingWrapper>
+          <Spinner />
+          <LoadingText>회원 정보를 확인 중입니다...</LoadingText>
+        </LoadingWrapper>
+      </MypageLayout>
+    );
+  }
+
   if (user.provider === 'local' && !isAuthenticated) {
     return (
       <MypageLayout title="내 정보 확인">
@@ -260,6 +254,7 @@ function UserInfo() {
               type={'text'}
               autoComplete="username"
               value={authUser?.username || '-'}
+              readOnly
               style={{
                 position: 'absolute',
                 width: '1px',
@@ -296,7 +291,9 @@ function UserInfo() {
               </IconButton>
             </Field>
           </UserDetail>
-          <Button onClick={handlePasswordCheck}>확인</Button>
+          <ButtonWrapper>
+            <Button onClick={handlePasswordCheck}>확인</Button>
+          </ButtonWrapper>
         </Section>
       </MypageLayout>
     );
@@ -382,9 +379,11 @@ function UserInfo() {
         )}
 
         {phoneAuth.isVerified && (
-          <Button onClick={handleSavePhoneNumber} disabled={loading}>
-            저장
-          </Button>
+          <ButtonWrapper>
+            <Button onClick={handleSavePhoneNumber} disabled={loading}>
+              저장
+            </Button>
+          </ButtonWrapper>
         )}
 
         <UserDetail>
@@ -412,12 +411,48 @@ function UserInfo() {
 
 export default UserInfo;
 
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
+
 const Section = styled.section`
   background: ${({ theme }) => theme.colors.white};
   border-radius: 8px;
 `;
 
-const UserDetail = styled.p`
+const UserDetail = styled.div`
   font-size: 16px;
   color: ${({ theme }) => theme.colors.gray[700]};
   margin: 12px 0 5px 0;
@@ -450,7 +485,7 @@ const Value = styled.div`
   flex: 1;
   padding: 10px 16px;
   color: ${({ theme }) => theme.colors.gray[700]};
-  flex-wrap: wrap;
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
 
@@ -479,13 +514,14 @@ const Field = styled.div`
   position: relative;
   display: flex;
   align-items: center;
+  padding: 10px 16px;
   gap: 8px;
   width: 100%;
 `;
 
 const IconButton = styled.button`
   position: absolute;
-  right: 8px;
+  right: 20px;
   background: transparent;
   border: none;
   color: ${({ theme }) => theme.colors.gray[600]};
@@ -510,6 +546,12 @@ const IconButton = styled.button`
   }
 `;
 
+const ButtonWrapper = styled.div`
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+`;
+
 const Button = styled.button`
   background-color: ${({ theme }) => theme.colors.gray[800]};
   color: ${({ theme }) => theme.colors.white};
@@ -528,26 +570,26 @@ const Button = styled.button`
 
 const PhoneInputContainer = styled.div`
   display: flex;
-  flex-direction: column; /* 기본적으로 세로로 쌓기 (모바일 우선) */
+  flex-direction: column;
   gap: 10px;
   width: 100%;
-  padding: 10px 0;
+  padding: 10px 16px;
 
-  /* PC 환경 (화면이 넓을 때) */
   @media (min-width: 768px) {
-    flex-direction: row; /* 가로로 나열 */
+    flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
   }
 `;
 
 const TimerText = styled.p`
-  color: ${({ theme }) => theme.colors.red};
+  color: ${({ theme }) => theme.colors.danger};
   margin-left: 12px;
   font-size: 16px;
   font-weight: bold;
 
   @media ${({ theme }) => theme.mobile} {
     text-align: right;
+    margin-left: 0;
   }
 `;

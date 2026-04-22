@@ -1,8 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import axios from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '../Pagination';
+
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ko } from 'date-fns/locale';
+
+const parseYMD = (str) => {
+  if (!str) return null;
+  const [y, m, d] = str.split('-');
+  return new Date(y, m - 1, d);
+};
+
+const formatToYMD = (date) => {
+  if (!date) return '';
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
 const formatDate = (s) => {
   if (!s) return '-';
@@ -50,6 +68,28 @@ const Members = () => {
     keyword: '',
     field: 'name',
   });
+
+  const SEARCH_OPTIONS = [
+    { value: 'name', label: '이름' },
+    { value: 'username', label: '아이디' },
+    { value: 'email', label: '이메일' },
+    { value: 'phoneNumber', label: '전화번호' },
+  ];
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
 
   const [appliedFilters, setAppliedFilters] = useState({
     from: '',
@@ -210,21 +250,44 @@ const Members = () => {
         <Row>
           <Field>
             <label>가입일(시작)</label>
-            <input
-              type="date"
-              name="from"
-              value={filters.from}
-              onChange={onChangeFilter}
-            />
+            <DatePickerWrapper>
+              <DatePicker
+                locale={ko}
+                dateFormat="yyyy-MM-dd"
+                selected={parseYMD(filters.from)}
+                onChange={(date) =>
+                  onChangeFilter({
+                    target: { name: 'from', value: formatToYMD(date) },
+                  })
+                }
+                selectsStart
+                startDate={parseYMD(filters.from)}
+                endDate={parseYMD(filters.to)}
+                placeholderText="YYYY-MM-DD"
+                isClearable
+              />
+            </DatePickerWrapper>
           </Field>
           <Field>
             <label>가입일(종료)</label>
-            <input
-              type="date"
-              name="to"
-              value={filters.to}
-              onChange={onChangeFilter}
-            />
+            <DatePickerWrapper>
+              <DatePicker
+                locale={ko}
+                dateFormat="yyyy-MM-dd"
+                selected={parseYMD(filters.to)}
+                onChange={(date) =>
+                  onChangeFilter({
+                    target: { name: 'to', value: formatToYMD(date) },
+                  })
+                }
+                selectsEnd
+                startDate={parseYMD(filters.from)}
+                endDate={parseYMD(filters.to)}
+                minDate={parseYMD(filters.from)}
+                placeholderText="YYYY-MM-DD"
+                isClearable
+              />
+            </DatePickerWrapper>
           </Field>
           <Spacer />
         </Row>
@@ -232,16 +295,40 @@ const Members = () => {
         <Row>
           <Field>
             <label>검색 대상</label>
-            <select
-              name="field"
-              value={filters.field}
-              onChange={onChangeFilter}
+            <CustomSelectWrapper
+              ref={dropdownRef}
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <option value="name">이름</option>
-              <option value="username">아이디</option>
-              <option value="email">이메일</option>
-              <option value="phoneNumber">전화번호</option>
-            </select>
+              <SelectBox $isOpen={isDropdownOpen}>
+                <span className="selected-text">
+                  {
+                    SEARCH_OPTIONS.find((opt) => opt.value === filters.field)
+                      ?.label
+                  }
+                </span>
+                <span className="arrow">▼</span>
+              </SelectBox>
+
+              {isDropdownOpen && (
+                <OptionList>
+                  {SEARCH_OPTIONS.map((opt) => (
+                    <OptionItem
+                      key={opt.value}
+                      $active={filters.field === opt.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChangeFilter({
+                          target: { name: 'field', value: opt.value },
+                        });
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      {opt.label}
+                    </OptionItem>
+                  ))}
+                </OptionList>
+              )}
+            </CustomSelectWrapper>
           </Field>
           <Field>
             <label>검색어</label>
@@ -344,7 +431,6 @@ const Members = () => {
             ) : (
               data.map((m, idx) => (
                 <tr key={m.userId}>
-                  {/* ⭐️ 모바일용 데이터 라벨 추가 (data-label) */}
                   <td className="col-no" data-label="번호">
                     {idx + 1}
                   </td>
@@ -399,7 +485,7 @@ const Members = () => {
 
 export default Members;
 
-// === ⭐️ 스타일 영역 (모바일 카드 반응형 처리 완료) ===
+// === 스타일 영역 ===
 
 const GradeBadge = styled.span`
   display: inline-block;
@@ -472,7 +558,6 @@ const Field = styled.div`
     color: ${({ theme: { colors } }) => colors.gray[650]};
   }
 
-  select,
   input {
     width: 100%;
     padding: 10px 12px;
@@ -486,12 +571,10 @@ const Field = styled.div`
       box-shadow 0.15s ease;
   }
 
-  select:hover,
   input:hover {
     border-color: ${({ theme: { colors } }) => colors.gray[400]};
   }
 
-  select:focus,
   input:focus {
     border-color: ${({ theme: { colors } }) => colors.secondary};
     box-shadow: 0 0 0 3px ${({ theme: { colors } }) => colors.primary_alpha};
@@ -578,7 +661,7 @@ const TableWrap = styled.div`
 
   table {
     width: 100%;
-    min-width: 900px; /* PC 환경에서는 900px 보장 */
+    min-width: 900px;
     border-collapse: collapse;
     table-layout: fixed;
     font-size: 14px;
@@ -632,7 +715,6 @@ const TableWrap = styled.div`
     background: ${({ theme: { colors } }) => colors.primary_light};
   }
 
-  /* ⭐️ 모바일 반응형 */
   @media ${({ theme }) => theme.mobile} {
     background: transparent;
     border: none;
@@ -647,7 +729,6 @@ const TableWrap = styled.div`
       display: block;
     }
 
-    /* ⭐️ 핵심 버그 수정: PC용 강제 크기(900px) 해제하여 화면 크기에 꽉 맞게 변경 */
     table {
       min-width: auto;
     }
@@ -667,7 +748,7 @@ const TableWrap = styled.div`
       transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
-      box-sizing: border-box; /* 패딩이 너비를 초과하지 않도록 설정 */
+      box-sizing: border-box;
 
       &:hover {
         transform: translateY(-2px);
@@ -685,7 +766,6 @@ const TableWrap = styled.div`
       box-sizing: border-box;
     }
 
-    /* 1. 상단 (번호 & 가입일) */
     .col-no {
       font-size: 13px;
       color: ${({ theme: { colors } }) => colors.gray[600]};
@@ -706,7 +786,6 @@ const TableWrap = styled.div`
       color: ${({ theme: { colors } }) => colors.gray[500]};
     }
 
-    /* 2. 메인 정보 (이름, 아이디, 전화번호, 이메일) */
     .col-name {
       font-size: 16px;
       font-weight: 700;
@@ -744,7 +823,6 @@ const TableWrap = styled.div`
       margin-bottom: 16px;
     }
 
-    /* 3. 하단 (등급 뱃지 & 관리 버튼) */
     .col-grade {
       display: inline-block;
       width: auto;
@@ -792,7 +870,6 @@ const ManageBtn = styled.button`
     transform: translateY(1px);
   }
 
-  /* ⭐️ 모바일 반응형: 사진처럼 둥근 알약 모양의 뱃지 버튼 스타일 */
   @media ${({ theme }) => theme.mobile} {
     width: auto;
     padding: 6px 16px;
@@ -851,5 +928,237 @@ const SortBtn = styled.button`
     outline: 2px solid ${({ theme: { colors } }) => colors.primary_alpha};
     outline-offset: 2px;
     border-radius: 4px;
+  }
+`;
+
+// ==========================================
+// ⭐️ 커스텀 드롭다운 메뉴 스타일 (검색 대상 필터용)
+// ==========================================
+const CustomSelectWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+`;
+
+const SelectBox = styled.div`
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid
+    ${({ theme: { colors }, $isOpen }) =>
+      $isOpen ? colors.secondary : colors.gray[300]};
+  border-radius: 8px;
+  background: ${({ theme: { colors } }) => colors.white};
+  color: ${({ theme: { colors } }) => colors.gray[900]};
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: ${({ theme: { colors }, $isOpen }) =>
+      $isOpen ? colors.secondary : colors.gray[400]};
+  }
+
+  .selected-text {
+    flex: 1;
+  }
+
+  .arrow {
+    font-size: 10px;
+    color: ${({ theme: { colors }, $isOpen }) =>
+      $isOpen ? colors.secondary : colors.gray[550]};
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: ${({ $isOpen }) =>
+      $isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
+  }
+`;
+
+const OptionList = styled.ul`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: ${({ theme: { colors } }) => colors.white};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme: { colors } }) => colors.gray[300]};
+    border-radius: 4px;
+  }
+
+  animation: dropdownScale 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top center;
+
+  @keyframes dropdownScale {
+    from {
+      opacity: 0;
+      transform: translateY(-5px) scaleY(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scaleY(1);
+    }
+  }
+`;
+
+const OptionItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  font-weight: ${({ $active }) => ($active ? '700' : '500')};
+  color: ${({ theme: { colors }, $active }) =>
+    $active ? colors.secondary : colors.gray[800]};
+  background: ${({ theme: { colors }, $active }) =>
+    $active ? colors.primary_light : 'transparent'};
+
+  .check {
+    font-size: 14px;
+    font-weight: 800;
+    color: ${({ theme: { colors } }) => colors.secondary};
+    animation: fadeInCheck 0.2s ease;
+  }
+
+  &:hover {
+    background: ${({ theme: { colors }, $active }) =>
+      $active ? colors.primary_light : colors.gray[50]};
+    color: ${({ theme: { colors }, $active }) =>
+      $active ? colors.secondary : colors.gray[900]};
+  }
+
+  @keyframes fadeInCheck {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
+
+const DatePickerWrapper = styled.div`
+  width: 100%;
+
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
+
+  .react-datepicker__input-container input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
+    border-radius: 8px;
+    outline: none;
+    background: ${({ theme: { colors } }) => colors.white};
+    color: ${({ theme: { colors } }) => colors.gray[900]};
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+
+    &:hover {
+      border-color: ${({ theme: { colors } }) => colors.gray[400]};
+    }
+    &:focus {
+      border-color: ${({ theme: { colors } }) => colors.secondary};
+      box-shadow: 0 0 0 3px ${({ theme: { colors } }) => colors.primary_alpha};
+    }
+  }
+
+  .react-datepicker__close-icon {
+    right: 4px;
+    &::after {
+      background-color: ${({ theme: { colors } }) => colors.gray[400]};
+      border-radius: 50%;
+      color: white;
+      font-size: 10px;
+      padding: 4px;
+    }
+  }
+
+  .react-datepicker {
+    border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    font-family: inherit;
+    background-color: ${({ theme: { colors } }) => colors.white};
+  }
+
+  .react-datepicker__header {
+    background-color: ${({ theme: { colors } }) => colors.gray[50]};
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+    border-radius: 8px 8px 0 0;
+    padding-top: 12px;
+  }
+
+  .react-datepicker__current-month {
+    color: ${({ theme: { colors } }) => colors.gray[800]};
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .react-datepicker__day-name {
+    color: ${({ theme: { colors } }) => colors.gray[550]};
+    font-weight: 600;
+    margin: 4px;
+  }
+
+  .react-datepicker__day {
+    color: ${({ theme: { colors } }) => colors.gray[800]};
+    margin: 4px;
+    border-radius: 6px;
+    transition: background-color 0.1s;
+
+    &:hover {
+      background-color: ${({ theme: { colors } }) => colors.primary_light};
+      color: ${({ theme: { colors } }) => colors.secondary};
+    }
+  }
+
+  .react-datepicker__day--selected,
+  .react-datepicker__day--in-selecting-range,
+  .react-datepicker__day--in-range {
+    background-color: ${({ theme: { colors } }) => colors.secondary};
+    color: ${({ theme: { colors } }) => colors.white};
+    font-weight: 700;
+
+    &:hover {
+      background-color: ${({ theme: { colors } }) => colors.primary};
+    }
+  }
+
+  .react-datepicker__day--keyboard-selected {
+    background-color: ${({ theme: { colors } }) => colors.primary_light};
+    color: ${({ theme: { colors } }) => colors.secondary};
+  }
+
+  .react-datepicker__day--disabled {
+    color: ${({ theme: { colors } }) => colors.gray[300]};
+    &:hover {
+      background-color: transparent;
+      color: ${({ theme: { colors } }) => colors.gray[300]};
+    }
   }
 `;

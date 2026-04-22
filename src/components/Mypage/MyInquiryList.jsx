@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../api/axios';
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import Pagination from '../Pagination';
 import MypageLayout from './MypageLayout';
 
@@ -29,7 +29,6 @@ const MyInquiryList = () => {
     setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
 
-  // 자신이 작성한 문의 리스트 조회
   useEffect(() => {
     const fetchInquiries = async () => {
       setLoadingList(true);
@@ -54,9 +53,8 @@ const MyInquiryList = () => {
     };
 
     fetchInquiries();
-  }, [pageInfo.page]);
+  }, [pageInfo.page, pageInfo.size]);
 
-  // 문의 상세 조회
   const handleToggleExpand = async (id) => {
     setExpandedId((prevId) => (prevId === id ? null : id));
   };
@@ -77,8 +75,11 @@ const MyInquiryList = () => {
           <tbody>
             {loadingList ? (
               <tr>
-                <td colSpan={5} className="msg-cell">
-                  불러오는 중...
+                <td colSpan={5} style={{ padding: 0, border: 'none' }}>
+                  <LoadingWrapper>
+                    <Spinner />
+                    <LoadingText>문의 내역을 불러오는 중입니다...</LoadingText>
+                  </LoadingWrapper>
                 </td>
               </tr>
             ) : inquiries.length === 0 ? (
@@ -191,6 +192,42 @@ const MyInquiryList = () => {
 };
 
 export default MyInquiryList;
+
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const TableContainer = styled.div`
   background: ${({ theme }) => theme.colors.white};
@@ -308,53 +345,54 @@ const MobileCard = styled.div`
       `}
 
     .card-header {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    margin-bottom: 14px;
-
-    .left-grp {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 8px; 
+      margin-bottom: 14px;
 
-      .date {
+      .left-grp {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .date {
+          font-size: 12px;
+          color: ${({ theme }) => theme.colors.gray[600]};
+        }
+      }
+
+      .type {
         font-size: 12px;
+        font-weight: 500;
         color: ${({ theme }) => theme.colors.gray[600]};
+        background: ${({ theme }) => theme.colors.gray[100]};
+        padding: 2px 6px;
+        border-radius: 4px;
       }
     }
 
-    .type {
-      font-size: 12px;
-      font-weight: 500;
-      color: ${({ theme }) => theme.colors.gray[600]};
-      background: ${({ theme }) => theme.colors.gray[100]}; 
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-  }
+    .card-body {
+      .item-name {
+        font-size: 13px;
+        color: ${({ theme }) => theme.colors.gray[600]};
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-  .card-body {
-    .item-name {
-      font-size: 13px;
-      color: ${({ theme }) => theme.colors.gray[600]};
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+      .title {
+        font-size: 16px;
+        font-weight: 800;
+        color: ${({ theme }) => theme.colors.gray[700]};
+        line-height: 1.4;
 
-    .title {
-      font-size: 16px;
-      font-weight: 800; 
-      color: ${({ theme }) => theme.colors.gray[700]};
-      line-height: 1.4;
-
-      display: -webkit-box;
+        display: -webkit-box;
         -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
     }
   }
 `;
