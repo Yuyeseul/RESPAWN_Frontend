@@ -178,12 +178,12 @@ const ButtonGroup = styled.div`
 
 const WishButton = styled.button`
   background-color: ${({ theme, $isWished }) =>
-    $isWished ? theme.colors.pink_lace || '#ffe6e6' : theme.colors.gray[100]};
+    $isWished ? theme.colors.pink_lace : theme.colors.gray[100]};
   border: 1px solid
     ${({ theme, $isWished }) =>
-      $isWished ? theme.colors.pale_pink || '#ffb3b3' : theme.colors.gray[300]};
+      $isWished ? theme.colors.pale_pink : theme.colors.gray[300]};
   color: ${({ theme, $isWished }) =>
-    $isWished ? theme.colors.red || '#ff4757' : theme.colors.gray[600]};
+    $isWished ? theme.colors.red : theme.colors.gray[600]};
 
   /* 크기를 명시적으로 고정 */
   width: 28px;
@@ -200,7 +200,7 @@ const WishButton = styled.button`
 
   &:hover {
     background-color: ${({ theme, $isWished }) =>
-      $isWished ? theme.colors.pale_pink || '#ffcccc' : theme.colors.gray[200]};
+      $isWished ? theme.colors.pale_pink : theme.colors.gray[200]};
   }
 
   @media ${({ theme }) => theme.mobile} {
