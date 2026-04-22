@@ -230,21 +230,26 @@ const Faq = () => {
 export default Faq;
 
 const PageContainer = styled.div`
-  max-width: 1120px;
+  max-width: ${({ theme }) => theme.maxWidth};
   margin: 0 auto;
   padding: 28px 20px 40px;
   min-height: 60vh;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px 15px 30px;
+  }
 `;
 
 const BreadcrumbLink = styled(Link)`
   font-size: 14px;
   font-weight: 500;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   text-decoration: none;
-  margin-bottom: 8px;
-  display: inline-block;
+  margin-bottom: -12px;
+
   &:hover {
     text-decoration: underline;
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -252,13 +257,24 @@ const PageHeader = styled.header`
   h1 {
     font-size: 28px;
     font-weight: 800;
-    margin: 0 0 8px;
-    color: #111827;
+    margin: 8px 0 8px;
+    color: ${({ theme }) => theme.colors.gray[900]};
+    word-break: keep-all;
   }
   p {
     font-size: 15px;
-    color: #6b7280;
+    color: ${({ theme }) => theme.colors.gray[600]};
     margin: 0;
+    word-break: keep-all;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    h1 {
+      font-size: 22px;
+    }
+    p {
+      font-size: 14px;
+    }
   }
 `;
 
@@ -272,27 +288,33 @@ const Toolbar = styled.div`
 const SearchWrapper = styled.div`
   display: flex;
   gap: 8px;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: row;
+  }
 `;
 
 const SearchInput = styled.input`
   width: 100%;
-  flex-grow: 1; /* Wrapper 안에서 남는 공간을 모두 차지 */
+  flex-grow: 1;
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 10px;
   font-size: 15px;
+  background-color: ${({ theme }) => theme.colors.white};
+
   &:focus {
-    outline: 2px solid #4f46e5;
-    border-color: transparent;
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
 const SearchButton = styled.button`
-  flex-shrink: 0; /* 너비가 줄어들지 않도록 설정 */
+  flex-shrink: 0;
   padding: 0 24px;
-  border: 1px solid #d1d5db;
-  background-color: #fff;
-  color: #374151;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[700]};
   font-size: 15px;
   font-weight: 600;
   border-radius: 8px;
@@ -300,9 +322,9 @@ const SearchButton = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background-color: #f9fafb;
-    border-color: #4f46e5;
-    color: #4f46e5;
+    background-color: ${({ theme }) => theme.colors.gray[50]};
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -319,17 +341,23 @@ const CategoryButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid ${({ $active }) => ($active ? '#4f46e5' : '#d1d5db')};
-  background-color: ${({ $active }) => ($active ? '#eef2ff' : '#fff')};
-  color: ${({ $active }) => ($active ? '#4338ca' : '#374151')};
+  border: 1px solid
+    ${({ $active, theme }) =>
+      $active ? theme.colors.primary : theme.colors.gray[300]};
+  background-color: ${({ $active, theme }) =>
+    $active ? theme.colors.primary_hover : theme.colors.white};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : theme.colors.gray[700]};
+
   &:hover {
-    border-color: #4f46e5;
+    border-color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.gray[50]};
   }
 `;
 
 const Card = styled.div`
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
   overflow: hidden;
   .q {
@@ -340,7 +368,7 @@ const Card = styled.div`
     gap: 8px;
     align-items: center;
     padding: 12px 14px;
-    background: #fff;
+    background: ${({ theme }) => theme.colors.white};
     border: 0;
     cursor: pointer;
   }
@@ -348,8 +376,8 @@ const Card = styled.div`
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #eef2ff;
-    color: #4338ca;
+    background: ${({ theme }) => theme.colors.lightNavy};
+    color: ${({ theme }) => theme.colors.primary};
     display: grid;
     place-items: center;
     font-size: 12px;
@@ -359,22 +387,22 @@ const Card = styled.div`
     font-size: 14px;
   }
   .arrow {
-    color: #64748b;
+    color: ${({ theme }) => theme.colors.gray[600]};
   }
   .a {
     padding: 12px 14px 16px;
-    background: #f8fafc;
+    background: ${({ theme }) => theme.colors.white};
     display: grid;
     gap: 10px;
     grid-template-columns: 24px 1fr;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   }
   .amark {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #4f46e5;
-    color: #fff;
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.white};
     display: grid;
     place-items: center;
     font-size: 12px;
@@ -382,11 +410,10 @@ const Card = styled.div`
     margin-top: 2px;
   }
   .at {
-    color: #334155;
+    color: ${({ theme }) => theme.colors.gray[700]};
     line-height: 1.6;
     grid-column: 2 / -1;
   }
-  /* 빠른 실행 버튼 영역 스타일 복원 */
   .quick {
     grid-column: 1 / -1;
     padding-top: 8px;
@@ -398,9 +425,9 @@ const Card = styled.div`
 `;
 
 const Quick = styled.button`
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  color: #111827;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[900]};
   border-radius: 10px;
   padding: 8px 10px;
   font-size: 12px;
@@ -408,26 +435,26 @@ const Quick = styled.button`
   ${(p) =>
     p.$alt &&
     css`
-      background: #ecfccb;
-      border-color: #d9f99d;
+      background: ${({ theme }) => theme.colors.primary_hover};
+      border-color: ${({ theme }) => theme.colors.primary};
     `}
   &:hover {
-    border-color: #cbd5e1;
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
 const EmptyBox = styled.div`
-  background: #fff;
-  border: 1px dashed #e2e8f0;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px dashed ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
   padding: 24px 18px;
   text-align: center;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const Stack = styled.div`
   display: grid;
-  gap: 10px;
+  gap: 12px;
 `;
 
 const ModalOverlay = styled.div`
@@ -443,7 +470,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   padding: 32px;
   border-radius: 24px;
   width: 100%;
@@ -455,26 +482,26 @@ const ModalContent = styled.div`
     font-size: 20px;
     font-weight: 800;
     text-align: center;
-    color: #0f172a;
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 
   .body {
-    color: #475569;
+    color: ${({ theme }) => theme.colors.gray[700]};
     font-size: 15px;
     line-height: 1.7;
     white-space: pre-wrap;
     margin-bottom: 28px;
-    background: #f8fafc;
+    background: ${({ theme }) => theme.colors.gray[100]};
     padding: 20px;
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   }
 
   button {
     width: 100%;
     padding: 14px;
-    background: #4e46e5ad;
-    color: #fff;
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.white};
     border: 0;
     border-radius: 12px;
     font-weight: 700;
