@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from '../../api/axios';
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import StarRating from '../../components/common/StarRating';
 import { BASE_URL } from '../../api/axios';
@@ -13,10 +13,8 @@ const WrittenReviewItem = ({ review }) => {
   const contentRef = useRef(null);
   const [shouldShowButton, setShouldShowButton] = useState(false);
 
-  // 텍스트가 3줄을 초과하는지 체크
   useEffect(() => {
     if (contentRef.current) {
-      // line-height와 height를 비교하여 3줄 초과 여부 확인
       const hasOverflow =
         contentRef.current.scrollHeight > contentRef.current.clientHeight;
       setShouldShowButton(hasOverflow);
@@ -63,17 +61,14 @@ const MyReviewList = () => {
   const [items, setItems] = useState([]);
   const [counts, setCounts] = useState({ writable: 0, written: 0 });
 
-  // 무한 스크롤 상태
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // Intersection Observer를 위한 Ref
   const sentinelRef = useRef(null);
-  const inFlightRef = useRef(false); // 중복 요청 방지
+  const inFlightRef = useRef(false);
 
-  // 리뷰 작성 버튼 클릭 시
   const handleWriteReview = (orderId, orderItemId) => {
     navigate(`/mypage/orders/${orderId}/items/${orderItemId}/registerReview`);
   };
@@ -90,8 +85,6 @@ const MyReviewList = () => {
     }
   };
 
-  // 서버에서 내 리뷰 목록 불러오기
-  // 특정 탭의 데이터 불러오기 (무한 스크롤용)
   const fetchMyReviews = useCallback(
     async (isInitialLoad = false) => {
       if (inFlightRef.current) return;
@@ -142,7 +135,6 @@ const MyReviewList = () => {
     fetchCounts();
   }, []);
 
-  // 탭 변경 시 상태 초기화 및 데이터 다시 불러오기
   useEffect(() => {
     setItems([]);
     setPage(0);
@@ -152,7 +144,6 @@ const MyReviewList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // IntersectionObserver 설정
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el || loading || !hasMore) return;
@@ -172,7 +163,13 @@ const MyReviewList = () => {
 
   const renderContent = () => {
     if (initialLoading)
-      return <Message>리뷰 목록을 불러오는 중입니다...</Message>;
+      return (
+        <LoadingWrapper>
+          <Spinner />
+          <LoadingText>리뷰 목록을 불러오는 중입니다...</LoadingText>
+        </LoadingWrapper>
+      );
+
     if (items.length === 0) {
       return (
         <Message>
@@ -236,9 +233,11 @@ const MyReviewList = () => {
 
       <Content>
         <ReviewList>{renderContent()}</ReviewList>
-
         {loading && !initialLoading && (
-          <Message>더 많은 리뷰를 불러오는 중...</Message>
+          <LoadingWrapper $isSmall>
+            <Spinner $isSmall />
+            <LoadingText $isSmall>더 많은 리뷰를 불러오는 중...</LoadingText>
+          </LoadingWrapper>
         )}
         {hasMore && !loading && <Sentinel ref={sentinelRef} />}
       </Content>
@@ -247,6 +246,43 @@ const MyReviewList = () => {
 };
 
 export default MyReviewList;
+
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ $isSmall }) => ($isSmall ? '20px 0' : '80px 0')};
+  gap: ${({ $isSmall }) => ($isSmall ? '10px' : '16px')};
+`;
+
+const Spinner = styled.div`
+  width: ${({ $isSmall }) => ($isSmall ? '24px' : '40px')};
+  height: ${({ $isSmall }) => ($isSmall ? '24px' : '40px')};
+  border: ${({ $isSmall }) => ($isSmall ? '3px' : '4px')} solid
+    ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: ${({ $isSmall }) => ($isSmall ? '12px' : '14px')};
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const TabContainer = styled.div`
   display: flex;

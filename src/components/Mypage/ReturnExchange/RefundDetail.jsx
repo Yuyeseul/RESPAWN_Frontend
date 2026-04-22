@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../../api/axios';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import Pagination from '../../Pagination';
 import MypageLayout from '../MypageLayout';
 import { BASE_URL } from '../../../api/axios';
@@ -69,7 +69,10 @@ const RefundDetail = () => {
   if (loading)
     return (
       <MypageLayout title="환불 내역">
-        <LoadingText>로딩중...</LoadingText>
+        <LoadingWrapper>
+          <Spinner />
+          <LoadingText>환불 내역을 불러오는 중입니다...</LoadingText>
+        </LoadingWrapper>
       </MypageLayout>
     );
   if (error)
@@ -144,6 +147,42 @@ const RefundDetail = () => {
 };
 
 export default RefundDetail;
+
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const OrderGroup = styled.div`
   margin-bottom: 24px;
@@ -286,12 +325,6 @@ const ReasonBox = styled.div`
       color: ${({ theme }) => theme.colors.gray[700]};
     }
   }
-`;
-
-const LoadingText = styled.div`
-  text-align: center;
-  padding: 40px;
-  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const ErrorText = styled.div`

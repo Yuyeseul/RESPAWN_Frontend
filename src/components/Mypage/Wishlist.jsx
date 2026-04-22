@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import axios from '../../api/axios';
 import { BASE_URL } from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,6 @@ import MypageLayout from './MypageLayout';
 
 const SCROLL_THRESHOLD = 8;
 
-// SVG 하트 아이콘 컴포넌트 (꽉 찬 하트)
 const FillHeartIcon = ({ className }) => (
   <svg viewBox="0 0 24 24" className={className}>
     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -38,19 +37,13 @@ function WishlistPage() {
     fetchWishlist();
   }, []);
 
-  // 찜 취소 핸들러 (하트 클릭 시)
   const handleRemove = async (e, itemId) => {
-    e.stopPropagation(); // 부모 카드 클릭 이벤트(상세 이동) 방지
+    e.stopPropagation();
 
-    // UI 경험을 위해 confirm 창을 띄울지 선택하세요.
-    // 모바일에서는 confirm 없이 바로 삭제되고 토스트 메시지를 띄우는 것이 더 일반적입니다.
-    // 여기서는 기존 코드를 유지하여 confirm을 사용합니다.
     if (!window.confirm('찜 목록에서 삭제하시겠습니까?')) return;
 
     try {
-      // 🌟 기존 토글 API 엔드포인트 사용
       await axios.post(`/wishlists/${itemId}`);
-      // 로컬 상태 업데이트
       setWishlist((prev) => prev.filter((item) => item.id !== itemId));
     } catch (err) {
       console.error(err);
@@ -72,7 +65,6 @@ function WishlistPage() {
               key={item.id}
               onClick={() => navigate(`/ProductDetail/${item.id}`)}
             >
-              {/* 이미지 영역 */}
               <ImageWrapper>
                 {item.imageUrl ? (
                   <ProductImg
@@ -82,8 +74,6 @@ function WishlistPage() {
                 ) : (
                   <Placeholder />
                 )}
-
-                {/* 🌟 찜 취소 하트 버튼 (우측 상단 절대 배치) */}
                 <HeartBtn onClick={(e) => handleRemove(e, item.id)}>
                   <StyledHeart />
                 </HeartBtn>
@@ -112,11 +102,16 @@ function WishlistPage() {
       </SummaryCard>
 
       <ListContainer>
-        {loading
-          ? renderEmpty('불러오는 중...')
-          : error
-            ? renderEmpty(error)
-            : renderWishlistSection(wishlist)}
+        {loading ? (
+          <LoadingWrapper>
+            <Spinner />
+            <LoadingText>찜 목록을 불러오는 중입니다...</LoadingText>
+          </LoadingWrapper>
+        ) : error ? (
+          renderEmpty(error)
+        ) : (
+          renderWishlistSection(wishlist)
+        )}
       </ListContainer>
     </MypageLayout>
   );
@@ -125,6 +120,40 @@ function WishlistPage() {
 export default WishlistPage;
 
 /* ------------- Styled Components ------------- */
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const SummaryCard = styled.div`
   display: flex;

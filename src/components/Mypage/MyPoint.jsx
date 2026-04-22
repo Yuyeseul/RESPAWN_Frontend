@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import styled from 'styled-components';
+import React, { useEffect, useState } from 'react';
+import styled, { keyframes } from 'styled-components';
 import axios from '../../api/axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -28,7 +28,6 @@ function PointsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 1) 탭→리스트 매핑 상수(파일 내 단 한 번)
   const tabToListMap = {
     all: history,
     saves,
@@ -36,7 +35,6 @@ function PointsPage() {
     expiring: expires,
   };
 
-  // 2) 현재 탭 리스트 선택
   const currentList = tabToListMap[activeTab] || history;
 
   useEffect(() => {
@@ -94,19 +92,15 @@ function PointsPage() {
   const formatAmount = (n) =>
     n > 0 ? `+${n.toLocaleString()}원` : `-${Math.abs(n).toLocaleString()}원`;
 
-  // 월별 날짜 계산
   const pad2 = (n) => String(n).padStart(2, '0');
   const formatYmd = (d) =>
     `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
   const getMonthPeriod = (baseDate) => {
-    // baseDate: 기준 월(Date)
     const y = baseDate.getFullYear();
     const m = baseDate.getMonth();
 
-    // 1일
     const first = new Date(y, m, 1);
 
-    // 말일: 다음 달의 0일 → 현재 달의 마지막 날
     const last = new Date(y, m + 1, 0);
 
     return {
@@ -261,19 +255,60 @@ function PointsPage() {
       </ChipTabs>
 
       <ListContainer>
-        {loading
-          ? renderEmpty('불러오는 중...')
-          : error
-            ? renderEmpty(error)
-            : activeTab === 'expiring'
-              ? renderExpiringSection(currentList)
-              : renderHistoryLikeSection(currentList)}
+        {loading ? (
+          <LoadingWrapper>
+            <Spinner />
+            <LoadingText>데이터를 불러오는 중입니다...</LoadingText>
+          </LoadingWrapper>
+        ) : error ? (
+          renderEmpty(error)
+        ) : activeTab === 'expiring' ? (
+          renderExpiringSection(currentList)
+        ) : (
+          renderHistoryLikeSection(currentList)
+        )}
       </ListContainer>
     </MypageLayout>
   );
 }
 
 export default PointsPage;
+
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const DateFilterSection = styled.div`
   display: flex;
@@ -291,6 +326,11 @@ const IconBtn = styled.button`
   cursor: pointer;
   align-items: center;
   padding: 0 10px;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const StyledDatePicker = styled.div`
@@ -298,39 +338,74 @@ const StyledDatePicker = styled.div`
   justify-content: center;
   align-items: center;
 
+  .react-datepicker-wrapper {
+    width: auto;
+  }
+
   .react-datepicker__triangle {
     display: none;
   }
 
   .react-datepicker {
-    font-family: 'Noto Sans KR', sans-serif;
-    border: none;
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 24px ${({ theme }) => theme.colors.shadow_line};
+    font-family: inherit;
+    background-color: ${({ theme }) => theme.colors.white};
     overflow: hidden;
   }
 
   .react-datepicker__header {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-    border-bottom: none;
-    padding-top: 10px;
-    color: ${({ theme }) => theme.colors.gray[300]};
-  }
-
-  .react-datepicker__navigation-icon::before {
-    border-color: ${({ theme }) => theme.colors.gray[300]};
-    border-width: 2px 2px 0 0;
-    top: 10px;
+    background-color: ${({ theme }) => theme.colors.gray[50]};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    border-radius: 12px 12px 0 0;
+    padding-top: 12px;
   }
 
   .react-datepicker__current-month {
-    color: ${({ theme }) => theme.colors.gray[300]};
+    color: ${({ theme }) => theme.colors.gray[800]};
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .react-datepicker__navigation-icon::before {
+    border-color: ${({ theme }) => theme.colors.gray[500]};
+    border-width: 2px 2px 0 0;
+  }
+  .react-datepicker__navigation:hover *::before {
+    border-color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  .react-datepicker__month-wrapper {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .react-datepicker__month-text {
+    color: ${({ theme }) => theme.colors.gray[800]};
+    border-radius: 6px;
+    padding: 6px 0;
+    margin: 4px;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.primary_light};
+      color: ${({ theme }) => theme.colors.secondary};
+    }
   }
 
   .react-datepicker__month-text--keyboard-selected,
   .react-datepicker__month-text--selected {
-    background-color: ${({ theme }) => theme.colors.gray[700]} !important;
-    color: ${({ theme }) => theme.colors.gray[300]} !important;
+    background-color: ${({ theme }) => theme.colors.secondary} !important;
+    color: ${({ theme }) => theme.colors.white} !important;
+    font-weight: 700;
+
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.primary} !important;
+    }
   }
 `;
 
@@ -339,15 +414,21 @@ const MonthBtn = styled.button`
   background: transparent;
   font-size: 20px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.gray[700]};
+  color: ${({ theme }) => theme.colors.gray[800]};
   cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const PeriodText = styled.div`
   margin: 2px 0 12px;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  font-size: 12px;
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 13px;
   text-align: center;
+  font-weight: 500;
 `;
 
 const SummaryCard = styled.div`
@@ -356,10 +437,10 @@ const SummaryCard = styled.div`
   align-items: center;
   gap: 8px;
   background: ${({ theme }) => theme.colors.gray[50]};
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 14px;
-  padding: 14px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px ${({ theme }) => theme.colors.overlay_line};
 
   .left {
     flex: 1;
@@ -369,38 +450,45 @@ const SummaryCard = styled.div`
       font-weight: 600;
     }
     .hint {
-      margin-top: 2px;
-      font-size: 12px;
-      color: ${({ theme }) => theme.colors.gray[600]};
+      margin-top: 4px;
+      font-size: 13px;
+      color: ${({ theme }) => theme.colors.danger};
+      font-weight: 500;
     }
   }
   .value {
     font-weight: 800;
-    color: ${({ theme }) => theme.colors.gray[700]};
-    font-size: 18px;
+    color: ${({ theme }) => theme.colors.secondary};
+    font-size: 22px;
   }
 `;
 
 const ChipTabs = styled.div`
   display: flex;
   gap: 8px;
-  margin: 14px 2px 12px;
+  margin: 20px 2px 16px;
 `;
 
 const Chip = styled.button`
-  padding: 8px 14px;
-  border-radius: 18px;
+  padding: 8px 16px;
+  border-radius: 20px;
   border: 1px solid
     ${({ active, theme }) =>
-      active ? theme.colors.gray[700] : theme.colors.gray[300]};
+      active ? theme.colors.secondary : theme.colors.gray[300]};
   background: ${({ active, theme }) =>
-    active ? theme.colors.gray[800] : theme.colors.white};
+    active ? theme.colors.secondary : theme.colors.white};
   color: ${({ active, theme }) =>
     active ? theme.colors.white : theme.colors.gray[600]};
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.secondary};
+    color: ${({ active, theme }) =>
+      active ? theme.colors.white : theme.colors.secondary};
+  }
 
   @media ${({ theme }) => theme.mobile} {
     padding: 6px 12px;
@@ -409,66 +497,87 @@ const Chip = styled.button`
 `;
 
 const Empty = styled.div`
-  padding: 32px 0;
+  padding: 40px 0;
   text-align: center;
-  color: ${({ theme }) => theme.colors.gray[600]};
-  font-size: 16px;
+  color: ${({ theme }) => theme.colors.gray[500]};
+  font-size: 15px;
+  background: ${({ theme }) => theme.colors.gray[10]};
+  border-radius: 12px;
+  border: 1px dashed ${({ theme }) => theme.colors.gray[300]};
 `;
 
 const CardList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: ${({ scrollable }) => (scrollable ? '420px' : 'unset')};
+  gap: 12px;
+  max-height: ${({ scrollable }) => (scrollable ? '480px' : 'unset')};
   overflow-y: ${({ scrollable }) => (scrollable ? 'auto' : 'visible')};
   padding-right: ${({ scrollable }) => (scrollable ? '6px' : '0')};
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.gray[300]};
+    border-radius: 4px;
+  }
 `;
 
 const Card = styled.div`
   display: grid;
-  grid-template-columns: 58px 1fr auto;
+  grid-template-columns: 64px 1fr auto;
   align-items: center;
-  gap: 10px;
-  background: ${({ theme }) => theme.colors.gray[10]};
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  gap: 12px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 16px;
+  box-shadow: 0 2px 6px ${({ theme }) => theme.colors.shadow_line};
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px ${({ theme }) => theme.colors.shadow_line};
+  }
 `;
 
 const Left = styled.div`
   .date {
     font-weight: 800;
-    color: ${({ theme }) => theme.colors.gray[700]};
-    font-size: 13px;
+    color: ${({ theme }) => theme.colors.gray[800]};
+    font-size: 14px;
   }
   .time {
-    color: ${({ theme }) => theme.colors.gray[600]};
+    color: ${({ theme }) => theme.colors.gray[550]};
     font-size: 12px;
-    margin-top: 2px;
+    margin-top: 4px;
   }
 `;
 
 const Center = styled.div`
   overflow: hidden;
   .title {
-    font-size: 14px;
-    color: ${({ theme }) => theme.colors.gray[700]};
+    font-size: 15px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.gray[800]};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .sub {
-    margin-top: 3px;
-    font-size: 12px;
-    color: ${({ theme }) => theme.colors.gray[600]};
+    margin-top: 4px;
+    font-size: 13px;
+    color: ${({ theme }) => theme.colors.gray[550]};
   }
 `;
 
 const Right = styled.div`
   font-weight: 800;
-  font-size: 14px;
+  font-size: 15px;
   &.plus {
-    color: ${({ theme }) => theme.colors.green};
+    color: ${({ theme }) => theme.colors.primary};
   }
   &.minus {
     color: ${({ theme }) => theme.colors.gray[600]};

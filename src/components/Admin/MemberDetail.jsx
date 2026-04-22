@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from '../../api/axios';
@@ -9,21 +9,33 @@ const MemberDetail = () => {
   const isBuyer = userType === 'buyer';
   const isSeller = userType === 'seller';
 
-  // 로딩/에러
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ⭐️ 커스텀 드롭다운 열림/닫힘 상태
   const [isGradeOpen, setIsGradeOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  // 사용자 데이터(폼 상태)
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsGradeOpen(false);
+      }
+    };
+    if (isGradeOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isGradeOpen]);
+
   const [form, setForm] = useState({
     name: '',
     username: '',
     phoneNumber: '',
     email: '',
-    company: '', // 판매자용
-    companyNumber: '', // 판매자용
+    company: '',
+    companyNumber: '',
     memo: '',
     enabled: true,
     accountNonExpired: true,
@@ -33,13 +45,11 @@ const MemberDetail = () => {
     lastPasswordChangedAt: '',
     role: '',
     createdAt: '',
-    grade: '', // 구매자용
+    grade: '',
   });
 
-  // 원본 비교용
   const [original, setOriginal] = useState(null);
 
-  // 임시 알림/모달
   const [toast, setToast] = useState('');
   const [confirm, setConfirm] = useState({
     open: false,
@@ -47,7 +57,6 @@ const MemberDetail = () => {
     onConfirm: null,
   });
 
-  // util 함수
   const mapToForm = (data) => ({
     name: data.name || '',
     username: data.username || '',
@@ -77,7 +86,7 @@ const MemberDetail = () => {
           axios.get(`/admin/memo`, { params: { userType, userId } }),
         ]);
         const mapped = mapToForm(summary);
-        mapped.memo = memoRes?.content ?? ''; // 메모 병합
+        mapped.memo = memoRes?.content ?? '';
         setForm(mapped);
         setOriginal(mapped);
       } catch (e) {
@@ -90,7 +99,6 @@ const MemberDetail = () => {
     fetchUser();
   }, [userType, userId]);
 
-  // 저장대상 비교
   const pickSavable = (f) => ({ memo: f.memo, grade: f.grade });
   const dirty = useMemo(
     () =>
@@ -104,7 +112,6 @@ const MemberDetail = () => {
     setForm((p) => ({ ...p, [name]: value }));
   };
 
-  // 상태 토글
   const onToggleStatus = () => {
     const nextEnabled = !form.enabled;
     setConfirm({
@@ -144,7 +151,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 비밀번호 틀림 잠김 해제
   const onUnlock = () => {
     setConfirm({
       open: true,
@@ -180,7 +186,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 만료(휴면계정) 해제
   const onUnexpire = () => {
     setConfirm({
       open: true,
@@ -208,7 +213,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 임시 비밀번호 발급
   const onResetPassword = () => {
     setConfirm({
       open: true,
@@ -229,7 +233,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 저장
   const onSave = () => {
     if (!dirty) return;
     setConfirm({
@@ -281,7 +284,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 되돌리기
   const onRevert = () => {
     if (!dirty || !original) return;
     setConfirm({
@@ -372,13 +374,12 @@ const MemberDetail = () => {
               <Divider />
               <CompactRow>
                 <Label>등급</Label>
-                {/* ⭐️ 기본 브라우저 select 태그 대신 직접 만든 커스텀 드롭다운 사용 */}
                 <CustomSelectWrapper
+                  ref={dropdownRef}
                   onClick={() => setIsGradeOpen(!isGradeOpen)}
-                  onMouseLeave={() => setIsGradeOpen(false)}
                 >
                   <SelectBox $isOpen={isGradeOpen}>
-                    {form.grade}
+                    <span className="selected-text">{form.grade}</span>
                     <span className="arrow">▼</span>
                   </SelectBox>
 
@@ -390,7 +391,7 @@ const MemberDetail = () => {
                             key={gradeOption}
                             $active={form.grade === gradeOption}
                             onClick={(e) => {
-                              e.stopPropagation(); // 부모로 클릭 이벤트 전파 방지
+                              e.stopPropagation();
                               onChange({
                                 target: { name: 'grade', value: gradeOption },
                               });
@@ -530,7 +531,7 @@ const MemberDetail = () => {
 
 export default MemberDetail;
 
-// === ⭐️ 스타일 영역 (테마 연동 & 커스텀 드롭다운) ===
+// === 스타일 영역 ===
 
 const Page = styled.div`
   display: grid;
@@ -668,9 +669,13 @@ const Value = styled.div`
 // ==========================================
 const CustomSelectWrapper = styled.div`
   position: relative;
-  width: 100%;
+  width: 150px;
   cursor: pointer;
   user-select: none;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 const SelectBox = styled.div`
@@ -678,29 +683,32 @@ const SelectBox = styled.div`
   padding: 10px 12px;
   border: 1px solid
     ${({ theme: { colors }, $isOpen }) =>
-      $isOpen ? colors.secondary : colors.gray[300]};
-  border-radius: 8px;
+      $isOpen ? colors.primary : colors.gray[300]};
+  border-radius: 6px;
   background: ${({ theme: { colors } }) => colors.white};
-  color: ${({ theme: { colors } }) => colors.gray[900]};
+  color: ${({ theme: { colors } }) => colors.gray[800]};
   font-size: 14px;
   font-weight: 500;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: all 0.2s ease;
-  box-shadow: ${({ theme: { colors }, $isOpen }) =>
-    $isOpen ? `0 0 0 3px ${colors.primary_alpha}` : 'none'};
 
   &:hover {
     border-color: ${({ theme: { colors }, $isOpen }) =>
-      $isOpen ? colors.secondary : colors.gray[400]};
+      $isOpen ? colors.primary : colors.gray[400]};
   }
 
-  /* 화살표 빙글 도는 애니메이션 */
+  .selected-text {
+    flex: 1;
+  }
+
+  /* 화살표 애니메이션 */
   .arrow {
     font-size: 10px;
-    color: ${({ theme: { colors } }) => colors.gray[550]};
-    transition: transform 0.2s ease;
+    color: ${({ theme: { colors }, $isOpen }) =>
+      $isOpen ? colors.primary : colors.gray[600]};
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform: ${({ $isOpen }) =>
       $isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
   }
@@ -716,41 +724,76 @@ const OptionList = styled.ul`
   list-style: none;
   background: ${({ theme: { colors } }) => colors.white};
   border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  z-index: 10;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
 
-  /* 부드럽게 스르륵 나타나는 효과 */
-  animation: dropdownFade 0.15s ease-out;
-  @keyframes dropdownFade {
+  /* 스크롤바 스타일링 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme: { colors } }) => colors.gray[300]};
+    border-radius: 4px;
+  }
+
+  /* 부드럽게 나타나는 효과 */
+  animation: dropdownScale 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top center;
+
+  @keyframes dropdownScale {
     from {
       opacity: 0;
-      transform: translateY(-4px);
+      transform: translateY(-5px) scaleY(0.95);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) scaleY(1);
     }
   }
 `;
 
 const OptionItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: all 0.15s ease;
 
-  /* 선택된 녀석은 진한 색상, 안 된 녀석은 기본 색상 */
   font-weight: ${({ $active }) => ($active ? '700' : '500')};
   color: ${({ theme: { colors }, $active }) =>
-    $active ? colors.secondary : colors.gray[800]};
+    $active ? colors.primary : colors.gray[800]};
   background: ${({ theme: { colors }, $active }) =>
     $active ? colors.primary_light : 'transparent'};
+
+  .check {
+    font-size: 14px;
+    font-weight: 800;
+    color: ${({ theme: { colors } }) => colors.primary};
+    animation: fadeInCheck 0.2s ease;
+  }
 
   &:hover {
     background: ${({ theme: { colors }, $active }) =>
       $active ? colors.primary_light : colors.gray[50]};
+    color: ${({ theme: { colors }, $active }) =>
+      $active ? colors.primary : colors.gray[900]};
+  }
+
+  @keyframes fadeInCheck {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 `;
 // ==========================================

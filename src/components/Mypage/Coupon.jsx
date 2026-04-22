@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from '../../api/axios';
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import MypageLayout from './MypageLayout';
 
 const PAGE_SIZE = 10;
@@ -96,12 +96,12 @@ const Coupon = () => {
   }, []);
 
   useEffect(() => {
-    // 상태 초기화
     setCoupons([]);
     setPage(0);
     setHasMore(true);
     setInitialLoading(true);
     fetchCoupons(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const formatDate = (dateStr) => {
@@ -142,7 +142,10 @@ const Coupon = () => {
       </TabContainer>
 
       {initialLoading ? (
-        <Message>불러오는 중...</Message>
+        <LoadingWrapper>
+          <Spinner />
+          <LoadingText>쿠폰 목록을 불러오는 중입니다...</LoadingText>
+        </LoadingWrapper>
       ) : coupons.length === 0 && !loading ? (
         <Message>{emptyMsg}</Message>
       ) : (
@@ -165,13 +168,55 @@ const Coupon = () => {
         </CouponList>
       )}
 
-      {!initialLoading && loading && <Message>불러오는 중...</Message>}
+      {!initialLoading && loading && (
+        <LoadingWrapper $isSmall>
+          <Spinner $isSmall />
+          <LoadingText $isSmall>더 많은 쿠폰을 불러오는 중...</LoadingText>
+        </LoadingWrapper>
+      )}
       {error && <Message>{error}</Message>}
     </MypageLayout>
   );
 };
 
 export default Coupon;
+
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ $isSmall }) => ($isSmall ? '20px 0' : '80px 0')};
+  gap: ${({ $isSmall }) => ($isSmall ? '10px' : '16px')};
+`;
+
+const Spinner = styled.div`
+  width: ${({ $isSmall }) => ($isSmall ? '24px' : '40px')};
+  height: ${({ $isSmall }) => ($isSmall ? '24px' : '40px')};
+  border: ${({ $isSmall }) => ($isSmall ? '3px' : '4px')} solid
+    ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: ${({ $isSmall }) => ($isSmall ? '12px' : '14px')};
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
 
 const TabContainer = styled.div`
   display: flex;
