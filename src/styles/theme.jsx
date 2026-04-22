@@ -17,6 +17,7 @@ const theme = {
     mouse_over: '#c5c5c523', // 마우스 오버 효과
     overlay: 'rgba(0, 0, 0, 0.5)', // 모달 배경용 반투명 검정
     overlay_line: 'rgba(0, 0, 0, 0.15)', // 모달 배경용 더 연한 반투명 검정
+    shadow_line: 'rgba(0, 0, 0, 0.01)', // 그림자용 반투명 검정
     primary: 'rgb(85, 90, 130)', // 메인 네이비
     primary_dark: '#3e4263', // Hover용 어두운 프라이머리
     primary_light: '#f0f2f8', // 연한 배경용 프라이머리
