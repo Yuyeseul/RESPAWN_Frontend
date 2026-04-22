@@ -6,7 +6,7 @@ import Logo from '../components/common/Logo';
 import naver_icon from '../assets/login_naver.png';
 import google_icon from '../assets/login_google.png';
 import kakao_icon from '../assets/login_kakao.png';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaUserCog } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
 import { BASE_URL } from '../api/axios';
 
@@ -24,7 +24,6 @@ const LoginPage = (e) => {
   const [seePassword, setSeePassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // ⭐️ 예쁜 알람(모달)을 위한 상태 추가
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     message: '',
@@ -40,12 +39,10 @@ const LoginPage = (e) => {
     setUser({ ...user, [name]: value });
   };
 
-  // ⭐️ 모달 띄우기 함수
   const showModal = (message, onClose = null) => {
     setModalConfig({ isOpen: true, message, onClose });
   };
 
-  // ⭐️ 모달 닫기 함수
   const closeModal = () => {
     const { onClose } = modalConfig;
     setModalConfig({ isOpen: false, message: '', onClose: null });
@@ -94,7 +91,6 @@ const LoginPage = (e) => {
           setFailCount(failedLoginAttempts);
         }
 
-        // ⭐️ 모든 alert를 showModal로 변경
         if (errorCode === 'expired') {
           showModal('계정이 만료되었습니다.\n관리자에게 문의하세요.');
         } else if (errorCode === 'locked') {
@@ -108,7 +104,9 @@ const LoginPage = (e) => {
         } else if (errorCode === 'disabled') {
           showModal(`정지된 계정입니다.\n관리자에게 문의하세요.`);
         } else {
-          showModal('로그인 실패: ' + JSON.stringify(error.response.data));
+          showModal(
+            '로그인에 실패했습니다. 아이디 및 비밀번호를 확인해주세요.'
+          );
         }
       } else {
         showModal('서버와 통신 중 오류가 발생했습니다.');
@@ -133,7 +131,7 @@ const LoginPage = (e) => {
           console.error('로그인 세션 확인 실패:', err);
           showModal(
             '로그인 상태 확인에 실패했습니다.\n잠시 후 다시 시도해주세요.'
-          ); // alert 대체
+          );
         } finally {
           setPopup(null);
         }
@@ -147,12 +145,12 @@ const LoginPage = (e) => {
             case 'account_conflict':
               showModal(
                 '이미 다른 소셜 계정과 연결된 이메일입니다.\n다른 방법을 선택해 주세요.'
-              ); // alert 대체
+              );
               break;
             default:
               showModal(
                 '소셜 로그인에 실패했습니다.\n잠시 후 다시 시도해 주세요.'
-              ); // alert 대체
+              );
           }
         } finally {
           setPopup(null);
@@ -202,7 +200,7 @@ const LoginPage = (e) => {
     if (!win) {
       showModal(
         '팝업이 차단되어 새 창을 열 수 없습니다.\n팝업 차단을 해제해주세요.'
-      ); // alert 대체
+      );
       return;
     }
     setPopup(win);
@@ -210,6 +208,11 @@ const LoginPage = (e) => {
 
   return (
     <Container>
+      {/* ⭐️ 우측 상단 관리자 페이지 이동 뱃지 버튼 */}
+      <AdminLink onClick={() => navigate('/adminlogin')}>
+        <FaUserCog /> 관리자
+      </AdminLink>
+
       <LogoWrapper>
         <Logo />
       </LogoWrapper>
@@ -295,7 +298,6 @@ const LoginPage = (e) => {
         </SocialButton>
       </LogInBox>
 
-      {/* ⭐️ 모달 렌더링 영역 */}
       {modalConfig.isOpen && (
         <ModalOverlay onClick={closeModal}>
           <ModalBox onClick={(e) => e.stopPropagation()}>
@@ -319,6 +321,49 @@ export default LoginPage;
 
 // --- 스타일 컴포넌트 영역 ---
 
+const AdminLink = styled.div`
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 20px; /* 둥근 알약 모양 */
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); /* 은은한 그림자 */
+  transition: all 0.2s ease;
+
+  svg {
+    font-size: 15px; /* 아이콘 크기 */
+  }
+
+  /* 마우스 올렸을 때 효과 */
+  &:hover {
+    color: ${({ theme }) => theme.colors.secondary};
+    border-color: ${({ theme }) => theme.colors.secondary};
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px); /* 살짝 위로 떠오르는 애니메이션 */
+  }
+
+  /* 모바일 화면일 때 크기 및 위치 조정 */
+  @media ${({ theme }) => theme.mobile} {
+    top: 16px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+
+    svg {
+      font-size: 14px;
+    }
+  }
+`;
+
 const spin = keyframes`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -341,6 +386,7 @@ const Container = styled.div`
   align-items: center;
   background: ${({ theme }) => theme.colors.gray[50]};
   padding: 40px 20px;
+  position: relative; /* ⭐️ AdminLink의 absolute 기준점이 되도록 설정 */
 `;
 
 const LogoWrapper = styled.div`
@@ -537,7 +583,6 @@ const FailCountMessage = styled.p`
   font-weight: 600;
 `;
 
-// === ⭐️ 새롭게 추가된 모달 스타일 (테마 연동) ===
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
