@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../../../api/axios';
 
 const ReviewDetail = () => {
   const location = useLocation();
@@ -71,10 +72,7 @@ const ReviewDetail = () => {
 
         {review.imageUrl && (
           <ProductBox>
-            <img
-              src={`http://localhost:8080/api${review.imageUrl}`}
-              alt={review.itemName}
-            />
+            <img src={`${BASE_URL}${review.imageUrl}`} alt={review.itemName} />
             <ProductInfo>
               <ProductName>{review.itemName}</ProductName>
               <ProductPrice>{review.price.toLocaleString()}원</ProductPrice>
