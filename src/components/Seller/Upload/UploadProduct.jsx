@@ -183,8 +183,8 @@ function UploadProduct() {
       });
       alert('등록 성공!');
       navigate('/sellerCenter');
-    } catch (err) {
-      alert('등록 실패: ' + (err.response?.data?.message || err.message));
+    } catch (error) {
+      console.error('400 에러 상세:', error.response?.data);
     } finally {
       setIsModalOpen(false);
     }

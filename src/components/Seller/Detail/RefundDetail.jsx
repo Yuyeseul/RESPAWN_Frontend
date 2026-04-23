@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from '../../../api/axios';
+import axios, { BASE_URL } from '../../../api/axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -124,7 +124,7 @@ function RefundDetail() {
 
         <ProductBox>
           <img
-            src={`http://localhost:8080/api${refundItem.imageUrl}`}
+            src={`${BASE_URL}${refundItem.imageUrl}`}
             alt={refundItem.itemName}
           />
           <ProductInfo>
@@ -192,8 +192,6 @@ function RefundDetail() {
 }
 
 export default RefundDetail;
-
-// --- 전면 개편된 스타일 영역 ---
 
 const LoadingScreen = styled.div`
   display: flex;
@@ -263,11 +261,10 @@ const Subtitle = styled.p`
 
 const Card = styled.section`
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 16px;
   padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 
   @media (max-width: 768px) {
     padding: 20px;
@@ -309,14 +306,14 @@ const InfoItem = styled.div`
   display: flex;
   align-items: stretch;
   background: ${({ theme }) => theme.colors.white};
-  border: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 10px;
   overflow: hidden;
 
   @media (max-width: 480px) {
     flex-direction: column;
     border: none;
-    border-bottom: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
+    border-bottom: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: 0;
     padding-bottom: 12px;
   }
@@ -371,7 +368,7 @@ const ProductBox = styled.div`
   gap: 20px;
   margin-top: 24px;
   padding: 20px;
-  background: ${({ theme }) => theme.colors.gray[100]};
+  background: ${({ theme }) => theme.colors.gray[50]};
   border: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
   border-radius: 12px;
 

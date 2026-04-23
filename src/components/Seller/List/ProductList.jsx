@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
-import axios from '../../../api/axios';
+import axios, { BASE_URL } from '../../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '../../Pagination';
 
 // 정렬 옵션 배열 정의
 const SORT_OPTIONS = [
-  { value: 'latest', label: '최신순' },
+  { value: 'createdAt_desc', label: '최신순' },
+  { value: 'soldCount_desc', label: '판매량순' },
   { value: 'price_asc', label: '가격 낮은순' },
   { value: 'price_desc', label: '가격 높은순' },
   { value: 'stockQuantity_asc', label: '재고 적은순' },
@@ -28,12 +29,12 @@ const ProductList = () => {
   });
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('latest');
+  const [sortBy, setSortBy] = useState('createdAt_desc');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // 드롭다운 상태
 
   const [appliedFilters, setAppliedFilters] = useState({
     search: '',
-    sort: 'latest',
+    sort: 'createdAt_desc',
   });
 
   const isInitialMount = useRef(true);
@@ -86,14 +87,7 @@ const ProductList = () => {
       try {
         setLoading(true);
 
-        let sortField = '_id';
-        let sortDir = 'desc';
-
-        if (appliedFilters.sort !== 'latest') {
-          const [field, dir] = appliedFilters.sort.split('_');
-          sortField = field;
-          sortDir = dir;
-        }
+        const [sortField, sortDir] = appliedFilters.sort.split('_');
 
         const params = {
           page: pageInfo.page,
@@ -106,7 +100,7 @@ const ProductList = () => {
         if (!params.search) delete params.search;
 
         const res = await axios.get('/items/my-items', { params });
-
+        console.log('API Response:', res.data);
         setItems(res.data.content);
         setPageInfo((prev) => ({
           ...prev,
@@ -183,6 +177,7 @@ const ProductList = () => {
                   <th>상품명</th>
                   <th>가격</th>
                   <th>재고</th>
+                  <th>판매량</th>
                   <th>배송방식</th>
                   <th>판매사</th>
                   <th>관리</th>
@@ -196,7 +191,7 @@ const ProductList = () => {
                         <Thumb>
                           {item.imageUrl ? (
                             <img
-                              src={`http://localhost:8080/api${item.imageUrl}`}
+                              src={`${BASE_URL}${item.imageUrl}`}
                               alt={item.name}
                             />
                           ) : (
@@ -207,6 +202,7 @@ const ProductList = () => {
                       <td>{item.name}</td>
                       <td>{item.price.toLocaleString()} 원</td>
                       <td>{item.stockQuantity} 개</td>
+                      <td>{item.soldCount || 0} 개</td>
                       <td>{item.deliveryType}</td>
                       <td>{item.company}</td>
                       <td>
@@ -239,7 +235,7 @@ const ProductList = () => {
                   <MobileThumb>
                     {item.imageUrl ? (
                       <img
-                        src={`http://localhost:8080/api${item.imageUrl}`}
+                        src={`${BASE_URL}${item.imageUrl}`}
                         alt={item.name}
                       />
                     ) : (
@@ -250,7 +246,8 @@ const ProductList = () => {
                     <ItemName>{item.name}</ItemName>
                     <ItemPrice>{item.price.toLocaleString()} 원</ItemPrice>
                     <ItemMeta>
-                      재고: {item.stockQuantity}개 | {item.deliveryType}
+                      재고: {item.stockQuantity}개 | 판매: {item.soldCount || 0}
+                      개
                     </ItemMeta>
                   </MobileInfo>
                   <MobileAction>
