@@ -15,6 +15,15 @@ import SearchResultList from '../components/Search/SearchResultList';
 
 const PAGE_SIZE = 8;
 
+const SORT_OPTIONS = [
+  { value: 'createdAt_desc', label: '최신순' },
+  { value: 'soldCount_desc', label: '판매량순' },
+  { value: 'wishCount_desc', label: '좋아요순' },
+  { value: 'price_asc', label: '낮은가격순' },
+  { value: 'price_desc', label: '높은가격순' },
+  { value: 'review_desc', label: '후기많은순' },
+];
+
 const SearchResultListPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,6 +60,12 @@ const SearchResultListPage = () => {
   const sentinelRef = useRef(null);
 
   const [resultsCount, setResultsCount] = useState(0);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const currentSort = queryParams.get('sort') || 'latest';
+  const currentDir = queryParams.get('dir') || 'desc';
+  const currentSortValue = `${currentSort}_${currentDir}`;
 
   // 3. 데이터 페칭 함수
   const fetchPage = useCallback(
@@ -179,6 +194,22 @@ const SearchResultListPage = () => {
     navigate(`/search?${sp.toString()}`);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSortSelect = (value) => {
+    const [sortField, sortDir] = value.split('_');
+    navigateWithUpdate({ sort: sortField, dir: sortDir });
+    setIsDropdownOpen(false);
+  };
+
   // 데이터/상수 (UI용)
   const DELIVERY_METHODS = [
     { id: '직접배송', name: '직접배송' },
@@ -233,6 +264,31 @@ const SearchResultListPage = () => {
           onReset={handleReset}
           onApplyAll={handleApplyAll}
         />
+
+        <SortContainer>
+          <DropdownContainer ref={dropdownRef}>
+            <DropdownHeader onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+              {SORT_OPTIONS.find((opt) => opt.value === currentSortValue)
+                ?.label || '최신순'}
+              <Arrow $isOpen={isDropdownOpen}>▼</Arrow>
+            </DropdownHeader>
+
+            {isDropdownOpen && (
+              <DropdownList>
+                {SORT_OPTIONS.map((opt) => (
+                  <DropdownItem
+                    key={opt.value}
+                    $isSelected={currentSortValue === opt.value}
+                    onClick={() => handleSortSelect(opt.value)}
+                  >
+                    {opt.label}
+                  </DropdownItem>
+                ))}
+              </DropdownList>
+            )}
+          </DropdownContainer>
+        </SortContainer>
+
         <SearchResultList
           query={query}
           items={items}
@@ -266,4 +322,62 @@ const Status = styled.div`
   text-align: center;
   color: ${({ theme }) => theme.colors.gray[600]};
   padding: 20px 0;
+`;
+
+const SortContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
+const DropdownContainer = styled.div`
+  position: relative;
+  width: 140px;
+  z-index: 50;
+`;
+
+const DropdownHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 4px;
+  font-size: 14px;
+  background: ${({ theme }) => theme.colors.white};
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[600]};
+`;
+
+const Arrow = styled.span`
+  font-size: 10px;
+  transition: transform 0.2s;
+  transform: ${({ $isOpen }) => ($isOpen ? 'rotate(180deg)' : 'rotate(0)')};
+`;
+
+const DropdownList = styled.ul`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 0;
+  overflow: hidden;
+`;
+
+const DropdownItem = styled.li`
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  background: ${({ $isSelected, theme }) =>
+    $isSelected ? theme.colors.gray[100] : theme.colors.white};
+  font-weight: ${({ $isSelected }) => ($isSelected ? '600' : '400')};
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray[100]};
+  }
 `;
