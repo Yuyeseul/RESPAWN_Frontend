@@ -8,6 +8,7 @@ import Pagination from '../../Pagination';
 const SORT_OPTIONS = [
   { value: 'createdAt_desc', label: '최신순' },
   { value: 'soldCount_desc', label: '판매량순' },
+  { value: 'reviewCount_desc', label: '후기많은순' },
   { value: 'price_asc', label: '가격 낮은순' },
   { value: 'price_desc', label: '가격 높은순' },
   { value: 'stockQuantity_asc', label: '재고 적은순' },
@@ -67,6 +68,10 @@ const ProductList = () => {
   const handleSortSelect = (value) => {
     setSortBy(value);
     setIsDropdownOpen(false);
+  };
+
+  const handleReviewClick = (itemId) => {
+    navigate('/sellerCenter/reviewList', { state: { itemId } });
   };
 
   useEffect(() => {
@@ -178,6 +183,7 @@ const ProductList = () => {
                   <th>가격</th>
                   <th>재고</th>
                   <th>판매량</th>
+                  <th>후기수</th>
                   <th>배송방식</th>
                   <th>판매사</th>
                   <th>관리</th>
@@ -203,6 +209,13 @@ const ProductList = () => {
                       <td>{item.price.toLocaleString()} 원</td>
                       <td>{item.stockQuantity} 개</td>
                       <td>{item.soldCount || 0} 개</td>
+                      <td>
+                        <ReviewCountLink
+                          onClick={() => handleReviewClick(item.id)}
+                        >
+                          {item.reviewCount || 0} 개
+                        </ReviewCountLink>
+                      </td>
                       <td>{item.deliveryType}</td>
                       <td>{item.company}</td>
                       <td>
@@ -247,7 +260,7 @@ const ProductList = () => {
                     <ItemPrice>{item.price.toLocaleString()} 원</ItemPrice>
                     <ItemMeta>
                       재고: {item.stockQuantity}개 | 판매: {item.soldCount || 0}
-                      개
+                      개 | 후기: {item.reviewCount || 0} 개
                     </ItemMeta>
                   </MobileInfo>
                   <MobileAction>
@@ -625,4 +638,14 @@ const NoDataCard = styled.div`
   background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+`;
+
+const ReviewCountLink = styled.span`
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 600;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary_dark};
+  }
 `;

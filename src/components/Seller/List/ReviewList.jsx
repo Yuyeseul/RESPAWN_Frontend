@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import axios from '../../../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ItemSelector from './ItemSelector';
 import Pagination from '../../Pagination';
 
 const ReviewList = () => {
   const [reviews, setReviews] = useState([]);
   const [items, setItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedItem, setSelectedItem] = useState(
+    location.state?.itemId || ''
+  );
   const [pageInfo, setPageInfo] = useState({
     page: 0,
     size: 10,
@@ -24,6 +27,13 @@ const ReviewList = () => {
       return;
     setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
+
+  useEffect(() => {
+    if (location.state?.itemId && location.state.itemId !== selectedItem) {
+      setSelectedItem(location.state.itemId);
+      setPageInfo((prev) => ({ ...prev, page: 0 }));
+    }
+  }, [location.state?.itemId]);
 
   // 1. 상품 목록 불러오기 (마운트 시 1번만 실행)
   useEffect(() => {
@@ -40,10 +50,14 @@ const ReviewList = () => {
 
   // 2. 리뷰 목록 불러오기 (선택된 상품이나 페이지 변경 시 실행)
   useEffect(() => {
-    const fetchReviews = async (itemId) => {
+    const fetchReviews = async () => {
       try {
         const res = await axios.get('/reviews/seller/my-reviews', {
-          params: { page: pageInfo.page, size: pageInfo.size, itemId },
+          params: {
+            page: pageInfo.page,
+            size: pageInfo.size,
+            itemId: selectedItem || '',
+          },
         });
         const data = res.data;
         setReviews(data.content);
@@ -58,8 +72,13 @@ const ReviewList = () => {
         console.error('리뷰 불러오기 실패:', err);
       }
     };
-    fetchReviews(selectedItem);
+    fetchReviews();
   }, [selectedItem, pageInfo.page, pageInfo.size]);
+
+  const handleItemSelectorChange = (newItemId) => {
+    setSelectedItem(newItemId);
+    setPageInfo((prev) => ({ ...prev, page: 0 }));
+  };
 
   // 별점 렌더링 (디자인 적용)
   const renderStars = (rating) => {
@@ -91,7 +110,7 @@ const ReviewList = () => {
         <SelectorWrapper>
           <ItemSelector
             value={selectedItem}
-            onChange={setSelectedItem}
+            onChange={handleItemSelectorChange}
             productList={items}
           />
         </SelectorWrapper>

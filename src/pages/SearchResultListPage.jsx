@@ -19,6 +19,7 @@ const SORT_OPTIONS = [
   { value: 'createdAt_desc', label: '최신순' },
   { value: 'soldCount_desc', label: '판매량순' },
   { value: 'wishCount_desc', label: '좋아요순' },
+  { value: 'reviewCount_desc', label: '후기많은순' },
   { value: 'price_asc', label: '낮은가격순' },
   { value: 'price_desc', label: '높은가격순' },
   { value: 'review_desc', label: '후기많은순' },
@@ -63,7 +64,7 @@ const SearchResultListPage = () => {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const currentSort = queryParams.get('sort') || 'latest';
+  const currentSort = queryParams.get('sort') || 'createdAt';
   const currentDir = queryParams.get('dir') || 'desc';
   const currentSortValue = `${currentSort}_${currentDir}`;
 
