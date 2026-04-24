@@ -258,7 +258,7 @@ function ProductDetail() {
 
         {activeTab === 'inquiry' && (
           <DescriptionBox>
-            <InquiryList itemId={id} />
+            <InquiryList itemId={id} sellerId={item.sellerId} />
           </DescriptionBox>
         )}
       </PageLayout>

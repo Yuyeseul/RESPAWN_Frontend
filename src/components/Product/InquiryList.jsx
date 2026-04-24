@@ -4,6 +4,7 @@ import Pagination from '../Pagination';
 import axios from '../../api/axios';
 import InquiryModal from './InquiryModal';
 import { useAuth } from '../../AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const inquiryTypeMap = {
   DELIVERY: '배송 문의',
@@ -11,8 +12,9 @@ const inquiryTypeMap = {
   ETC: '기타',
 };
 
-const InquiryList = ({ itemId }) => {
+const InquiryList = ({ itemId, sellerId }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isSeller = user?.role === 'ROLE_SELLER';
   const [inquiries, setInquiries] = useState([]);
   const [showSecret, setShowSecret] = useState(false);
@@ -28,7 +30,6 @@ const InquiryList = ({ itemId }) => {
     isLast: true,
   });
 
-  // 클릭한 항목 ID 저장
   const [expandedId, setExpandedId] = useState(null);
   const [expandedDetail, setExpandedDetail] = useState({});
 
@@ -39,19 +40,37 @@ const InquiryList = ({ itemId }) => {
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
-    // 작성 완료 후 다시 목록을 갱신
     fetchInquiries();
   };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    setPageInfo((p) => ({ ...p, page: 0 })); // 탭 변경 시 페이지 초기화
-    setExpandedId(null); // 탭 변경 시 확장 해제
+    setPageInfo((p) => ({ ...p, page: 0 }));
+    setExpandedId(null);
   };
 
   const handleSecretChange = () => {
     setShowSecret((prev) => !prev);
     setPageInfo((p) => ({ ...p, page: 0 }));
+  };
+
+  const handleChatClick = async () => {
+    try {
+      const response = await axios.post('/chat/room', {
+        itemId: String(itemId),
+        sellerId: String(sellerId),
+      });
+
+      const roomId = response.data.roomId;
+      console.log('생성된 방 ID:', roomId);
+
+      navigate('/mypage/chat', { state: { roomId: roomId } });
+    } catch (error) {
+      console.error('채팅방 생성 실패:', error);
+      alert(
+        '채팅방을 생성할 수 없습니다. 로그인 상태나 판매자 정보를 확인해주세요.'
+      );
+    }
   };
 
   const handleToggleExpand = async (id) => {
@@ -60,7 +79,6 @@ const InquiryList = ({ itemId }) => {
       return;
     }
 
-    // 상세 데이터가 없으면 API 호출
     if (!expandedDetail[id]) {
       try {
         const response = await axios.get(`/inquiries/${id}/detail`);
@@ -125,7 +143,10 @@ const InquiryList = ({ itemId }) => {
             비밀글 제외
           </label>
           {!isSeller && (
-            <Button onClick={handleOpenModal}>상품 Q&amp;A 작성하기</Button>
+            <ActionButtons>
+              <ChatButton onClick={handleChatClick}>💬 실시간 상담</ChatButton>
+              <Button onClick={handleOpenModal}>상품 Q&amp;A 작성하기</Button>
+            </ActionButtons>
           )}
           {showModal && (
             <InquiryModal itemId={itemId} onClose={handleCloseModal} />
@@ -133,7 +154,6 @@ const InquiryList = ({ itemId }) => {
         </Right>
       </TitleBox>
 
-      {/* 탭 메뉴 추가 */}
       <TabMenu>
         <TabButton
           active={activeTab === 'all'}
@@ -280,6 +300,38 @@ const Right = styled.div`
     width: 100%;
     justify-content: space-between;
     font-size: 14px;
+    flex-wrap: wrap; /* 모바일에서 버튼들이 줄바꿈되도록 */
+  }
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`;
+
+const ChatButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px; /* Q&A 버튼과 동일한 패딩 */
+  background: ${({ theme }) =>
+    theme.colors.primary || '#1c7ed6'}; /* 깔끔한 단색 포인트 컬러 */
+  color: #ffffff;
+  border-radius: 3px; /* Q&A 버튼과 동일한 직각에 가까운 모서리 */
+  border: none;
+  font-size: 14px;
+  font-weight: 500; /* Q&A 버튼과 동일한 폰트 굵기 */
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+
+  &:hover {
+    opacity: 0.85; /* 호버 시 살짝 투명해지는 깔끔한 효과 */
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 8px 14px;
+    font-size: 13px;
   }
 `;
 
@@ -369,7 +421,7 @@ const TdTitle = styled.td`
   vertical-align: middle;
   color: ${({ theme }) => theme.colors.gray[700]};
   cursor: pointer;
-  max-width: 300px; 
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -379,12 +431,11 @@ const TdTitle = styled.td`
     display: block;
     width: 100%;
     max-width: 100%;
-    order: 3; 
+    order: 3;
     padding: 8px 0;
     font-size: 15px;
     font-weight: 500;
-    white-space: normal; 
-  }
+    white-space: normal;
   }
 `;
 

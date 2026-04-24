@@ -48,6 +48,8 @@ import ChatbotContainer from './components/Chatbot/ChatbotContainer';
 import ComingSoon from './pages/ComingSoon';
 import PaymentCallback from './pages/PaymentCallback';
 import ScrollToTop from './components/common/ScrollToTop';
+import SellerChatPage from './pages/SellerChatPage';
+import BuyerChatPage from './components/Mypage/BuyerChatPage';
 
 function App() {
   return (
@@ -110,6 +112,7 @@ function App() {
               <Route path="orderList" element={<OrderList />} />
               <Route path="reviewList" element={<ReviewList />} />
               <Route path="inquiryList" element={<InquiryList />} />
+              <Route path="chat" element={<SellerChatPage />} />
               <Route
                 path="refundList/:orderItemId"
                 element={<RefundDetail />}
@@ -129,6 +132,8 @@ function App() {
             />
             <Route path="/brands" element={<ComingSoon title="브랜드" />} />
             <Route path="/events" element={<ComingSoon title="이벤트" />} />
+            <Route path="/chat" element={<BuyerChatPage />} />
+            <Route path="/chat/:roomId" element={<BuyerChatPage />} />
             <Route path="/*" element={<NotFoundPage />} />
           </Routes>
         </ThemeProvider>
