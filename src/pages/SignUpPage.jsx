@@ -107,10 +107,6 @@ const SignupPage = () => {
   const [emailCountdown, setEmailCountdown] = useState(0);
   const [emailTimerActive, setEmailTimerActive] = useState(false);
 
-  const handleBackToMain = () => {
-    navigate('/login');
-  };
-
   // 아이디 중복 검사 (응답값 false -> 중복X)
   const checkId = async () => {
     try {

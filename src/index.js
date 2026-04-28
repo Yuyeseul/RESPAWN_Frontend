@@ -5,6 +5,13 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 
+if (process.env.NODE_ENV === 'production') {
+  console.log = function no_console() {};
+  console.warn = function no_console() {};
+  console.info = function no_console() {};
+  // console.error = function no_console() {}; // error는 심각한 오류 확인을 위해 남겨두는 것을 권장합니다.
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

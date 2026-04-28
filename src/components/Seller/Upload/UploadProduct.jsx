@@ -222,7 +222,6 @@ function UploadProduct() {
   return (
     <Container>
       <PageLayout>
-        {/* 주의사항 박스를 화면 상단 전체 넓이로 띄움 */}
         <NoticeBoxWrapper>
           <NoticeBox />
         </NoticeBoxWrapper>
