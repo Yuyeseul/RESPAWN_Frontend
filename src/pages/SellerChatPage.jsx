@@ -35,7 +35,6 @@ const SellerChatPage = () => {
     fetchRooms();
   }, [user, navigate]);
 
-  // ⭐️ 방 클릭 시 즉시 안 읽은 숫자 0으로 업데이트
   const handleRoomClick = (roomId) => {
     setSelectedRoomId(roomId);
     setRooms((prevRooms) =>
@@ -47,7 +46,6 @@ const SellerChatPage = () => {
 
   return (
     <PageContainer>
-      {/* 왼쪽: 구매자 문의 목록 */}
       <Sidebar>
         <SidebarHeader>
           <h3>고객 문의 관리</h3>
@@ -62,7 +60,6 @@ const SellerChatPage = () => {
                 $active={selectedRoomId === room.id}
                 onClick={() => handleRoomClick(room.id)}
               >
-                {/* ⭐️ 왼쪽 정보 영역을 RoomContent로 묶음 */}
                 <RoomContent>
                   <ProfileCircle>
                     {room.buyerId ? room.buyerId.charAt(0).toUpperCase() : 'B'}
@@ -75,7 +72,6 @@ const SellerChatPage = () => {
                   </RoomInfo>
                 </RoomContent>
 
-                {/* ⭐️ 오른쪽 읽지 않은 메시지 뱃지 */}
                 {room.unreadCount > 0 && (
                   <UnreadBadge>
                     {room.unreadCount > 99 ? '99+' : room.unreadCount}
@@ -87,7 +83,6 @@ const SellerChatPage = () => {
         </RoomList>
       </Sidebar>
 
-      {/* 오른쪽: 채팅 내용 */}
       <ChatContainer>
         {selectedRoomId ? (
           <ChatRoom
@@ -173,7 +168,7 @@ const RoomList = styled.div`
 const RoomItem = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between; /* ⭐️ 뱃지를 오른쪽 끝으로 밀어내기 위해 추가 */
+  justify-content: space-between;
   padding: 15px 20px;
   cursor: pointer;
   transition: background 0.2s;
@@ -194,7 +189,6 @@ const RoomItem = styled.div`
   }
 `;
 
-// ⭐️ 왼쪽 요소들(프로필, 이름)을 묶어주는 컨테이너 추가
 const RoomContent = styled.div`
   display: flex;
   align-items: center;
@@ -244,7 +238,6 @@ const RoomDate = styled.span`
   margin-top: 4px;
 `;
 
-// ⭐️ 읽지 않은 메시지 뱃지 스타일 추가
 const UnreadBadge = styled.div`
   background-color: ${({ theme }) => theme.colors.red};
   color: ${({ theme }) => theme.colors.white};

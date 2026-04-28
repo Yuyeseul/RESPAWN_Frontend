@@ -125,7 +125,7 @@ const Sidebar = styled.div`
   background-color: ${({ theme }) => theme.colors.gray[100]};
 
   @media ${({ theme }) => theme.mobile} {
-    width: 80px; /* 모바일에서는 아이콘만 보이게 줄임 */
+    width: 80px;
   }
 `;
 
@@ -154,7 +154,7 @@ const RoomList = styled.div`
 const RoomItem = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between; /* 양쪽 끝으로 정렬 */
+  justify-content: space-between;
   padding: 15px 20px;
   cursor: pointer;
   transition: background 0.2s;
@@ -162,7 +162,7 @@ const RoomItem = styled.div`
     $active ? theme.colors.primary_light : 'transparent'};
   border-left: 4px solid
     ${({ $active, theme }) => ($active ? theme.colors.primary : 'transparent')};
-  position: relative; /* 모바일 뱃지 절대 위치 기준점 */
+  position: relative;
 
   &:hover {
     background-color: ${({ $active, theme }) =>
@@ -175,7 +175,6 @@ const RoomItem = styled.div`
   }
 `;
 
-// 기존 항목들을 왼쪽으로 묶기 위한 컨테이너
 const RoomContent = styled.div`
   display: flex;
   align-items: center;
@@ -206,7 +205,7 @@ const RoomInfo = styled.div`
   overflow: hidden;
 
   @media ${({ theme }) => theme.mobile} {
-    display: none; /* 모바일에서는 이름/아이디 숨김 */
+    display: none;
   }
 `;
 
@@ -243,7 +242,7 @@ const UnreadBadge = styled.div`
     height: 18px;
     font-size: 10px;
     border-radius: 9px;
-    border: 2px solid ${({ theme }) => theme.colors.gray[100]}; /* 배경과 구분되는 테두리 */
+    border: 2px solid ${({ theme }) => theme.colors.gray[100]};
   }
 `;
 
