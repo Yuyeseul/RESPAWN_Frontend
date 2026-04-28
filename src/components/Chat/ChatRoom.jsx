@@ -5,7 +5,7 @@ import axios from '../../api/axios';
 import styled from 'styled-components';
 import { useAuth } from '../../AuthContext';
 
-const ChatRoom = ({ roomId }) => {
+const ChatRoom = ({ roomId, onRead }) => {
   const { user } = useAuth();
   const [stompClient, setStompClient] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -21,7 +21,7 @@ const ChatRoom = ({ roomId }) => {
     } catch (error) {
       console.error('메시지 읽음 처리 실패:', error);
     }
-  }, [roomId]);
+  }, [roomId, onRead]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -165,7 +165,6 @@ const Container = styled.div`
   flex-direction: column;
   height: 100%;
   width: 100%;
-  /* ⭐️ 배경을 연한 프라이머리 컬러(네이비/블루 톤)로 변경하여 흰색 말풍선이 돋보이게 합니다 */
   background-color: ${({ theme }) => theme.colors.primary_light};
   overflow: hidden;
   box-shadow: none;
@@ -252,7 +251,6 @@ const Bubble = styled.div`
   border-radius: 16px;
   font-size: 15px;
   line-height: 1.5;
-
   word-break: break-all;
   overflow-wrap: break-word;
   white-space: pre-wrap;
@@ -261,8 +259,6 @@ const Bubble = styled.div`
     $isMine ? theme.colors.primary : theme.colors.white};
   color: ${({ $isMine, theme }) =>
     $isMine ? theme.colors.white : theme.colors.gray[800]};
-
-  /* ⭐️ 말풍선에 부드러운 섀도우를 추가하여 배경과 확실하게 분리해 줍니다 */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 
   border-top-right-radius: ${({ $isMine }) => ($isMine ? '2px' : '16px')};
