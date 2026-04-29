@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useAuth } from '../../AuthContext';
-// ⭐️ 이쁜 UI를 위해 아이콘 추가
 import { FaUsers, FaBullhorn, FaSignOutAlt } from 'react-icons/fa';
 
 function AdminLayout() {
@@ -94,14 +93,11 @@ function AdminLayout() {
 
 export default AdminLayout;
 
-// === ⭐️ 테마 연동 및 반응형 스타일 영역 ===
-
 const Global = createGlobalStyle`
   * { box-sizing: border-box; }
   html, body, #root { height: 100%; }
   body {
     margin: 0;
-    /* 테마의 배경색과 글자색 적용 */
     background: ${({ theme: { colors } }) => colors.gray[50]};
     color: ${({ theme: { colors } }) => colors.gray[900]};
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
@@ -123,7 +119,6 @@ const Sidebar = styled.aside`
   gap: 10px;
   z-index: 100;
 
-  /* ⭐️ 모바일: 하단 네비게이션(Bottom Nav) 바 형태로 변신 */
   @media ${({ theme }) => theme.mobile} {
     position: fixed;
     bottom: 0;
@@ -148,7 +143,7 @@ const Logo = styled.div`
   border-bottom: 1px dashed ${({ theme: { colors } }) => colors.gray[200]};
 
   @media ${({ theme }) => theme.mobile} {
-    display: none; /* 모바일 하단바에서는 로고 숨김 */
+    display: none;
   }
 `;
 
@@ -194,7 +189,6 @@ const StyledNavLink = styled(NavLink)`
     font-weight: 700;
   }
 
-  /* ⭐️ 모바일 하단 탭 버튼 스타일 */
   @media ${({ theme }) => theme.mobile} {
     flex: 1;
     flex-direction: column;
@@ -254,7 +248,7 @@ const Main = styled.main`
   overflow: hidden;
 
   @media ${({ theme }) => theme.mobile} {
-    padding-bottom: 64px; /* 하단 네비게이션 바 높이만큼 여백 확보 */
+    padding-bottom: 64px;
   }
 `;
 
@@ -284,7 +278,6 @@ const MobileLogo = styled.div`
   color: ${({ theme: { colors } }) => colors.secondary};
   font-size: 16px;
 
-  /* 모바일에서는 사이드바 로고가 사라지므로 헤더에 노출 */
   @media ${({ theme }) => theme.mobile} {
     display: block;
   }
@@ -329,7 +322,6 @@ const LogoutButton = styled.button`
     border-color: ${({ theme: { colors } }) => colors.danger_border};
   }
 
-  /* 모바일에서는 글자를 숨기고 아이콘만 예쁘게 표시 */
   @media ${({ theme }) => theme.mobile} {
     border: none;
     padding: 4px;

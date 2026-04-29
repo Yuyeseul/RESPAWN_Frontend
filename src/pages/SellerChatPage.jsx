@@ -24,8 +24,7 @@ const SellerChatPage = () => {
 
   useEffect(() => {
     if (!user || user.role !== 'ROLE_SELLER') {
-      alert('판매자만 접근할 수 있는 페이지입니다.');
-      navigate('/');
+      navigate('/', { replace: true });
       return;
     }
 
@@ -83,7 +82,6 @@ const SellerChatPage = () => {
     return () => {
       if (client) client.deactivate();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rooms.length]);
 
   const handleRoomClick = (roomId) => {
@@ -97,7 +95,6 @@ const SellerChatPage = () => {
 
   return (
     <PageContainer>
-      {/* ⭐️ 모바일 반응형 처리를 위해 $isSelected prop 전달 */}
       <Sidebar $isSelected={!!selectedRoomId}>
         <SidebarHeader>
           <h3>고객 문의 관리</h3>
@@ -137,13 +134,12 @@ const SellerChatPage = () => {
         </RoomList>
       </Sidebar>
 
-      {/* ⭐️ 모바일 반응형 처리를 위해 $isSelected prop 전달 */}
       <ChatContainer $isSelected={!!selectedRoomId}>
         {selectedRoomId ? (
           <ChatRoom
             key={selectedRoomId}
             roomId={selectedRoomId}
-            onBack={() => setSelectedRoomId(null)} // ⭐️ 모바일 뒤로가기 추가
+            onBack={() => setSelectedRoomId(null)}
             onRead={() => {
               setRooms((prev) =>
                 prev.map((r) =>
@@ -165,8 +161,6 @@ const SellerChatPage = () => {
 
 export default SellerChatPage;
 
-// --- Styled Components ---
-
 const PageContainer = styled.div`
   display: flex;
   width: 100%;
@@ -178,7 +172,6 @@ const PageContainer = styled.div`
   box-shadow: 0 4px 20px ${({ theme }) => theme.colors.overlay_line};
   overflow: hidden;
 
-  /* ⭐️ 구매자 페이지와 동일한 모바일 레이아웃 적용 */
   @media ${({ theme }) => theme.mobile} {
     height: calc(100vh - 120px);
     margin: 0;
@@ -195,7 +188,6 @@ const Sidebar = styled.div`
   flex-direction: column;
   background-color: ${({ theme }) => theme.colors.gray[100]};
 
-  /* ⭐️ 모바일에서는 방이 선택되었을 때 숨김 처리 */
   @media ${({ theme }) => theme.mobile} {
     width: 100%;
     display: ${({ $isSelected }) => ($isSelected ? 'none' : 'flex')};
@@ -278,7 +270,6 @@ const RoomInfo = styled.div`
   flex-direction: column;
   overflow: hidden;
 
-  /* ⭐️ 기존에 모바일에서 숨기던 것을 해제 (전체화면이므로 보여야 함) */
   @media ${({ theme }) => theme.mobile} {
     display: flex;
   }
@@ -337,7 +328,6 @@ const ChatContainer = styled.div`
   background-color: ${({ theme }) => theme.colors.white};
   min-height: 0;
 
-  /* ⭐️ 모바일에서는 방이 선택되었을 때만 표시 */
   @media ${({ theme }) => theme.mobile} {
     display: ${({ $isSelected }) => ($isSelected ? 'flex' : 'none')};
   }
