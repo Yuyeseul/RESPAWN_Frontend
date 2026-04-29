@@ -133,30 +133,19 @@ const NoticeRegister = () => {
           </Select>
         </Field>
 
-        <Field>
+        <Field style={{ marginBottom: 0 }}>
           <Label htmlFor="description">설명</Label>
-          <TextareaAutosize
+          <StyledTextarea
             id="description"
             name="description"
             value={form.description}
             onChange={onChange}
             minRows={10}
             placeholder="공지 내용을 입력하세요"
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid rgba(15,23,42,0.12)',
-              borderRadius: 8,
-              resize: 'none',
-              fontSize: '15px',
-            }}
           />
         </Field>
-
-        {/* 6. 옵션 및 파일 첨부 UI 제거 */}
       </Card>
 
-      {/* 확인 모달 (기존 코드 재사용) */}
       {confirm.open && (
         <Dim role="dialog" aria-modal="true">
           <Modal>
@@ -188,6 +177,12 @@ export default NoticeRegister;
 const Page = styled.div`
   display: grid;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 12px;
+  }
 `;
 
 const Header = styled.div`
@@ -195,62 +190,137 @@ const Header = styled.div`
   gap: 12px;
   align-items: center;
   justify-content: space-between;
+
   h2 {
     margin: 0;
+    color: ${({ theme }) => theme.colors.gray[900]};
+    font-size: 22px;
+
+    @media ${({ theme }) => theme.mobile} {
+      font-size: 18px;
+    }
   }
 `;
 
 const Card = styled.div`
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 12px;
-  padding: 16px;
+  padding: 24px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+  }
 `;
 
 const Field = styled.div`
   display: grid;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-bottom: 16px;
+  }
 `;
 
 const Label = styled.label`
-  color: #6b7280;
-  font-weight: 500;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  font-weight: 600;
   font-size: 14px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 13px;
+  }
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 12px 14px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
   outline: none;
   font-size: 15px;
+  box-sizing: border-box;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  transition: border-color 0.2s ease;
+
   &:focus {
-    border-color: #25324d;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.gray[400]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 10px 12px;
+    font-size: 14px;
   }
 `;
 
 const Select = styled.select`
   width: 100%;
-  padding: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 12px 14px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
   outline: none;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   font-size: 15px;
+  box-sizing: border-box;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  transition: border-color 0.2s ease;
+
   &:focus {
-    border-color: #25324d;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+`;
+
+// 기존 인라인 스타일을 styled-component로 분리하여 테마 및 반응형 적용
+const StyledTextarea = styled(TextareaAutosize)`
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 8px;
+  resize: none;
+  font-size: 15px;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.gray[400]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 10px 12px;
+    font-size: 14px;
   }
 `;
 
 const ErrorBox = styled.div`
-  color: #ef4444;
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  padding: 10px 12px;
+  color: ${({ theme }) => theme.colors.danger};
+  background: ${({ theme }) => theme.colors.danger_bg};
+  border: 1px solid ${({ theme }) => theme.colors.danger_border};
+  padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;
+  font-weight: 500;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
 `;
 
 const GhostBtn = styled.button`
@@ -258,18 +328,28 @@ const GhostBtn = styled.button`
   padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
-  background: #eef2f7;
-  color: #1f2937;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: ${({ theme }) => theme.colors.gray[100]};
+  color: ${({ theme }) => theme.colors.gray[800]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  font-size: 14px;
+  font-weight: 600;
   transition:
     background 0.12s ease,
     transform 0.06s ease;
-  &:hover {
-    background: #e5eaf1;
+  box-sizing: border-box;
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.gray[200]};
   }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 10px 16px;
+    font-size: 13px;
   }
 `;
 
@@ -278,45 +358,77 @@ const PrimaryBtn = styled.button`
   padding: 10px 16px;
   border-radius: 8px;
   cursor: pointer;
-  background: #25324d;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px ${({ theme }) => theme.colors.primary_alpha};
   transition:
     transform 0.06s ease,
-    box-shadow 0.12s ease;
-  &:hover {
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+  box-sizing: border-box;
+
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 50, 77, 0.22);
+    background: ${({ theme }) => theme.colors.primary_dark};
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 10px 16px;
+    font-size: 13px;
   }
 `;
 
 const Dim = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.28);
+  background: ${({ theme }) => theme.colors.overlay};
   display: grid;
   place-items: center;
   z-index: 50;
+  padding: 16px;
+  box-sizing: border-box;
 `;
 
 const Modal = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   border-radius: 12px;
-  width: min(480px, 92vw);
+  width: 100%;
+  max-width: 420px;
   padding: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+
   h3 {
     margin: 0;
+    color: ${({ theme }) => theme.colors.gray[900]};
+    font-size: 18px;
   }
+
   p {
-    margin: 8px 0 0 0;
-    color: #4b5563;
+    margin: 12px 0 0 0;
+    color: ${({ theme }) => theme.colors.gray[650]};
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px;
+
+    h3 {
+      font-size: 16px;
+    }
+    p {
+      font-size: 14px;
+    }
   }
 `;
 
