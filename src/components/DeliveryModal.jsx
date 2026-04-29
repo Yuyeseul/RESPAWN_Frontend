@@ -399,7 +399,7 @@ const CheckboxRow = styled.div`
 const SubmitButton = styled.button`
   width: 100%;
   margin-top: 32px;
-  background: ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.gray[800]};
   color: ${({ theme }) => theme.colors.white};
   padding: 14px;
   border-radius: 8px;

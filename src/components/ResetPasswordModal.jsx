@@ -211,74 +211,90 @@ function ResetPasswordModal({ onClose }) {
 
 export default ResetPasswordModal;
 
-// 스타일 재활용
 const Overlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: ${({ theme }) => theme.colors.overlay};
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
 `;
 
 const ModalBox = styled.div`
   position: relative;
-  background: #fff;
-  width: 460px;
+  background: ${({ theme }) => theme.colors.white};
+  width: 100%;
+  max-width: 460px;
   padding: 32px;
   border-radius: 10px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 24px 20px;
+  }
 `;
 
 const Header = styled.h2`
   font-size: 20px;
   margin-bottom: 24px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   padding-bottom: 12px;
+  color: ${({ theme }) => theme.colors.gray[800]};
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
+  width: 100%;
 
   label {
     font-size: 14px;
     margin-bottom: 6px;
+    color: ${({ theme }) => theme.colors.gray[700]};
   }
 
   input {
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
     border-radius: 6px;
     font-size: 14px;
     outline: none;
+    box-sizing: border-box;
+    color: ${({ theme }) => theme.colors.gray[700]};
+
     &:focus {
-      border-color: #888;
+      border-color: ${({ theme }) => theme.colors.gray[600]};
     }
   }
 `;
 
 const Field = styled.div`
   position: relative;
-  width: 400px;
+  width: 100%;
   margin-bottom: 16px;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 12px 40px 12px 12px;
-  border: none;
-  border-bottom: 1px solid #ccc;
+  border: none !important;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[400]} !important;
+  border-radius: 0 !important;
   font-size: 16px;
   background: transparent;
+  box-sizing: border-box;
 
   &:focus {
     outline: none;
+    border-bottom-color: ${({ theme }) => theme.colors.gray[550]} !important;
   }
 `;
 
@@ -290,17 +306,17 @@ const IconButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 1.1rem;
 
   &:hover {
-    color: rgb(105, 111, 148);
+    color: ${({ theme }) => theme.colors.gray[800]};
   }
 `;
 
 const ErrorMsg = styled.span`
   font-size: 12px;
-  color: red;
+  color: ${({ theme }) => theme.colors.danger};
 `;
 
 const ButtonWrapper = styled.div`
@@ -317,29 +333,38 @@ const Right = styled.div`
 
 const CancelButton = styled.button`
   padding: 10px 20px;
-  background-color: #aaa;
-  color: white;
-  border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[500]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[500]};
+
   &:hover {
-    background-color: #888;
+    background-color: ${({ theme }) => theme.colors.gray[100]};
   }
 `;
 
 const ConfirmButton = styled.button`
   padding: 10px 20px;
-  background-color: black;
-  color: white;
-  border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.black};
+  border: 1px solid ${({ theme }) => theme.colors.black};
+
   &:hover {
-    background-color: #333;
+    background-color: ${({ theme }) => theme.colors.gray[100]};
   }
+
   &:disabled {
-    background-color: #555;
+    color: ${({ theme }) => theme.colors.gray[400]};
+    border-color: ${({ theme }) => theme.colors.gray[300]};
     cursor: not-allowed;
+    background-color: ${({ theme }) => theme.colors.white};
   }
 `;
 
@@ -351,8 +376,9 @@ const CloseButton = styled.button`
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #888;
+  color: ${({ theme }) => theme.colors.gray[550]};
+
   &:hover {
-    color: #000;
+    color: ${({ theme }) => theme.colors.black};
   }
 `;

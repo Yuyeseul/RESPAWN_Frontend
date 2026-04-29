@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import NoticeBox from '../Upload/NoticeBox';
 import axios from '../../../api/axios';
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import TiptapEditor from '../Upload/TiptapEditor';
 import Select from 'react-select';
@@ -63,29 +63,37 @@ const categoryGroups = [
 ];
 
 // 드롭다운(react-select) 커스텀 디자인
-const customSelectStyles = {
+const customSelectStyles = (theme) => ({
   control: (provided, state) => ({
     ...provided,
     minHeight: '44px',
     borderRadius: '8px',
-    borderColor: state.isFocused ? '#555a82' : '#e2e8f0',
-    boxShadow: state.isFocused ? '0 0 0 3px rgba(85, 90, 130, 0.1)' : 'none',
+    // 포커스 시 테두리 색상을 primary로 변경
+    borderColor: state.isFocused
+      ? theme.colors.primary
+      : theme.colors.gray[300],
+    // 포커스 시 그림자(아웃라인)를 다른 Input과 동일하게 설정
+    boxShadow: state.isFocused
+      ? `0 0 0 3px ${theme.colors.primary_alpha}`
+      : 'none',
     '&:hover': {
-      borderColor: state.isFocused ? '#555a82' : '#cbd5e1',
+      borderColor: state.isFocused
+        ? theme.colors.primary
+        : theme.colors.gray[400],
     },
     cursor: 'pointer',
   }),
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? '#555a82'
+      ? theme.colors.primary
       : state.isFocused
-        ? '#f0f2f8'
-        : 'white',
-    color: state.isSelected ? 'white' : '#333',
+        ? theme.colors.primary_light
+        : theme.colors.white,
+    color: state.isSelected ? theme.colors.white : theme.colors.gray[800],
     cursor: 'pointer',
     '&:active': {
-      backgroundColor: '#555a82',
+      backgroundColor: theme.colors.primary,
     },
   }),
   menu: (provided) => ({
@@ -94,10 +102,11 @@ const customSelectStyles = {
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
     overflow: 'hidden',
   }),
-};
+});
 
 function UploadProduct() {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [item, setItem] = useState({
@@ -213,7 +222,6 @@ function UploadProduct() {
   return (
     <Container>
       <PageLayout>
-        {/* 주의사항 박스를 화면 상단 전체 넓이로 띄움 */}
         <NoticeBoxWrapper>
           <NoticeBox />
         </NoticeBoxWrapper>
@@ -311,7 +319,7 @@ function UploadProduct() {
                     <Label>배송 방식</Label>
                     <Select
                       name="deliveryType"
-                      styles={customSelectStyles}
+                      styles={customSelectStyles(theme)}
                       value={
                         item.deliveryType
                           ? {
@@ -343,7 +351,7 @@ function UploadProduct() {
                   <Label>카테고리</Label>
                   <Select
                     name="categoryName"
-                    styles={customSelectStyles}
+                    styles={customSelectStyles(theme)}
                     options={categoryOptions}
                     onChange={handleCategoryChange}
                     value={selectedCategory}
@@ -386,11 +394,9 @@ function UploadProduct() {
 
 export default UploadProduct;
 
-// --- 전면 개편된 스타일 영역 ---
-
 const Container = styled.div`
   width: 100%;
-  max-width: 1300px;
+  max-width: ${({ theme }) => theme.maxWidth};
   margin: 0 auto;
   padding: 40px 20px;
   box-sizing: border-box;
@@ -401,14 +407,14 @@ const Container = styled.div`
     system-ui,
     sans-serif;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 20px 10px;
   }
 `;
 
 const PageLayout = styled.div`
   display: flex;
-  flex-direction: column; /* 세로 정렬 */
+  flex-direction: column;
   gap: 30px;
   align-items: center;
   width: 100%;
@@ -426,7 +432,7 @@ const NoticeBoxWrapper = styled.div`
     box-sizing: border-box !important;
     margin: 0 !important;
 
-    @media (max-width: 768px) {
+    @media ${({ theme }) => theme.mobile} {
       padding: 16px !important;
     }
   }
@@ -441,8 +447,7 @@ const NoticeBoxWrapper = styled.div`
     gap: 12px 24px !important; /* 세로 간격 12px, 가로 간격 24px */
     margin-bottom: 0 !important;
 
-    /* 화면이 좁은 모바일(600px 이하)에서는 다시 1칸(4줄)으로 변경 */
-    @media (max-width: 600px) {
+    @media ${({ theme }) => theme.mobile} {
       grid-template-columns: 1fr !important;
     }
   }
@@ -457,14 +462,14 @@ const NoticeBoxWrapper = styled.div`
 
 const ContentWrapper = styled.div`
   width: 100%;
-  background: #ffffff;
+  background: ${({ theme }) => theme.colors.white};
   padding: 40px 50px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-  border: 1px solid #f0f0f0;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   box-sizing: border-box;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 24px;
     border-radius: 16px;
   }
@@ -477,13 +482,13 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 26px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: ${({ theme }) => theme.colors.gray[900]};
   margin: 0 0 8px 0;
 `;
 
 const Subtitle = styled.p`
   font-size: 14px;
-  color: #888;
+  color: ${({ theme }) => theme.colors.gray[550]};
   margin: 0;
 `;
 
@@ -498,8 +503,7 @@ const FormTopRow = styled.div`
   display: flex;
   gap: 40px;
 
-  /* 1100px 분기점에서 세로로 분리 */
-  @media (max-width: 1100px) {
+  @media ${({ theme }) => theme.tablet} {
     flex-direction: column;
     gap: 32px;
   }
@@ -523,19 +527,19 @@ const ImageBox = styled.label`
   align-items: center;
   width: 280px;
   aspect-ratio: 1 / 1;
-  background-color: #f8fafc;
-  border: 2px dashed #cbd5e1;
+  background-color: ${({ theme }) => theme.colors.gray[50]};
+  border: 2px dashed ${({ theme }) => theme.colors.gray[300]};
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: #f1f5f9;
-    border-color: #555a82;
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 
-  @media (max-width: 1100px) {
+  @media ${({ theme }) => theme.tablet} {
     width: 100%;
     max-width: 320px;
     margin: 0 auto;
@@ -551,7 +555,7 @@ const ImagePlaceholder = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: #94a3b8;
+  color: ${({ theme }) => theme.colors.gray[500]};
   font-size: 14px;
   font-weight: 500;
 `;
@@ -580,7 +584,7 @@ const InputGroupRow = styled.div`
   gap: 20px;
   width: 100%;
 
-  @media (max-width: 650px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     gap: 20px;
   }
@@ -597,7 +601,7 @@ const InputGroup = styled.div`
 const Label = styled.label`
   font-weight: 600;
   font-size: 13px;
-  color: #475569;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
 /* 단위(원, 개)가 입력창 밖으로 밀려나지 않도록 감싸는 Wrapper */
@@ -611,21 +615,21 @@ const InputWrapper = styled.div`
 const Input = styled.input`
   width: 100%;
   padding: 12px ${(props) => (props.$hasUnit ? '36px' : '14px')} 12px 14px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
   font-size: 14px;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[900]};
   transition: all 0.2s ease;
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.white};
   box-sizing: border-box;
 
   &::placeholder {
-    color: #cbd5e1;
+    color: ${({ theme }) => theme.colors.gray[400]};
   }
 
   &:focus {
     outline: none;
-    border-color: #555a82;
+    border-color: ${({ theme }) => theme.colors.primary};
     box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
   }
 
@@ -646,13 +650,13 @@ const UnitAbsolute = styled.span`
   right: 14px;
   font-size: 14px;
   font-weight: 500;
-  color: #64748b;
+  color: ${({ theme }) => theme.colors.gray[600]};
   pointer-events: none;
 `;
 
 const Divider = styled.hr`
   border: none;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   margin: 0;
   width: 100%;
 `;
@@ -665,17 +669,16 @@ const EditorBox = styled.div`
 `;
 
 const TiptapWrapper = styled.div`
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
   overflow: hidden;
   width: 100%;
 
   &:focus-within {
-    border-color: #555a82;
+    border-color: ${({ theme }) => theme.colors.primary};
     box-shadow: 0 0 0 3px rgba(85, 90, 130, 0.1);
   }
 
-  /* 🔥 TiptapEditor 내부의 여백과 테두리를 완벽하게 없앰 */
   & > div {
     width: 100% !important;
     max-width: 100% !important;
@@ -698,7 +701,7 @@ const BottomActions = styled.div`
   align-items: center;
   padding-top: 10px;
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column-reverse;
     gap: 16px;
 
@@ -719,31 +722,31 @@ const ButtonBase = styled.button`
   justify-content: center;
   align-items: center;
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;
 
 const CancelButton = styled(ButtonBase)`
-  background: white;
-  border: 1.5px solid #cbd5e1;
-  color: #475569;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  color: ${({ theme }) => theme.colors.gray[700]};
 
   &:hover {
-    background-color: #f8fafc;
-    border-color: #94a3b8;
-    color: #1e293b;
+    background-color: ${({ theme }) => theme.colors.gray[50]};
+    border-color: ${({ theme }) => theme.colors.gray[500]};
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 `;
 
 const SubmitButton = styled(ButtonBase)`
-  background-color: #555a82;
-  border: 1.5px solid #555a82;
-  color: white;
+  background-color: ${({ theme }) => theme.colors.primary};
+  border: 1.5px solid ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
 
   &:hover {
-    background-color: #3e4263;
-    border-color: #3e4263;
+    background-color: ${({ theme }) => theme.colors.primary_dark};
+    border-color: ${({ theme }) => theme.colors.primary_dark};
     box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
   }
 `;
@@ -764,7 +767,7 @@ const ModalBackdrop = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.white};
   padding: 32px 24px 24px;
   border-radius: 16px;
   box-shadow:
@@ -791,7 +794,7 @@ const ModalMessage = styled.p`
   margin: 0 0 24px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  color: ${({ theme }) => theme.colors.gray[900]};
   line-height: 1.5;
 `;
 
@@ -802,23 +805,23 @@ const ModalButtonContainer = styled.div`
 
 const ModalCancelBtn = styled(ButtonBase)`
   flex: 1;
-  background: #f1f5f9;
+  background: ${({ theme }) => theme.colors.gray[100]};
   border: none;
-  color: #475569;
+  color: ${({ theme }) => theme.colors.gray[700]};
 
   &:hover {
-    background: #e2e8f0;
-    color: #1e293b;
+    background: ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 `;
 
 const ModalConfirmBtn = styled(ButtonBase)`
   flex: 1;
-  background: #555a82;
+  background: ${({ theme }) => theme.colors.primary};
   border: none;
-  color: white;
+  color: ${({ theme }) => theme.colors.white};
 
   &:hover {
-    background: #3e4263;
+    background: ${({ theme }) => theme.colors.primary_dark};
   }
 `;
