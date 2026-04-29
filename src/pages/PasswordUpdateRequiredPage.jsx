@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from '../api/axios';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
@@ -21,10 +21,6 @@ const initialConfirmPasswordState = {
 
 const PasswordUpdateRequiredPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const token = searchParams.get('token');
-
   const [password, setPassword] = useState(initialPasswordState);
   const [confirmPassword, setConfirmPassword] = useState(
     initialConfirmPasswordState
@@ -85,15 +81,10 @@ const PasswordUpdateRequiredPage = () => {
       alert('비밀번호가 일치하지 않습니다.');
       return;
     }
-    if (!token) {
-      alert('유효하지 않은 요청입니다.');
-      return;
-    }
 
     try {
       setLoading(true);
-      await axios.post('/reset-password', {
-        token,
+      await axios.post('/change-password', {
         newPassword: password.password,
       });
       alert('비밀번호가 성공적으로 변경되었습니다.');
