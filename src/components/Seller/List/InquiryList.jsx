@@ -308,7 +308,7 @@ const Container = styled.div`
     system-ui,
     sans-serif;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 20px auto;
     padding: 0 10px;
   }
@@ -320,7 +320,7 @@ const Header = styled.div`
   margin-bottom: 20px;
   align-items: center;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
@@ -335,7 +335,7 @@ const Title = styled.h2`
 `;
 
 const SelectorWrapper = styled.div`
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     select {
       width: 100%;
@@ -345,7 +345,7 @@ const SelectorWrapper = styled.div`
 
 const DesktopTableWrapper = styled.div`
   width: 100%;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: none;
   }
 `;
@@ -489,7 +489,7 @@ const PaginationWrapper = styled.div`
 
 const MobileListWrapper = styled.div`
   display: none;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: flex;
     flex-direction: column;
     gap: 12px;

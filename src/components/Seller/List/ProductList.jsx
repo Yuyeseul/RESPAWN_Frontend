@@ -302,7 +302,7 @@ const Container = styled.div`
   margin: 60px auto;
   padding: 0 20px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 20px auto;
     padding: 0 10px;
   }
@@ -334,7 +334,7 @@ const AddButton = styled.button`
   &:hover {
     background: ${({ theme: { colors } }) => colors.primary_dark};
   }
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 6px 12px;
     font-size: 14px;
   }
@@ -350,7 +350,7 @@ const FilterBar = styled.div`
   border-radius: 8px;
   gap: 10px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     align-items: stretch;
   }
@@ -358,7 +358,7 @@ const FilterBar = styled.div`
 
 const SearchContainer = styled.div`
   display: flex;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;
@@ -374,7 +374,7 @@ const SearchInput = styled.input`
   &:focus {
     border-color: ${({ theme: { colors } }) => colors.primary};
   }
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex: 1;
     width: auto;
   }
@@ -397,7 +397,7 @@ const SearchButton = styled.button`
 const DropdownContainer = styled.div`
   position: relative;
   width: 150px;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;
@@ -474,7 +474,7 @@ const DropdownItem = styled.li`
 
 const DesktopTableWrapper = styled.div`
   width: 100%;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: none;
   }
 `;
@@ -558,7 +558,7 @@ const Message = styled.div`
 
 const MobileListWrapper = styled.div`
   display: none;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: flex;
     flex-direction: column;
     gap: 12px;

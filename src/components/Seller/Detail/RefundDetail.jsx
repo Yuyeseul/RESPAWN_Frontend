@@ -216,7 +216,7 @@ const Wrapper = styled.div`
     system-ui,
     sans-serif;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 20px auto 40px;
     padding: 0 15px;
   }
@@ -266,7 +266,7 @@ const Card = styled.section`
   padding: 32px;
   margin-bottom: 24px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 20px;
     border-radius: 12px;
   }
@@ -296,7 +296,7 @@ const GridWrapper = styled.div`
   grid-template-columns: ${(props) => `repeat(${props.$columns || 1}, 1fr)`};
   gap: 16px 24px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     grid-template-columns: 1fr;
     gap: 16px;
   }
@@ -310,7 +310,7 @@ const InfoItem = styled.div`
   border-radius: 10px;
   overflow: hidden;
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     border: none;
     border-bottom: 1.5px solid ${({ theme }) => theme.colors.gray[200]};
@@ -331,7 +331,7 @@ const Label = styled.div`
   align-items: center;
   border-right: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     background: transparent;
     border-right: none;
@@ -356,7 +356,7 @@ const Value = styled.div`
     color: ${({ theme }) => theme.colors.gray[900]};
   }
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 0;
     font-size: 15px;
   }
@@ -382,7 +382,7 @@ const ProductBox = styled.div`
     flex-shrink: 0;
   }
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     gap: 16px;
     padding: 16px;
     img {
@@ -405,7 +405,7 @@ const ProductName = styled.div`
   word-break: keep-all;
   line-height: 1.4;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 15px;
   }
 `;
@@ -456,7 +456,7 @@ const DetailBox = styled.div`
   color: ${({ theme }) => theme.colors.gray[700]};
   line-height: 1.6;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 16px;
     font-size: 14px;
     min-height: 80px;
@@ -469,7 +469,7 @@ const ButtonWrapper = styled.div`
   gap: 12px;
   margin-top: 16px;
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column-reverse;
   }
 `;
@@ -485,7 +485,7 @@ const ButtonBase = styled.button`
   justify-content: center;
   align-items: center;
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;

@@ -198,7 +198,7 @@ const Container = styled.div`
     system-ui,
     sans-serif;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 20px auto;
     padding: 0 10px;
   }
@@ -210,7 +210,7 @@ const Header = styled.div`
   align-items: center;
   margin-bottom: 24px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
@@ -227,7 +227,7 @@ const Title = styled.h2`
 const TabMenu = styled.div`
   display: flex;
   gap: 10px;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;
@@ -256,7 +256,7 @@ const TabButton = styled.button`
       $active ? colors.white : colors.gray[900]};
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex: 1;
     padding: 12px 0;
   }
@@ -264,7 +264,7 @@ const TabButton = styled.button`
 
 const DesktopTableWrapper = styled.div`
   width: 100%;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: none;
   }
 `;
@@ -319,7 +319,7 @@ const PaginationWrapper = styled.div`
 
 const MobileListWrapper = styled.div`
   display: none;
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: flex;
     flex-direction: column;
     gap: 12px;
