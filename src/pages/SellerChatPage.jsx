@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import axios from '../api/axios'; // 경로에 맞게 수정해주세요
+import axios from '../api/axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import ChatRoom from '../components/Chat/ChatRoom'; // ChatRoom 컴포넌트 경로에 맞게 수정해주세요
+import ChatRoom from '../components/Chat/ChatRoom';
 import { useAuth } from '../AuthContext';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 const SellerChatPage = () => {
   const { user } = useAuth();
@@ -14,8 +16,13 @@ const SellerChatPage = () => {
   const [selectedRoomId, setSelectedRoomId] = useState(initialRoomId);
   const [rooms, setRooms] = useState([]);
 
+  // ⭐️ 현재 보고 있는 방을 추적하는 Ref (백그라운드 리스너용)
+  const selectedRoomIdRef = useRef(selectedRoomId);
   useEffect(() => {
-    // 판매자가 아니면 접근 차단
+    selectedRoomIdRef.current = selectedRoomId;
+  }, [selectedRoomId]);
+
+  useEffect(() => {
     if (!user || user.role !== 'ROLE_SELLER') {
       alert('판매자만 접근할 수 있는 페이지입니다.');
       navigate('/');
@@ -24,7 +31,7 @@ const SellerChatPage = () => {
 
     const fetchRooms = async () => {
       try {
-        const response = await axios.get('/chat/rooms'); // 판매자 채팅방 목록 API
+        const response = await axios.get('/chat/rooms');
         if (Array.isArray(response.data)) {
           setRooms(response.data);
         }
@@ -34,6 +41,50 @@ const SellerChatPage = () => {
     };
     fetchRooms();
   }, [user, navigate]);
+
+  // ⭐️ 사이드바 알림 배지(숫자) 업데이트용 백그라운드 웹소켓
+  useEffect(() => {
+    if (rooms.length === 0) return;
+
+    const socketUrl = `${process.env.REACT_APP_API_URL}/ws/chat`;
+    const socket = new SockJS(socketUrl, null, {
+      transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+    });
+
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => console.log('Seller Sidebar:', str),
+      onConnect: () => {
+        rooms.forEach((room) => {
+          client.subscribe(`/topic/chat/${room.id}`, (message) => {
+            const receivedMessage = JSON.parse(message.body);
+
+            // 다른 방에서 새로운 CHAT 메시지가 왔을 때만 숫자 증가
+            if (
+              receivedMessage.type === 'CHAT' &&
+              receivedMessage.senderId !== user?.username &&
+              selectedRoomIdRef.current !== room.id
+            ) {
+              setRooms((prevRooms) =>
+                prevRooms.map((r) =>
+                  r.id === room.id
+                    ? { ...r, unreadCount: (r.unreadCount || 0) + 1 }
+                    : r
+                )
+              );
+            }
+          });
+        });
+      },
+    });
+
+    client.activate();
+
+    return () => {
+      if (client) client.deactivate();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rooms.length]);
 
   const handleRoomClick = (roomId) => {
     setSelectedRoomId(roomId);
@@ -46,7 +97,8 @@ const SellerChatPage = () => {
 
   return (
     <PageContainer>
-      <Sidebar>
+      {/* ⭐️ 모바일 반응형 처리를 위해 $isSelected prop 전달 */}
+      <Sidebar $isSelected={!!selectedRoomId}>
         <SidebarHeader>
           <h3>고객 문의 관리</h3>
         </SidebarHeader>
@@ -62,13 +114,15 @@ const SellerChatPage = () => {
               >
                 <RoomContent>
                   <ProfileCircle>
-                    {room.buyerId ? room.buyerId.charAt(0).toUpperCase() : 'B'}
+                    {room.buyerUsername
+                      ? room.buyerUsername.charAt(0).toUpperCase()
+                      : 'B'}
                   </ProfileCircle>
                   <RoomInfo>
-                    <BuyerName>{room.buyerId} (구매자)</BuyerName>
-                    <RoomDate>
-                      개설일: {new Date(room.createdAt).toLocaleDateString()}
-                    </RoomDate>
+                    <BuyerName>{room.buyerUsername}</BuyerName>
+                    <ItemName>
+                      {room.itemName ? `상품: ${room.itemName}` : '일반 문의'}
+                    </ItemName>
                   </RoomInfo>
                 </RoomContent>
 
@@ -83,11 +137,13 @@ const SellerChatPage = () => {
         </RoomList>
       </Sidebar>
 
-      <ChatContainer>
+      {/* ⭐️ 모바일 반응형 처리를 위해 $isSelected prop 전달 */}
+      <ChatContainer $isSelected={!!selectedRoomId}>
         {selectedRoomId ? (
           <ChatRoom
             key={selectedRoomId}
             roomId={selectedRoomId}
+            onBack={() => setSelectedRoomId(null)} // ⭐️ 모바일 뒤로가기 추가
             onRead={() => {
               setRooms((prev) =>
                 prev.map((r) =>
@@ -122,10 +178,13 @@ const PageContainer = styled.div`
   box-shadow: 0 4px 20px ${({ theme }) => theme.colors.overlay_line};
   overflow: hidden;
 
+  /* ⭐️ 구매자 페이지와 동일한 모바일 레이아웃 적용 */
   @media ${({ theme }) => theme.mobile} {
-    height: 90vh;
+    height: calc(100vh - 120px);
     margin: 0;
+    width: 100%;
     border-radius: 0;
+    box-shadow: none;
   }
 `;
 
@@ -136,8 +195,10 @@ const Sidebar = styled.div`
   flex-direction: column;
   background-color: ${({ theme }) => theme.colors.gray[100]};
 
+  /* ⭐️ 모바일에서는 방이 선택되었을 때 숨김 처리 */
   @media ${({ theme }) => theme.mobile} {
-    width: 80px;
+    width: 100%;
+    display: ${({ $isSelected }) => ($isSelected ? 'none' : 'flex')};
   }
 `;
 
@@ -151,12 +212,11 @@ const SidebarHeader = styled.div`
   }
 
   @media ${({ theme }) => theme.mobile} {
+    padding: 16px 20px;
     h3 {
-      font-size: 13px;
-      text-align: center;
-      word-break: keep-all;
+      font-size: 16px;
+      text-align: left;
     }
-    padding: 15px 5px;
   }
 `;
 
@@ -176,7 +236,6 @@ const RoomItem = styled.div`
     $active ? theme.colors.primary_light : 'transparent'};
   border-left: 4px solid
     ${({ $active, theme }) => ($active ? theme.colors.primary : 'transparent')};
-  position: relative;
 
   &:hover {
     background-color: ${({ $active, theme }) =>
@@ -184,8 +243,7 @@ const RoomItem = styled.div`
   }
 
   @media ${({ theme }) => theme.mobile} {
-    padding: 15px 10px;
-    justify-content: center;
+    padding: 16px 20px;
   }
 `;
 
@@ -209,7 +267,9 @@ const ProfileCircle = styled.div`
   flex-shrink: 0;
 
   @media ${({ theme }) => theme.mobile} {
-    margin-right: 0;
+    width: 42px;
+    height: 42px;
+    margin-right: 14px;
   }
 `;
 
@@ -218,8 +278,9 @@ const RoomInfo = styled.div`
   flex-direction: column;
   overflow: hidden;
 
+  /* ⭐️ 기존에 모바일에서 숨기던 것을 해제 (전체화면이므로 보여야 함) */
   @media ${({ theme }) => theme.mobile} {
-    display: none;
+    display: flex;
   }
 `;
 
@@ -230,12 +291,20 @@ const BuyerName = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
+  }
 `;
 
-const RoomDate = styled.span`
+const ItemName = styled.span`
   font-size: 12px;
   color: ${({ theme }) => theme.colors.gray[600]};
   margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 `;
 
 const UnreadBadge = styled.div`
@@ -254,15 +323,10 @@ const UnreadBadge = styled.div`
   flex-shrink: 0;
 
   @media ${({ theme }) => theme.mobile} {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    padding: 0 4px;
-    min-width: 18px;
-    height: 18px;
-    font-size: 10px;
-    border-radius: 9px;
-    border: 2px solid ${({ theme }) => theme.colors.gray[100]};
+    font-size: 11px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 10px;
   }
 `;
 
@@ -271,6 +335,12 @@ const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.colors.white};
+  min-height: 0;
+
+  /* ⭐️ 모바일에서는 방이 선택되었을 때만 표시 */
+  @media ${({ theme }) => theme.mobile} {
+    display: ${({ $isSelected }) => ($isSelected ? 'flex' : 'none')};
+  }
 `;
 
 const WelcomeScreen = styled.div`
@@ -292,6 +362,11 @@ const WelcomeScreen = styled.div`
   @media ${({ theme }) => theme.mobile} {
     p {
       font-size: 15px;
+    }
+    .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
     }
   }
 `;

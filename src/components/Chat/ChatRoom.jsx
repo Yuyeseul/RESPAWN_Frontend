@@ -5,23 +5,39 @@ import axios from '../../api/axios';
 import styled from 'styled-components';
 import { useAuth } from '../../AuthContext';
 
-const ChatRoom = ({ roomId, onRead }) => {
+const ChatRoom = ({ roomId, onRead, onBack }) => {
   const { user } = useAuth();
   const [stompClient, setStompClient] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
 
-  const scrollRef = useRef();
+  const chatWindowRef = useRef(null);
   const socketUrl = `${process.env.REACT_APP_API_URL}/ws/chat`;
+
+  const scrollToBottom = () => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  };
 
   const markMessagesAsRead = useCallback(async () => {
     try {
       await axios.patch(`/chat/room/${roomId}/read`);
       if (onRead) onRead();
+
+      if (stompClient && stompClient.connected) {
+        stompClient.publish({
+          destination: `/app/chat/send/${roomId}`,
+          body: JSON.stringify({
+            type: 'READ',
+            senderId: user?.username,
+          }),
+        });
+      }
     } catch (error) {
       console.error('메시지 읽음 처리 실패:', error);
     }
-  }, [roomId, onRead]);
+  }, [roomId, onRead, stompClient, user?.username]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -35,7 +51,8 @@ const ChatRoom = ({ roomId, onRead }) => {
       }
     };
     fetchHistory();
-  }, [roomId, markMessagesAsRead]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -48,12 +65,17 @@ const ChatRoom = ({ roomId, onRead }) => {
       onConnect: () => {
         client.subscribe(`/topic/chat/${roomId}`, (message) => {
           const receivedMessage = JSON.parse(message.body);
+
           if (receivedMessage.type === 'READ') {
-            setMessages((prevMessages) =>
-              prevMessages.map((msg) =>
-                msg.senderId === user?.username ? { ...msg, isRead: true } : msg
-              )
-            );
+            if (receivedMessage.senderId !== user?.username) {
+              setMessages((prevMessages) =>
+                prevMessages.map((msg) =>
+                  msg.senderId === user?.username
+                    ? { ...msg, isRead: true, read: true }
+                    : msg
+                )
+              );
+            }
           } else {
             setMessages((prevMessages) => [...prevMessages, receivedMessage]);
             if (receivedMessage.senderId !== user?.username) {
@@ -67,6 +89,13 @@ const ChatRoom = ({ roomId, onRead }) => {
           body: JSON.stringify({
             content: '님이 입장하셨습니다.',
             type: 'JOIN',
+          }),
+        });
+        client.publish({
+          destination: `/app/chat/send/${roomId}`,
+          body: JSON.stringify({
+            type: 'READ',
+            senderId: user?.username,
           }),
         });
       },
@@ -83,12 +112,11 @@ const ChatRoom = ({ roomId, onRead }) => {
     return () => {
       if (client) client.deactivate();
     };
-  }, [socketUrl, roomId, user?.username, markMessagesAsRead]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socketUrl, roomId, user?.username]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    scrollToBottom();
   }, [messages]);
 
   const sendMessage = (e) => {
@@ -112,15 +140,34 @@ const ChatRoom = ({ roomId, onRead }) => {
   return (
     <Container>
       <Header>
+        <MobileBackButton onClick={onBack} type="button">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </MobileBackButton>
         <h2>Respawn 톡톡</h2>
       </Header>
 
-      <ChatWindow ref={scrollRef}>
+      <ChatWindow ref={chatWindowRef}>
         {messages.map((msg, index) => {
-          const isJoinMessage =
-            msg.type === 'JOIN' ||
-            (msg.message && msg.message.includes('님이 입장하셨습니다.'));
-          if (isJoinMessage) return null;
+          if (msg.type === 'READ' || msg.type === 'JOIN') return null;
+          const text = msg.message || msg.content;
+          if (
+            !text ||
+            text.trim() === '' ||
+            text.includes('님이 입장하셨습니다.')
+          ) {
+            return null;
+          }
           const isMine = msg.senderId === user?.username;
           const isUnread = msg.isRead === false || msg.read === false;
 
@@ -135,7 +182,7 @@ const ChatRoom = ({ roomId, onRead }) => {
                 {!isMine && <SenderName>{msg.senderId}</SenderName>}
                 <MessageWrapper>
                   {isMine && isUnread && <UnreadCount>1</UnreadCount>}
-                  <Bubble $isMine={isMine}>{msg.message}</Bubble>
+                  <Bubble $isMine={isMine}>{text}</Bubble>
                 </MessageWrapper>
               </MessageContent>
             </MessageRow>
@@ -163,7 +210,8 @@ export default ChatRoom;
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   background-color: ${({ theme }) => theme.colors.primary_light};
   overflow: hidden;
@@ -174,19 +222,53 @@ const Container = styled.div`
 `;
 
 const Header = styled.div`
+  height: 64px;
+  min-height: 64px;
+  box-sizing: border-box;
   background-color: ${({ theme }) => theme.colors.white};
-  padding: 16px 20px;
+  padding: 0 20px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+
   h2 {
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: bold;
     margin: 0;
     color: ${({ theme }) => theme.colors.gray[800]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0 16px;
+  }
+`;
+
+const MobileBackButton = styled.button`
+  display: none;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
   }
 `;
 
 const ChatWindow = styled.div`
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
   padding: 24px 20px;
   display: flex;
   flex-direction: column;
@@ -198,6 +280,11 @@ const ChatWindow = styled.div`
   &::-webkit-scrollbar-thumb {
     background: ${({ theme }) => theme.colors.gray[400]};
     border-radius: 3px;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px 14px;
+    gap: 12px;
   }
 `;
 
@@ -219,6 +306,12 @@ const SenderPhoto = styled.div`
   justify-content: center;
   font-weight: bold;
   font-size: 14px;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
 `;
 
 const MessageContent = styled.div`
@@ -237,6 +330,11 @@ const MessageWrapper = styled.div`
   display: flex;
   align-items: flex-end;
   gap: 5px;
+  max-width: 100%;
+
+  @media ${({ theme }) => theme.mobile} {
+    max-width: 100%;
+  }
 `;
 
 const UnreadCount = styled.span`
@@ -263,6 +361,11 @@ const Bubble = styled.div`
 
   border-top-right-radius: ${({ $isMine }) => ($isMine ? '2px' : '16px')};
   border-top-left-radius: ${({ $isMine }) => ($isMine ? '16px' : '2px')};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
+    padding: 8px 14px;
+  }
 `;
 
 const InputForm = styled.form`
@@ -297,6 +400,18 @@ const InputForm = styled.form`
     transition: background-color 0.2s;
     &:hover {
       background-color: ${({ theme }) => theme.colors.primary_dark};
+    }
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 10px 12px;
+    input {
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 0 16px;
+      font-size: 14px;
     }
   }
 `;
