@@ -204,7 +204,7 @@ const Wrapper = styled.div`
     system-ui,
     sans-serif;
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 30px auto;
     padding: 0 16px;
   }
@@ -221,7 +221,7 @@ const Title = styled.h2`
   margin: 0 0 8px 0;
   letter-spacing: -0.02em;
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 22px;
   }
 `;
@@ -239,7 +239,7 @@ const Card = styled.section`
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   border: 1px solid ${({ theme }) => theme.colors.gray[100]};
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 24px 20px;
     border-radius: 12px;
   }
@@ -273,7 +273,7 @@ const InfoRow = styled.div`
   overflow: hidden;
   margin-bottom: 12px;
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     border: none;
     border-bottom: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
@@ -294,7 +294,7 @@ const Label = styled.div`
   align-items: center;
   border-right: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     background: transparent;
     border-right: none;
@@ -317,7 +317,7 @@ const Value = styled.div`
   strong {
     color: ${({ theme }) => theme.colors.gray[900]};
   }
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 0;
   }
 `;
@@ -329,7 +329,7 @@ const Field = styled.div`
   width: 100%;
   max-width: 320px;
 
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     max-width: 100%;
   }
 `;
@@ -403,7 +403,7 @@ const SubmitButton = styled.button`
     background-color: ${({ theme }) => theme.colors.primary_dark};
     border-color: ${({ theme }) => theme.colors.primary_dark};
   }
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;

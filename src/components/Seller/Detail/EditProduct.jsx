@@ -545,7 +545,7 @@ const Container = styled.div`
     system-ui,
     sans-serif;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 20px 10px;
   }
 `;
@@ -567,7 +567,7 @@ const NoticeBoxWrapper = styled.div`
     max-width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
-    @media (max-width: 768px) {
+    @media ${({ theme }) => theme.mobile} {
       padding: 16px !important;
     }
   }
@@ -576,7 +576,7 @@ const NoticeBoxWrapper = styled.div`
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px 24px !important;
     margin-bottom: 0 !important;
-    @media (max-width: 600px) {
+    @media ${({ theme }) => theme.mobile} {
       grid-template-columns: 1fr !important;
     }
   }
@@ -596,7 +596,7 @@ const ContentWrapper = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.gray[100]};
   box-sizing: border-box;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 24px;
     border-radius: 16px;
   }
@@ -705,7 +705,7 @@ const InputGroupRow = styled.div`
   display: flex;
   gap: 20px;
   width: 100%;
-  @media (max-width: 650px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     gap: 20px;
   }
@@ -809,7 +809,7 @@ const StatusSection = styled.div`
 const StatusButtons = styled.div`
   display: flex;
   gap: 12px;
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
   }
 `;
@@ -843,7 +843,7 @@ const StatusButton = styled.button`
         ? props.theme.colors.primary_hover
         : props.theme.colors.gray[100]};
   }
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     max-width: 100%;
   }
 `;
@@ -853,21 +853,21 @@ const BottomActions = styled.div`
   justify-content: space-between;
   align-items: center;
   padding-top: 10px;
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column-reverse;
     gap: 16px;
   }
 `;
 
 const LeftAction = styled.div`
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;
 const RightActions = styled.div`
   display: flex;
   gap: 12px;
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     flex-direction: column;
   }
@@ -883,7 +883,7 @@ const ButtonBase = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-  @media (max-width: 600px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;

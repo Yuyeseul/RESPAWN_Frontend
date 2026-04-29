@@ -149,7 +149,7 @@ const Wrapper = styled.div`
   font-family: 'Noto Sans KR', sans-serif;
   color: ${({ theme }) => theme.colors.gray[800]};
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 20px auto 40px;
     padding: 0 15px;
   }
@@ -162,7 +162,7 @@ const Title = styled.h1`
   margin-bottom: 40px;
   letter-spacing: -0.02em;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 24px;
     margin-bottom: 24px;
   }
@@ -176,7 +176,7 @@ const Section = styled.section`
   margin-bottom: 32px;
   box-shadow: 0 6px 15px rgb(0 0 0 / 0.07);
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 20px 20px;
     margin-bottom: 24px;
   }
@@ -190,7 +190,7 @@ const SectionTitle = styled.h2`
   border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
   padding-bottom: 10px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 18px;
     margin-bottom: 20px;
   }
@@ -231,7 +231,7 @@ const Table = styled.table`
     color: ${({ theme }) => theme.colors.black};
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     border-spacing: 0;
     display: block;
 
@@ -279,12 +279,12 @@ const FlexContainer = styled.div`
   & > section {
     flex: 1;
     min-width: 400px;
-    @media (max-width: 768px) {
+    @media ${({ theme }) => theme.mobile} {
       min-width: 100%;
       margin-bottom: 0;
     }
   }
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     gap: 24px;
     flex-direction: column;
   }
@@ -303,7 +303,7 @@ const BackButton = styled.button`
     text-decoration: underline;
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 15px;
     margin-bottom: 16px;
   }

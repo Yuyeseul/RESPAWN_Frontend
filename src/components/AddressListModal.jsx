@@ -181,7 +181,7 @@ const Overlay = styled.div`
   justify-content: center;
   align-items: center;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 0; /* 모바일에서는 꽉 차게 */
   }
 `;
@@ -198,7 +198,7 @@ const ModalBox = styled.div`
   display: flex;
   flex-direction: column;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     height: 100vh;
     max-height: 100vh;
@@ -215,7 +215,7 @@ const Header = styled.h2`
   padding-bottom: 16px;
   color: ${({ theme }) => theme.colors.gray[800]};
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 18px;
     padding-top: 8px;
   }
@@ -253,7 +253,7 @@ const Table = styled.table`
     color: ${({ theme }) => theme.colors.gray[700]};
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: block;
 
     thead {
@@ -286,7 +286,7 @@ const Tr = styled.tr`
       }
     `}
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: flex;
     flex-direction: column;
     border: 2px solid ${({ theme }) => theme.colors.gray[300]};
@@ -304,30 +304,13 @@ const Tr = styled.tr`
     position: relative; 
     z-index: 10;
 
-    @media (max-width: 768px) {
+    @media ${({ theme }) => theme.mobile} {
       outline: none;
       border-color: ${theme.colors.black};
       border-width: 2px;
       padding: 15px;
     }
   `}
-`;
-
-const TdRadio = styled.td`
-  text-align: center;
-
-  input {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  @media (max-width: 768px) {
-    position: absolute;
-    top: 18px;
-    right: 16px;
-    padding: 0;
-  }
 `;
 
 const TdAddressName = styled.td`
@@ -340,7 +323,7 @@ const TdAddressName = styled.td`
     font-weight: 500;
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding-right: 30px;
     margin-bottom: 6px;
 
@@ -353,7 +336,7 @@ const TdAddressName = styled.td`
 `;
 
 const TdAddress = styled.td`
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 14px;
     color: ${({ theme }) => theme.colors.gray[650]};
     line-height: 1.5;
@@ -362,7 +345,7 @@ const TdAddress = styled.td`
 
 const TdPhone = styled.td`
   color: ${({ theme }) => theme.colors.gray[600]};
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 14px;
     color: ${({ theme }) => theme.colors.gray[800]};
     margin-top: 2px;
@@ -387,7 +370,7 @@ const ButtonWrapper = styled.div`
   border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   gap: 16px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     padding-top: 0;
     border-top: none;
@@ -399,7 +382,7 @@ const Left = styled.div`
   display: flex;
   justify-content: flex-start;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     button {
       width: 100%;
@@ -412,7 +395,7 @@ const Right = styled.div`
   justify-content: flex-end;
   gap: 8px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     gap: 10px;
     button {
@@ -490,7 +473,7 @@ const CloseButton = styled.button`
     color: ${({ theme }) => theme.colors.black};
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     top: 14px;
     right: 16px;
   }

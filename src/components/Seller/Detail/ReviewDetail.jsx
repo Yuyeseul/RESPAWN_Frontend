@@ -126,7 +126,7 @@ const Wrapper = styled.div`
     system-ui,
     sans-serif;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 20px auto 40px;
     padding: 0 15px;
   }
@@ -177,7 +177,7 @@ const Card = styled.section`
   margin-bottom: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 20px;
     border-radius: 12px;
   }
@@ -207,7 +207,7 @@ const GridWrapper = styled.div`
   grid-template-columns: ${(props) => `repeat(${props.$columns || 1}, 1fr)`};
   gap: 16px 24px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     grid-template-columns: 1fr;
     gap: 16px;
   }
@@ -221,7 +221,7 @@ const InfoItem = styled.div`
   border-radius: 10px;
   overflow: hidden;
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     border: none;
     border-bottom: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
@@ -242,7 +242,7 @@ const Label = styled.div`
   align-items: center;
   border-right: 1.5px solid ${({ theme }) => theme.colors.gray[100]};
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     background: transparent;
     border-right: none;
@@ -267,7 +267,7 @@ const Value = styled.div`
     color: ${({ theme }) => theme.colors.gray[900]};
   }
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 0;
     font-size: 15px;
   }
@@ -293,7 +293,7 @@ const ProductBox = styled.div`
     flex-shrink: 0;
   }
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     gap: 16px;
     padding: 16px;
     img {
@@ -316,7 +316,7 @@ const ProductName = styled.div`
   word-break: keep-all;
   line-height: 1.4;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     font-size: 15px;
   }
 `;
@@ -371,7 +371,7 @@ const DetailBox = styled.div`
     box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary_alpha};
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 16px;
     font-size: 14px;
   }
@@ -399,7 +399,7 @@ const SubmitButton = styled.button`
     border-color: ${({ theme }) => theme.colors.primary_dark};
   }
 
-  @media (max-width: 480px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
   }
 `;

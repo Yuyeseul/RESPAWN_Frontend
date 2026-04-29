@@ -96,11 +96,11 @@ const moveRightSubtle = keyframes`
 const Wrapper = styled.div`
   display: flex;
   min-height: 100vh;
-  background: #f5f6fa;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
   padding: 20px;
   gap: 20px;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: column;
     padding: 10px;
     gap: 10px;
@@ -109,15 +109,15 @@ const Wrapper = styled.div`
 
 const Sidebar = styled.div`
   width: 240px;
-  background: #ffffff;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 12px;
   padding: 24px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px ${({ theme: { colors } }) => colors.overlay_line};
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     width: 100%;
     padding: 16px 0;
   }
@@ -128,9 +128,9 @@ const LogoBox = styled.h2`
   font-weight: 700;
   text-align: center;
   margin-bottom: 24px;
-  color: #555a82;
+  color: ${({ theme: { colors } }) => colors.primary};
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin-bottom: 12px;
   }
 `;
@@ -140,7 +140,7 @@ const MobileNavContainer = styled.div`
   flex-direction: column;
   width: 100%;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: row;
     align-items: center;
     width: 100%;
@@ -153,13 +153,13 @@ const MobileNavContainer = styled.div`
 const ArrowButton = styled.div`
   display: none; // 데스크톱에선 숨김
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     display: flex;
     align-items: center;
     justify-content: center;
 
     /* 원 디자인(배경, 테두리, 그림자) 제거 */
-    color: #555a82; /* 아이콘 색상 유지 */
+    color: ${({ theme: { colors } }) => colors.primary}; /* 아이콘 색상 유지 */
     background: none; /* 배경 제거 */
     border: none; /* 테두리 제거 */
     border-radius: 0; /* 둥글기 제거 */
@@ -176,7 +176,7 @@ const ArrowButton = styled.div`
 
     /* 터치 및 호버 효과 (색상만 살짝 변경) */
     &:active {
-      color: #3e4263;
+      color: ${({ theme: { colors } }) => colors.primary_dark};
       transform: scale(0.9); /* 크기만 살짝 줄임 */
     }
 
@@ -189,13 +189,13 @@ const ArrowButton = styled.div`
 `;
 
 const LeftArrowButton = styled(ArrowButton)`
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     animation: ${moveLeftSubtle} 1.5s infinite ease-in-out;
   }
 `;
 
 const RightArrowButton = styled(ArrowButton)`
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     animation: ${moveRightSubtle} 1.5s infinite ease-in-out;
   }
 `;
@@ -206,7 +206,7 @@ const Nav = styled.nav`
   gap: 8px;
   width: 100%;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     flex-direction: row;
     overflow-x: auto;
     /* 화살표가 원 디자인일 때 필요했던 오버랩 마진과 패딩 제거 */
@@ -225,7 +225,7 @@ const StyledNavLink = styled(NavLink)`
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  color: #333;
+  color: ${({ theme: { colors } }) => colors.gray[800]};
   text-decoration: none;
   font-size: 15px;
   border-radius: 8px;
@@ -233,17 +233,17 @@ const StyledNavLink = styled(NavLink)`
   white-space: nowrap;
 
   &:hover {
-    background: #f0f2f8;
-    color: #555a82;
+    background: ${({ theme: { colors } }) => colors.primary_light};
+    color: ${({ theme: { colors } }) => colors.primary};
   }
 
   &.active {
-    background: #e6e8f4;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
     font-weight: 700;
-    color: #555a82;
+    color: ${({ theme: { colors } }) => colors.primary};
   }
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     margin: 0 4px;
     padding: 8px 14px;
     font-size: 14px;
@@ -257,13 +257,13 @@ const Content = styled.div`
 
 const InnerBox = styled.div`
   flex: 1;
-  background: #fff;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px ${({ theme: { colors } }) => colors.overlay_line};
   overflow-y: auto;
 
-  @media (max-width: 768px) {
+  @media ${({ theme }) => theme.mobile} {
     padding: 15px;
   }
 `;
