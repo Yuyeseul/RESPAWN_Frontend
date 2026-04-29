@@ -20,7 +20,7 @@ const NoticeRegister = () => {
   // 파생 상태
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState('');
+  const [setToast] = useState('');
   const [confirm, setConfirm] = useState({
     open: false,
     title: '',
