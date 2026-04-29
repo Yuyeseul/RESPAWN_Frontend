@@ -82,7 +82,8 @@ const SellerChatPage = () => {
     return () => {
       if (client) client.deactivate();
     };
-  }, [rooms.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rooms.length, user?.username]);
 
   const handleRoomClick = (roomId) => {
     setSelectedRoomId(roomId);
