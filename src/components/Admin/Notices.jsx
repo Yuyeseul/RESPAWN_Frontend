@@ -30,12 +30,12 @@ function Notices() {
     if (page1 < 1 || (totalPages > 0 && page1 > totalPages)) return;
     setPageInfo((p) => ({ ...p, page: page1 - 1 }));
   };
+  const { page, size } = pageInfo;
 
   useEffect(() => {
     const fetchNotices = async () => {
       setLoading(true);
       try {
-        const { page, size } = pageInfo;
         const { data } = await axios.get('/notices/summaries', {
           params: { page, size },
         });
@@ -56,7 +56,7 @@ function Notices() {
     };
 
     fetchNotices();
-  }, [pageInfo.page, pageInfo.size]);
+  }, [page, size]);
 
   const formatDate = (dateString) => {
     return dateString.substring(0, 10);
