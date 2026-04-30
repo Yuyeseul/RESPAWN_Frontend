@@ -49,168 +49,154 @@ const MenuBar = ({ editor }) => {
   };
 
   return (
-    <MenuBarWrapper>
-      <select
-        aria-label="글꼴 선택"
-        onChange={(e) =>
-          editor.chain().focus().setFontFamily(e.target.value).run()
-        }
-      >
-        {fontFamilies.map((font) => (
-          <option key={font.value} value={font.value}>
-            {font.label}
-          </option>
-        ))}
-      </select>
-
-      <select
-        aria-label="글자 크기 선택"
-        onChange={(e) =>
-          editor.chain().focus().setFontSize(e.target.value).run()
-        }
-      >
-        {fontSizes.map((size) => (
-          <option key={size.value} value={size.value}>
-            {size.label}
-          </option>
-        ))}
-      </select>
-
-      {[
-        {
-          label: 'B',
-          command: () => editor.chain().focus().toggleBold().run(),
-          active: editor.isActive('bold'),
-          title: '굵게 (Ctrl+B)',
-        },
-        {
-          label: 'I',
-          command: () => editor.chain().focus().toggleItalic().run(),
-          active: editor.isActive('italic'),
-          title: '기울임 (Ctrl+I)',
-        },
-        {
-          label: 'U',
-          command: () => editor.chain().focus().toggleUnderline().run(),
-          active: editor.isActive('underline'),
-          title: '밑줄 (Ctrl+U)',
-        },
-        {
-          label: 'H1',
-          command: () =>
-            editor.chain().focus().toggleHeading({ level: 1 }).run(),
-          active: editor.isActive('heading', { level: 1 }),
-          title: '헤딩 1',
-        },
-        {
-          label: 'H2',
-          command: () =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run(),
-          active: editor.isActive('heading', { level: 2 }),
-          title: '헤딩 2',
-        },
-        {
-          label: '• List',
-          command: () => editor.chain().focus().toggleBulletList().run(),
-          active: editor.isActive('bulletList'),
-          title: '글머리 기호 목록',
-        },
-        {
-          label: '↤',
-          command: () => editor.chain().focus().setTextAlign('left').run(),
-          title: '왼쪽 정렬',
-        },
-        {
-          label: '↔',
-          command: () => editor.chain().focus().setTextAlign('center').run(),
-          title: '가운데 정렬',
-        },
-        {
-          label: '↦',
-          command: () => editor.chain().focus().setTextAlign('right').run(),
-          title: '오른쪽 정렬',
-        },
-        {
-          label: '🖼←',
-          command: () => {
-            if (editor.isActive('image')) {
-              editor
-                .chain()
-                .focus()
-                .updateAttributes('image', {
-                  style: 'display: block; margin: 0;',
-                })
-                .run();
+    <>
+      <MenuBarWrapper>
+        <SelectGroup>
+          <SelectInput
+            aria-label="글꼴 선택"
+            onChange={(e) =>
+              editor.chain().focus().setFontFamily(e.target.value).run()
             }
-          },
-          active:
-            editor.isActive('image') &&
-            editor.getAttributes('image').style?.includes('margin: 0;'),
-          title: '이미지 왼쪽 정렬',
-        },
-        {
-          label: '🖼↔',
-          command: () => {
-            if (editor.isActive('image')) {
-              editor
-                .chain()
-                .focus()
-                .updateAttributes('image', {
-                  style: 'display: block; margin: 0 auto;',
-                })
-                .run();
-            }
-          },
-          active:
-            editor.isActive('image') &&
-            editor.getAttributes('image').style?.includes('margin: 0 auto;'),
-          title: '이미지 가운데 정렬',
-        },
-        {
-          label: '🖼→',
-          command: () => {
-            if (editor.isActive('image')) {
-              editor
-                .chain()
-                .focus()
-                .updateAttributes('image', {
-                  style: 'display: block; margin: 0 0 0 auto;',
-                })
-                .run();
-            }
-          },
-          active:
-            editor.isActive('image') &&
-            editor
-              .getAttributes('image')
-              .style?.includes('margin: 0 0 0 auto;'),
-          title: '이미지 오른쪽 정렬',
-        },
-      ].map((btn, i) => (
-        <MenuButton key={i} onClick={btn.command} $active={btn.active}>
-          {btn.label}
-        </MenuButton>
-      ))}
+          >
+            {fontFamilies.map((font) => (
+              <option key={font.value} value={font.value}>
+                {font.label}
+              </option>
+            ))}
+          </SelectInput>
 
-      <MenuButton as="label" title="이미지 업로드">
-        🖼 업로드
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          style={{ display: 'none' }}
-        />
-      </MenuButton>
+          <SelectInput
+            aria-label="글자 크기 선택"
+            onChange={(e) =>
+              editor.chain().focus().setFontSize(e.target.value).run()
+            }
+          >
+            {fontSizes.map((size) => (
+              <option key={size.value} value={size.value}>
+                {size.label}
+              </option>
+            ))}
+          </SelectInput>
+        </SelectGroup>
 
-      <MenuButton
-        onClick={() => setShowColorPicker(!showColorPicker)}
-        title="글자 색상 선택"
-      >
-        🎨
-      </MenuButton>
+        <ButtonGroup>
+          {[
+            {
+              label: 'B',
+              command: () => editor.chain().focus().toggleBold().run(),
+              active: editor.isActive('bold'),
+              title: '굵게',
+            },
+            {
+              label: 'I',
+              command: () => editor.chain().focus().toggleItalic().run(),
+              active: editor.isActive('italic'),
+              title: '기울임',
+            },
+            {
+              label: 'U',
+              command: () => editor.chain().focus().toggleUnderline().run(),
+              active: editor.isActive('underline'),
+              title: '밑줄',
+            },
+            {
+              label: 'H1',
+              command: () =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run(),
+              active: editor.isActive('heading', { level: 1 }),
+              title: '헤딩 1',
+            },
+            {
+              label: 'H2',
+              command: () =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run(),
+              active: editor.isActive('heading', { level: 2 }),
+              title: '헤딩 2',
+            },
+            {
+              label: '• List',
+              command: () => editor.chain().focus().toggleBulletList().run(),
+              active: editor.isActive('bulletList'),
+              title: '목록',
+            },
+          ].map((btn, i) => (
+            <MenuButton
+              key={i}
+              onClick={btn.command}
+              $active={btn.active}
+              title={btn.title}
+            >
+              {btn.label}
+            </MenuButton>
+          ))}
+        </ButtonGroup>
+
+        <ButtonGroup>
+          {[
+            {
+              label: '↤',
+              command: () => editor.chain().focus().setTextAlign('left').run(),
+              title: '왼쪽 정렬',
+            },
+            {
+              label: '↔',
+              command: () =>
+                editor.chain().focus().setTextAlign('center').run(),
+              title: '가운데 정렬',
+            },
+            {
+              label: '↦',
+              command: () => editor.chain().focus().setTextAlign('right').run(),
+              title: '오른쪽 정렬',
+            },
+          ].map((btn, i) => (
+            <MenuButton key={i} onClick={btn.command} title={btn.title}>
+              {btn.label}
+            </MenuButton>
+          ))}
+        </ButtonGroup>
+
+        <ButtonGroup>
+          <MenuButton as="label" title="이미지 업로드">
+            🖼 업로드
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+            />
+          </MenuButton>
+
+          <MenuButton
+            onClick={() => setShowColorPicker(!showColorPicker)}
+            title="글자 색상 선택"
+          >
+            🎨
+          </MenuButton>
+
+          <MenuButton
+            onClick={() => {
+              const url = prompt('링크 URL을 입력하세요');
+              if (url) editor.chain().focus().setLink({ href: url }).run();
+            }}
+            title="링크 삽입"
+          >
+            🔗
+          </MenuButton>
+
+          <MenuButton
+            onClick={() =>
+              editor.chain().focus().unsetAllMarks().clearNodes().run()
+            }
+            title="모두 초기화"
+          >
+            ⟳
+          </MenuButton>
+        </ButtonGroup>
+      </MenuBarWrapper>
 
       {showColorPicker && (
-        <ColorPickerWrapper onClick={() => setShowColorPicker(false)}>
+        <ColorPickerWrapper>
           <SketchPicker
             color={color}
             onChange={(updatedColor) => {
@@ -223,26 +209,7 @@ const MenuBar = ({ editor }) => {
           </CloseColorPicker>
         </ColorPickerWrapper>
       )}
-
-      <MenuButton
-        onClick={() => {
-          const url = prompt('링크 URL을 입력하세요');
-          if (url) editor.chain().focus().setLink({ href: url }).run();
-        }}
-        title="링크 삽입"
-      >
-        🔗
-      </MenuButton>
-
-      <MenuButton
-        onClick={() =>
-          editor.chain().focus().unsetAllMarks().clearNodes().run()
-        }
-        title="모두 초기화"
-      >
-        ⟳
-      </MenuButton>
-    </MenuBarWrapper>
+    </>
   );
 };
 
@@ -278,17 +245,11 @@ export default function TiptapEditor({ value = '', onChange }) {
       value !== editor.getHTML()
     ) {
       editor.commands.setContent(value, false);
-      // setTimeout(() => {
-      //   if (editor.view && !editor.isDestroyed) {
-      //     editor.commands.focus();
-      //   }
-      // }, 0);
     }
   }, [value, editor]);
 
   return (
     <EditorContainer>
-      <EditorLabel>내용</EditorLabel>
       <EditorWrapper>
         <MenuBar editor={editor} />
         <StyledEditorContent editor={editor} />
@@ -298,54 +259,83 @@ export default function TiptapEditor({ value = '', onChange }) {
 }
 
 const EditorContainer = styled.div`
+  width: 100%;
   max-width: 820px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 14px;
+  margin: 0 auto;
   font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-  box-shadow: 0 10px 25px rgb(0 0 0 / 0.08);
-  padding: 24px 32px;
-`;
 
-const EditorLabel = styled.label`
-  display: block;
-  font-weight: 700;
-  font-size: 20px;
-  margin-bottom: 14px;
-  color: #212529;
-  user-select: none;
+  @media ${({ theme }) => theme.mobile} {
+    margin: 10px auto;
+  }
 `;
 
 const EditorWrapper = styled.div`
-  border: 1.5px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 18px 22px;
-  min-height: 340px;
-  background: #fefefe;
-  box-shadow: inset 0 0 6px #f0f0f0;
+  position: relative;
+  background: ${({ theme }) => theme.colors.white};
+  display: flex;
+  flex-direction: column;
   transition: border-color 0.3s ease;
-
-  &:focus-within {
-    border-color: #0056b3;
-    box-shadow: 0 0 8px #0056b3aa;
-  }
 `;
 
 const MenuBarWrapper = styled.div`
   position: relative;
-  margin-bottom: 16px;
-  border-bottom: 1.5px solid #d3d3d3;
-  padding-bottom: 10px;
-  user-select: none;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background-color: ${({ theme }) => theme.colors.gray[50]};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const SelectGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+`;
+
+const SelectInput = styled.select`
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 6px;
+  background: ${({ theme }) => theme.colors.white};
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  outline: none;
+  cursor: pointer;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-right: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  padding-right: 16px;
+
+  &:last-of-type {
+    border-right: none;
+    padding-right: 0;
+  }
 `;
 
 const activeStyle = css`
-  background-color: #0056b3;
-  color: white;
-  border-color: #004494;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  border-color: ${({ theme }) => theme.colors.primary};
 `;
 
 const MenuButton = styled.button.attrs(() => ({
@@ -354,118 +344,120 @@ const MenuButton = styled.button.attrs(() => ({
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  height: 34px;
-  padding: 0 14px;
-
-  font-size: 15px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0 10px;
+  font-size: 14px;
   font-weight: 600;
-  color: #444;
-  margin-right: 6px;
-  border: 1.5px solid #ccc;
-  background: white;
-  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[400]};
   border-radius: 6px;
-  user-select: none;
-  transition: all 0.15s ease;
+  margin-right: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:last-child {
+    margin-right: 0;
+  }
 
   ${(props) => props.$active && activeStyle}
 
   &:hover {
-    background: #e7f0ff;
-    border-color: #99bfff;
-    color: #004494;
+    background: ${({ theme }) => theme.colors.primary_light};
+    border-color: ${({ theme }) => theme.colors.gray[500]};
+    color: ${({ theme }) => theme.colors.gray[900]};
+    ${(props) =>
+      props.$active &&
+      css`
+        background: ${({ theme }) => theme.colors.primary_dark};
+        border-color: ${({ theme }) => theme.colors.primary_dark};
+        color: ${({ theme }) => theme.colors.white};
+      `}
   }
 
-  /* label로 감싼 파일 input */
   label {
     all: unset;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     width: 100%;
     height: 100%;
     cursor: pointer;
-    text-align: center;
-    line-height: 1;
   }
 `;
 
 const StyledEditorContent = styled(EditorContent)`
-  min-height: 230px;
-  outline: none;
-  padding: 12px 8px;
-  font-size: 16px;
-  line-height: 1.7;
-  color: #212529;
+  min-height: 300px;
+  padding: 20px 24px;
+  background: ${({ theme }) => theme.colors.white};
 
-  p,
-  h1,
-  h2 {
-    text-align: inherit;
+  .ProseMirror {
+    outline: none;
+    min-height: 300px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: ${({ theme }) => theme.colors.gray[900]};
+    word-break: keep-all;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+    .ProseMirror {
+      font-size: 16px;
+    }
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+    border-radius: 8px;
   }
 
   p {
-    margin: 0 0 22px 0;
-  }
-
-  /* 힌트 텍스트 표시 */
-  p:empty::before {
-    content: attr(data-placeholder);
-    color: #bbb;
-    pointer-events: none;
-    display: inline-block;
-    height: 1.2em;
-    font-style: italic;
-  }
-
-  /* 이미지 스타일 개선 */
-  img {
-    max-width: 90%;
-    height: auto;
-    display: block;
-    margin: 32px auto;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
-    transition: box-shadow 0.2s ease;
-  }
-
-  img:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  .ProseMirror {
-    padding: 20px 16px;
-    box-sizing: border-box;
-  }
-
-  .ProseMirror-selectednode {
-    outline: 3px solid #0056b3;
-    border-radius: 6px;
+    margin-bottom: 1em;
   }
 `;
 
 const ColorPickerWrapper = styled.div`
   position: absolute;
+  top: 65px;
+  right: 16px;
   z-index: 1000;
-  margin-top: 8px;
-  right: 0;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.white};
+
+  @media ${({ theme }) => theme.mobile} {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
 `;
 
 const CloseColorPicker = styled.button`
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: transparent;
-  border: none;
-  font-size: 18px;
+  top: -10px;
+  right: -10px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[400]};
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
   cursor: pointer;
-  color: #555;
-  user-select: none;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    color: #000;
+    background: ${({ theme }) => theme.colors.gray[100]};
   }
 `;

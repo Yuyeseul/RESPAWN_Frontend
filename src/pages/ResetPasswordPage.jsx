@@ -105,30 +105,38 @@ const ResetPasswordPage = () => {
       <Box>
         <Title>비밀번호 재설정</Title>
 
-        <Input
-          name="password"
-          type="password"
-          placeholder="새 비밀번호"
-          value={password.password}
-          onChange={onChangeHandler('password')}
-          required
-        />
-        {password.error && <ErrorText>{password.error}</ErrorText>}
+        <FormGroup>
+          <Label>새 비밀번호</Label>
+          <Input
+            name="password"
+            type="password"
+            placeholder="영문, 숫자, 특수문자 포함 8~25자"
+            value={password.password}
+            onChange={onChangeHandler('password')}
+            $hasError={!!password.error}
+            required
+          />
+          {password.error && <ErrorText>{password.error}</ErrorText>}
+        </FormGroup>
 
-        <Input
-          name="confirmPassword"
-          type="password"
-          placeholder="새 비밀번호 확인"
-          value={confirmPassword.confirmPassword}
-          onChange={onChangeHandler('confirmPassword')}
-          required
-        />
-        {confirmPassword.error && (
-          <ErrorText>{confirmPassword.error}</ErrorText>
-        )}
+        <FormGroup>
+          <Label>새 비밀번호 확인</Label>
+          <Input
+            name="confirmPassword"
+            type="password"
+            placeholder="비밀번호를 한번 더 입력해주세요"
+            value={confirmPassword.confirmPassword}
+            onChange={onChangeHandler('confirmPassword')}
+            $hasError={!!confirmPassword.error}
+            required
+          />
+          {confirmPassword.error && (
+            <ErrorText>{confirmPassword.error}</ErrorText>
+          )}
+        </FormGroup>
 
-        <ButtonWrapper>
-          <CheckButton
+        <ButtonContainer>
+          <PrimaryButton
             type="button"
             onClick={handleSubmit}
             disabled={
@@ -138,8 +146,9 @@ const ResetPasswordPage = () => {
             }
           >
             {loading ? '처리 중...' : '확인'}
-          </CheckButton>
-        </ButtonWrapper>
+          </PrimaryButton>
+        </ButtonContainer>
+
         <GuideText>
           다른 서비스에서 사용한 적 없는 안전한 비밀번호를 사용하세요.
           <br />
@@ -155,12 +164,18 @@ export default ResetPasswordPage;
 
 const Container = styled.div`
   min-height: 100vh;
-  padding: 20px 15px;
+  padding: 60px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #fafafa;
+  background: ${({ theme }) => theme.colors.white};
+  box-sizing: border-box;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 30px 16px;
+    align-items: center;
+  }
 `;
 
 const LogoWrapper = styled.div`
@@ -168,79 +183,138 @@ const LogoWrapper = styled.div`
   max-width: 460px;
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 
   & > div img {
     height: 70px;
     object-fit: contain;
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-bottom: 24px;
+    & > div img {
+      height: 56px;
+    }
+  }
 `;
 
 const Box = styled.div`
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  min-width: 480px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  padding: 48px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 460px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  background-color: ${({ theme }) => theme.colors.white};
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 32px 24px;
+    border-radius: 16px;
+    box-shadow: none;
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  }
 `;
 
 const Title = styled.h2`
-  font-size: 26px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 28px;
+  font-size: 28px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  margin: 0 0 32px 0;
   text-align: center;
+  letter-spacing: -0.5px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+`;
+
+const Label = styled.label`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  margin-bottom: 8px;
+  margin-left: 2px;
 `;
 
 const Input = styled.input`
   width: 100%;
-  height: 48px;
-  padding: 0 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid
+    ${({ theme, $hasError }) =>
+      $hasError ? theme.colors.danger : theme.colors.gray[300]};
+  border-radius: 10px;
   font-size: 15px;
-  margin-bottom: 8px;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  background-color: ${({ theme }) => theme.colors.white};
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.gray[400]};
+  }
+
   &:focus {
     outline: none;
-    border-color: #696f94;
+    border-color: ${({ theme, $hasError }) =>
+      $hasError ? theme.colors.danger : theme.colors.primary};
   }
 `;
 
 const ErrorText = styled.p`
-  color: #d9534f;
-  font-size: 13px;
-  margin: -4px 0 12px;
+  color: ${({ theme }) => theme.colors.danger};
+  font-size: 12px;
+  margin: 6px 0 0 4px;
+  font-weight: 500;
 `;
 
-const ButtonWrapper = styled.div`
-  margin-top: 12px;
+const ButtonContainer = styled.div`
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 `;
 
-const CheckButton = styled.button`
+const PrimaryButton = styled.button`
   width: 100%;
-  height: 48px;
-  background: ${({ disabled }) => (disabled ? '#ccc' : 'rgb(105, 111, 148)')};
-  color: white;
+  height: 54px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-weight: 700;
   font-size: 16px;
-  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  transition: background-color 0.25s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-  &:hover {
-    background: ${({ disabled }) => (disabled ? '#ccc' : 'rgb(85, 90, 130)')};
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.primary_dark};
+    box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[300]};
+    color: ${({ theme }) => theme.colors.gray[500]};
+    cursor: not-allowed;
   }
 `;
 
 const GuideText = styled.p`
   font-size: 13px;
-  color: #666;
-  margin-top: 16px;
-  line-height: 1.5;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin-top: 24px;
+  line-height: 1.6;
   word-break: keep-all;
   white-space: normal;
+  text-align: center;
 `;

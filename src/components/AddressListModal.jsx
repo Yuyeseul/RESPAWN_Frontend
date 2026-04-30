@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import DeliveryModal from './DeliveryModal';
 import axios from '../api/axios';
@@ -18,21 +18,10 @@ function AddressListModal({
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
 
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
-
-  useEffect(() => {
-    if (preSelectedId) {
-      setSelectedAddressId(preSelectedId);
-    }
-  }, [preSelectedId]);
-
-  const fetchAddresses = async () => {
+  const fetchAddresses = useCallback(async () => {
     try {
-      const response = await axios.get('/api/addresses');
+      const response = await axios.get('/addresses');
       const data = Array.isArray(response.data) ? response.data : [];
-      console.log(response.data);
       setAddresses(data);
       if (preSelectedId) {
         setSelectedAddressId(preSelectedId);
@@ -41,7 +30,12 @@ function AddressListModal({
       console.error('주소 목록 불러오기 실패:', error);
       alert('주소 데이터를 불러오는 데 실패했습니다.');
     }
-  };
+  }, [preSelectedId]); // 내부에 쓰인 preSelectedId도 의존성으로 추가
+
+  // 2. useEffect 배열 안에 fetchAddresses를 넣어줍니다.
+  useEffect(() => {
+    fetchAddresses();
+  }, [fetchAddresses]);
 
   const deleteAddresses = async () => {
     if (!selectedAddressId) {
@@ -49,7 +43,7 @@ function AddressListModal({
       return;
     }
     try {
-      await axios.delete(`/api/addresses/${selectedAddressId}`);
+      await axios.delete(`/addresses/${selectedAddressId}`);
       fetchAddresses();
     } catch (error) {
       console.error('주소 목록 불러오기 실패:', error);
@@ -77,41 +71,59 @@ function AddressListModal({
       <ModalBox>
         <CloseButton onClick={onClose}>×</CloseButton>
         <Header>배송지 관리</Header>
-        <Table>
-          <thead>
-            <tr>
-              {mode === 'order' && <th>선택</th>}
-              <th>배송지명 / 수령인</th>
-              <th>주소</th>
-              <th>연락처</th>
-            </tr>
-          </thead>
-          <tbody>
-            {addresses.map((item) => (
-              <tr key={item.id}>
-                {mode === 'order' && (
-                  <td>
-                    <input
-                      type="radio"
-                      name="selectedAddress"
-                      value={item.id}
-                      checked={selectedAddressId === item.id}
-                      onChange={() => setSelectedAddressId(item.id)}
-                    />
-                  </td>
-                )}
-                <TdAddressName>
-                  {item.addressName} / {item.recipient}
-                  {item.basic && <DefaultBadge>기본</DefaultBadge>}
-                </TdAddressName>
-                <td>
-                  {item.baseAddress} {item.detailAddress}
-                </td>
-                <td>{item.phone}</td>
+
+        <ContentScrollArea>
+          <Table>
+            <thead>
+              <tr>
+                {/* {mode === 'order' && (
+                  <th style={{ width: '60px', textAlign: 'center' }}>선택</th>
+                )} */}
+                <th>배송지명 / 수령인</th>
+                <th>주소</th>
+                <th>연락처</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {addresses.map((item) => (
+                <Tr
+                  key={item.id}
+                  isSelectable={
+                    true
+                  } /* 항상 마우스 포인터가 손가락 모양으로 보이게 변경 */
+                  isSelected={selectedAddressId === item.id}
+                  onClick={() =>
+                    setSelectedAddressId(item.id)
+                  } /* mode 조건 제거: 누르면 무조건 선택되게 변경 */
+                >
+                  {/* {mode === 'order' && (
+                    <TdRadio>
+                      <input
+                        type="radio"
+                        name="selectedAddress"
+                        value={item.id}
+                        checked={selectedAddressId === item.id}
+                        onChange={() => setSelectedAddressId(item.id)}
+                        onClick={(e) => e.stopPropagation()} // 행 클릭과 중복 이벤트 방지
+                      />
+                    </TdRadio>
+                  )} */}
+                  <TdAddressName>
+                    <span className="name-text">
+                      {item.addressName} / {item.recipient}
+                    </span>
+                    {item.basic && <DefaultBadge>기본</DefaultBadge>}
+                  </TdAddressName>
+                  <TdAddress>
+                    {item.baseAddress} {item.detailAddress}
+                  </TdAddress>
+                  <TdPhone>{item.phone}</TdPhone>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
+        </ContentScrollArea>
+
         <ButtonWrapper>
           <Left>
             <AddButton
@@ -158,163 +170,311 @@ function AddressListModal({
 
 export default AddressListModal;
 
+// --- Styled Components ---
+
 const Overlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: ${({ theme }) => theme.colors.overlay};
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0; /* 모바일에서는 꽉 차게 */
+  }
 `;
 
 const ModalBox = styled.div`
   position: relative;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   width: 800px;
+  max-width: 100%;
+  max-height: 90vh;
   padding: 32px;
-  border-radius: 10px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px ${({ theme }) => theme.colors.overlay_line};
+  display: flex;
+  flex-direction: column;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 20px;
+  }
 `;
 
 const Header = styled.h2`
   font-size: 20px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 12px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  padding-bottom: 16px;
+  color: ${({ theme }) => theme.colors.gray[800]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 18px;
+    padding-top: 8px;
+  }
+`;
+
+const ContentScrollArea = styled.div`
+  overflow-y: auto;
+  flex: 1;
+  margin-bottom: 20px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: ${({ theme }) => theme.colors.gray[400]};
+    border-radius: 4px;
+  }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 24px;
 
   th,
   td {
-    border: 1px solid #eee;
-    padding: 12px;
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    padding: 14px 12px;
     text-align: left;
+    vertical-align: middle;
   }
 
   th {
-    background: #f7f7f7;
-    font-weight: bold;
+    background: ${({ theme }) => theme.colors.gray[100]};
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.gray[700]};
   }
 
-  button {
-    background: none;
-    border: none;
-    color: #0056ff;
-    cursor: pointer;
-    padding: 0;
+  @media ${({ theme }) => theme.mobile} {
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    td {
+      border: none;
+      padding: 4px 0;
+    }
   }
+`;
+
+const Tr = styled.tr`
+  background-color: ${({ theme }) => theme.colors.white};
+  transition: background-color all 0.2s ease-in-out;
+
+  ${({ isSelectable, theme }) =>
+    isSelectable &&
+    `
+      cursor: pointer;
+      &:hover {
+        background-color: ${theme.colors.mouse_over};
+      }
+    `}
+
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid ${({ theme }) => theme.colors.gray[300]};
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+  }
+
+  /* 선택된 행/카드 스타일 */
+  ${({ isSelected, theme }) =>
+    isSelected &&
+    `
+    outline: 2px solid ${theme.colors.black};
+    outline-offset: -2px;
+    position: relative; 
+    z-index: 10;
+
+    @media ${({ theme }) => theme.mobile} {
+      outline: none;
+      border-color: ${theme.colors.black};
+      border-width: 2px;
+      padding: 15px;
+    }
+  `}
 `;
 
 const TdAddressName = styled.td`
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+
+  .name-text {
+    font-weight: 500;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding-right: 30px;
+    margin-bottom: 6px;
+
+    .name-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: ${({ theme }) => theme.colors.black};
+    }
+  }
+`;
+
+const TdAddress = styled.td`
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.gray[650]};
+    line-height: 1.5;
+  }
+`;
+
+const TdPhone = styled.td`
+  color: ${({ theme }) => theme.colors.gray[600]};
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.gray[800]};
+    margin-top: 2px;
+  }
 `;
 
 const DefaultBadge = styled.span`
-  background-color: #333;
+  background-color: ${({ theme }) => theme.colors.gray[800]};
   color: white;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   padding: 4px 8px;
   border-radius: 4px;
   white-space: nowrap;
 `;
 
-const AddButton = styled.button`
-  padding: 12px 24px;
-  background-color: black;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #333;
-  }
-`;
-
-const ModifyButton = styled.button`
-  padding: 12px 24px;
-  background-color: black;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #333;
-  }
-`;
-
-const DeleteButton = styled.button`
-  padding: 12px 24px;
-  background-color: black;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #333;
-  }
-`;
-
-const ConfirmButton = styled.button`
-  padding: 12px 24px;
-  background-color: black;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #333;
-  }
-`;
-
 const ButtonWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  gap: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    padding-top: 0;
+    border-top: none;
+    gap: 10px;
+  }
 `;
 
 const Left = styled.div`
   display: flex;
   justify-content: flex-start;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    button {
+      width: 100%;
+    }
+  }
 `;
 
 const Right = styled.div`
   display: flex;
   justify-content: flex-end;
-  gap: 10px; /* 버튼 사이 간격 */
+  gap: 8px;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    gap: 10px;
+    button {
+      flex: 1; /* 우측 버튼들 동일한 비율로 꽉 차게 */
+      padding: 12px 0;
+    }
+  }
+`;
+
+const BaseButton = styled.button`
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+`;
+
+const AddButton = styled(BaseButton)`
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[800]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+  }
+`;
+
+const ModifyButton = styled(BaseButton)`
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[800]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+  }
+`;
+
+const DeleteButton = styled(BaseButton)`
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.red};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.pale_pink};
+  }
+`;
+
+const ConfirmButton = styled(BaseButton)`
+  background-color: ${({ theme }) => theme.colors.black};
+  color: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.black};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.gray[800]};
+  }
 `;
 
 const CloseButton = styled.button`
   position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 24px;
+  top: 16px;
+  right: 20px;
+  font-size: 28px;
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #888;
+  color: ${({ theme }) => theme.colors.gray[550]};
   z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 
   &:hover {
-    color: #000;
+    color: ${({ theme }) => theme.colors.black};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    top: 14px;
+    right: 16px;
   }
 `;

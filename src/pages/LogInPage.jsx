@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import Logo from '../components/common/Logo';
 import naver_icon from '../assets/login_naver.png';
 import google_icon from '../assets/login_google.png';
 import kakao_icon from '../assets/login_kakao.png';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaUserCog } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
 import { BASE_URL } from '../api/axios';
 
 const LoginPage = (e) => {
-  const { login } = useAuth();
+  const { login, fetchUser } = useAuth();
   const [failCount, setFailCount] = useState(0);
   const [user, setUser] = useState({
     username: '',
@@ -22,6 +22,13 @@ const LoginPage = (e) => {
   const navigate = useNavigate();
 
   const [seePassword, setSeePassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    message: '',
+    onClose: null,
+  });
 
   const seePasswordHandler = () => {
     setSeePassword(!seePassword);
@@ -30,6 +37,16 @@ const LoginPage = (e) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
+  };
+
+  const showModal = (message, onClose = null) => {
+    setModalConfig({ isOpen: true, message, onClose });
+  };
+
+  const closeModal = () => {
+    const { onClose } = modalConfig;
+    setModalConfig({ isOpen: false, message: '', onClose: null });
+    if (onClose) onClose();
   };
 
   const handleLogIn = async (e) => {
@@ -43,13 +60,17 @@ const LoginPage = (e) => {
       return;
     }
 
+    setIsLoading(true);
+    setMsg('');
+
     try {
       const formData = new FormData();
       formData.append('username', user.username);
       formData.append('password', user.password);
+      formData.append('loginType', 'user');
 
       const response = await axios.post('/loginProc', formData);
-      login(response.data);
+      await fetchUser();
       console.log('일반 로그인 성공', response.data);
 
       setFailCount(0);
@@ -71,40 +92,35 @@ const LoginPage = (e) => {
         }
 
         if (errorCode === 'expired') {
-          // 계정 잠김 안내
-          alert('계정이 만료되었습니다. 관리자에게 문의하세요.');
+          showModal('계정이 만료되었습니다.\n관리자에게 문의하세요.');
         } else if (errorCode === 'locked') {
-          // 계정 잠김 안내
-          alert(
-            '비밀번호 5회 불일치로 계정이 잠겼습니다. 관리자에게 문의하세요. '
+          showModal(
+            '비밀번호 5회 불일치로 계정이 잠겼습니다.\n관리자에게 문의하세요.'
           );
         } else if (errorCode === 'invalid_credentials') {
-          // 비밀번호/아이디 불일치 안내
-          alert(
-            `아이디 또는 비밀번호가 올바르지 않습니다.(${
-              failedLoginAttempts || 0
-            }회 실패)`
+          showModal(
+            `아이디 또는 비밀번호가 올바르지 않습니다.\n(${failedLoginAttempts || 0}회 실패)`
           );
         } else if (errorCode === 'disabled') {
-          alert(`정지된 계정입니다. 관리자에게 문의하세요.`);
+          showModal(`정지된 계정입니다.\n관리자에게 문의하세요.`);
         } else {
-          alert('로그인 실패: ' + JSON.stringify(error.response.data));
+          showModal(
+            '로그인에 실패했습니다. 아이디 및 비밀번호를 확인해주세요.'
+          );
         }
       } else {
-        alert('서버와 통신 중 오류가 발생했습니다.');
+        showModal('서버와 통신 중 오류가 발생했습니다.');
       }
       console.error('Axios error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    // 팝업창에서 보내준 메시지 처리
     const handleMessage = async (event) => {
       const data = event.data || {};
-      // origin 검증(권장): 동일 오리진만 허용
-      // if (event.origin !== 'http://localhost:3000') return;
 
-      // 1) 소셜 로그인 성공
       if (data.type === 'LOGIN_SUCCESS') {
         try {
           const res = await axios.get('/loginOk');
@@ -113,42 +129,41 @@ const LoginPage = (e) => {
           navigate('/');
         } catch (err) {
           console.error('로그인 세션 확인 실패:', err);
-          alert('로그인 상태 확인에 실패했습니다. 잠시 후 다시 시도해주세요.');
+          showModal(
+            '로그인 상태 확인에 실패했습니다.\n잠시 후 다시 시도해주세요.'
+          );
         } finally {
           setPopup(null);
         }
         return;
       }
 
-      // 2) 소셜 로그인 실패 (서버 failure handler에서 postMessage로 전달)
       if (data.type === 'OAUTH_FAIL') {
         console.log(data.reason);
         try {
           switch (data.reason) {
             case 'account_conflict':
-              alert(
-                '이미 다른 소셜 계정과 연결된 이메일입니다. 다른 방법을 선택해 주세요.'
+              showModal(
+                '이미 다른 소셜 계정과 연결된 이메일입니다.\n다른 방법을 선택해 주세요.'
               );
               break;
             default:
-              alert('소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+              showModal(
+                '소셜 로그인에 실패했습니다.\n잠시 후 다시 시도해 주세요.'
+              );
           }
-          // 필요 시 UI 상태 초기화
-          // setMsg('소셜 로그인 실패'); // 선택
-          // navigate('/'); // 필요 시 라우팅
         } finally {
-          setPopup(null); // 팝업 상태 정리
+          setPopup(null);
         }
         return;
       }
     };
 
-    // 다른 탭에서 로그인/로그아웃이 일어났을 때
     const onStorage = async (e) => {
       if (e.key === 'auth:updated') {
         try {
           const res = await axios.get('/loginOk');
-          sessionStorage.setItem('userData', JSON.stringify(res.data));
+          login(res.data);
         } catch {
           sessionStorage.removeItem('userData');
         }
@@ -163,7 +178,6 @@ const LoginPage = (e) => {
     };
   }, [navigate, login]);
 
-  // 팝업창 닫힘 감지용 effect
   useEffect(() => {
     if (!popup) return;
 
@@ -171,8 +185,6 @@ const LoginPage = (e) => {
       if (popup.closed) {
         clearInterval(timer);
         setPopup(null);
-        // 팝업이 닫혔을 때 로그인이 안 됐으면 (서버에서 상태 확인이 안 된 상태) 현재 로그인 화면 유지하거나 알림 띄우는 등 처리 가능
-        // 여기선 아무 처리 안 함 (선택적)
       }
     }, 500);
 
@@ -181,21 +193,26 @@ const LoginPage = (e) => {
 
   const handleSocialLogin = (provider) => {
     const win = window.open(
-      `http://${BASE_URL}/oauth2/authorization/${provider}`,
+      `${BASE_URL}/oauth2/authorization/${provider}`,
       '_blank',
       'width=600,height=700,resizable=yes,scrollbars=yes'
     );
     if (!win) {
-      alert(
-        '팝업이 차단되어 새 창을 열 수 없습니다. 팝업 차단을 해제해주세요.'
+      showModal(
+        '팝업이 차단되어 새 창을 열 수 없습니다.\n팝업 차단을 해제해주세요.'
       );
       return;
     }
-    setPopup(win); // 팝업 레퍼런스 저장 (닫힘 감지 useEffect가 동작하도록)
+    setPopup(win);
   };
 
   return (
     <Container>
+      {/* ⭐️ 우측 상단 관리자 페이지 이동 뱃지 버튼 */}
+      <AdminLink onClick={() => navigate('/adminlogin')}>
+        <FaUserCog /> 관리자
+      </AdminLink>
+
       <LogoWrapper>
         <Logo />
       </LogoWrapper>
@@ -206,10 +223,11 @@ const LoginPage = (e) => {
               type="text"
               name="username"
               placeholder="아이디"
-              autocomplete="username"
+              autoComplete="username"
               value={user.username}
               onChange={handleChange}
               required
+              disabled={isLoading}
             />
           </Field>
 
@@ -222,12 +240,14 @@ const LoginPage = (e) => {
               value={user.password}
               onChange={handleChange}
               required
+              disabled={isLoading}
             />
             <IconButton
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={seePasswordHandler}
               aria-label="비밀번호 보기 전환"
+              disabled={isLoading}
             >
               {seePassword ? <FaEyeSlash /> : <FaEye />}
             </IconButton>
@@ -239,7 +259,16 @@ const LoginPage = (e) => {
               로그인 실패 횟수: {failCount}회 (5회 실패 시 계정이 잠깁니다)
             </FailCountMessage>
           )}
-          <Button type="submit">로그인</Button>
+
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Spinner /> 로그인 중...
+              </>
+            ) : (
+              '로그인'
+            )}
+          </Button>
         </form>
         <LWrap>
           <LLink href="/signup">회원가입</LLink>
@@ -247,23 +276,107 @@ const LoginPage = (e) => {
           <LLink href="/findpw">비밀번호 찾기</LLink>
         </LWrap>
 
-        <SocialButton onClick={() => handleSocialLogin('google')}>
+        <SocialButton
+          onClick={() => handleSocialLogin('google')}
+          disabled={isLoading}
+        >
           <img src={google_icon} alt="google" />
         </SocialButton>
 
-        <SocialButton onClick={() => handleSocialLogin('kakao')}>
+        <SocialButton
+          onClick={() => handleSocialLogin('kakao')}
+          disabled={isLoading}
+        >
           <img src={kakao_icon} alt="kakao" />
         </SocialButton>
 
-        <SocialButton onClick={() => handleSocialLogin('naver')}>
+        <SocialButton
+          onClick={() => handleSocialLogin('naver')}
+          disabled={isLoading}
+        >
           <img src={naver_icon} alt="naver" />
         </SocialButton>
       </LogInBox>
+
+      {modalConfig.isOpen && (
+        <ModalOverlay onClick={closeModal}>
+          <ModalBox onClick={(e) => e.stopPropagation()}>
+            <ModalMessage>
+              {modalConfig.message.split('\n').map((line, index) => (
+                <React.Fragment key={index}>
+                  {line}
+                  <br />
+                </React.Fragment>
+              ))}
+            </ModalMessage>
+            <ModalButton onClick={closeModal}>확인</ModalButton>
+          </ModalBox>
+        </ModalOverlay>
+      )}
     </Container>
   );
 };
 
 export default LoginPage;
+
+// --- 스타일 컴포넌트 영역 ---
+
+const AdminLink = styled.div`
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 20px; /* 둥근 알약 모양 */
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); /* 은은한 그림자 */
+  transition: all 0.2s ease;
+
+  svg {
+    font-size: 15px; /* 아이콘 크기 */
+  }
+
+  /* 마우스 올렸을 때 효과 */
+  &:hover {
+    color: ${({ theme }) => theme.colors.secondary};
+    border-color: ${({ theme }) => theme.colors.secondary};
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px); /* 살짝 위로 떠오르는 애니메이션 */
+  }
+
+  /* 모바일 화면일 때 크기 및 위치 조정 */
+  @media ${({ theme }) => theme.mobile} {
+    top: 16px;
+    right: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+
+    svg {
+      font-size: 14px;
+    }
+  }
+`;
+
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const Spinner = styled.div`
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: ${spin} 1s linear infinite;
+`;
 
 const Container = styled.div`
   min-height: 100vh;
@@ -273,6 +386,7 @@ const Container = styled.div`
   align-items: center;
   background: ${({ theme }) => theme.colors.gray[50]};
   padding: 40px 20px;
+  position: relative; /* ⭐️ AdminLink의 absolute 기준점이 되도록 설정 */
 `;
 
 const LogoWrapper = styled.div`
@@ -339,6 +453,11 @@ const Input = styled.input`
     outline: none;
     border-bottom: 2px solid ${({ theme }) => theme.colors.secondary};
   }
+
+  &:disabled {
+    background: transparent;
+    color: ${({ theme }) => theme.colors.gray[400]};
+  }
 `;
 
 const IconButton = styled.button`
@@ -355,6 +474,11 @@ const IconButton = styled.button`
   &:hover {
     color: ${({ theme }) => theme.colors.secondary};
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: ${({ theme }) => theme.colors.gray[300]};
+  }
 `;
 
 const Button = styled.button`
@@ -369,8 +493,20 @@ const Button = styled.button`
   cursor: pointer;
   margin-top: 10px;
 
-  &:hover {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[400]};
+    cursor: not-allowed;
+    opacity: 0.8;
   }
 `;
 
@@ -428,9 +564,14 @@ const SocialButton = styled.button`
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 
-  &:hover img {
+  &:hover:not(:disabled) img {
     transform: scale(1.03);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 `;
 
@@ -440,4 +581,62 @@ const FailCountMessage = styled.p`
   margin-top: 4px;
   text-align: center;
   font-weight: 600;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${({ theme }) => theme.colors.overlay || 'rgba(0,0,0,0.5)'};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalBox = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  min-width: 320px;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+const ModalMessage = styled.div`
+  font-size: 16px;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  margin-bottom: 24px;
+  line-height: 1.6;
+  font-weight: 500;
+`;
+
+const ModalButton = styled.button`
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  padding: 10px 28px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+  }
 `;

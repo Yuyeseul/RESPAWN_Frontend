@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import Logo from '../components/common/Logo';
 import axios from '../api/axios';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
@@ -22,10 +21,6 @@ const initialConfirmPasswordState = {
 
 const PasswordUpdateRequiredPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const token = searchParams.get('token');
-
   const [password, setPassword] = useState(initialPasswordState);
   const [confirmPassword, setConfirmPassword] = useState(
     initialConfirmPasswordState
@@ -86,15 +81,10 @@ const PasswordUpdateRequiredPage = () => {
       alert('비밀번호가 일치하지 않습니다.');
       return;
     }
-    if (!token) {
-      alert('유효하지 않은 요청입니다.');
-      return;
-    }
 
     try {
       setLoading(true);
-      await axios.post('/reset-password', {
-        token,
+      await axios.post('/change-password', {
         newPassword: password.password,
       });
       alert('비밀번호가 성공적으로 변경되었습니다.');
@@ -113,49 +103,53 @@ const PasswordUpdateRequiredPage = () => {
     <>
       <Header />
       <Container>
-        <LogoWrapper>
-          <Logo />
-        </LogoWrapper>
-
         <Box>
           <Title>비밀번호 재설정</Title>
-          {/* 공지 문구 추가 */}
-          <NoticeText>
-            고객님의 소중한 개인정보를 보호하기 위해 비밀번호 변경을 주기적으로
-            안내 드리고 있습니다.
-            <br />
-            안전한 서비스 이용을 위해 새로운 비밀번호로 변경해주세요.
-            <br />
-            비밀번호를 변경하시면 모든 기기와 브라우저에서 로그아웃 됩니다.
-          </NoticeText>
 
-          <Input
-            name="password"
-            type="password"
-            placeholder="새 비밀번호"
-            value={password.password}
-            onChange={onChangeHandler('password')}
-            required
-          />
-          {password.error && <ErrorText>{password.error}</ErrorText>}
+          <NoticeBox>
+            <NoticeIcon>🔒</NoticeIcon>
+            <NoticeText>
+              고객님의 안전한 서비스 이용을 위해 비밀번호 변경을 안내해
+              드립니다.
+              <br />
+              새로운 비밀번호로 변경하시면 모든 기기에서 자동 로그아웃됩니다.
+            </NoticeText>
+          </NoticeBox>
 
-          <Input
-            name="confirmPassword"
-            type="password"
-            placeholder="새 비밀번호 확인"
-            value={confirmPassword.confirmPassword}
-            onChange={onChangeHandler('confirmPassword')}
-            required
-          />
-          {confirmPassword.error && (
-            <ErrorText>{confirmPassword.error}</ErrorText>
-          )}
+          <FormGroup>
+            <Label>새 비밀번호</Label>
+            <Input
+              name="password"
+              type="password"
+              placeholder="영문, 숫자, 특수문자 포함 8~25자"
+              value={password.password}
+              onChange={onChangeHandler('password')}
+              autoComplete="new-password"
+              $hasError={!!password.error}
+              required
+            />
+            {password.error && <ErrorText>{password.error}</ErrorText>}
+          </FormGroup>
 
-          <ButtonWrapper>
-            <DelayButton type="button" onClick={handleDelay}>
-              일주일 후에 변경
-            </DelayButton>
-            <CheckButton
+          <FormGroup>
+            <Label>새 비밀번호 확인</Label>
+            <Input
+              name="confirmPassword"
+              type="password"
+              placeholder="비밀번호를 한번 더 입력해주세요"
+              value={confirmPassword.confirmPassword}
+              onChange={onChangeHandler('confirmPassword')}
+              autoComplete="new-password"
+              $hasError={!!confirmPassword.error}
+              required
+            />
+            {confirmPassword.error && (
+              <ErrorText>{confirmPassword.error}</ErrorText>
+            )}
+          </FormGroup>
+
+          <ButtonContainer>
+            <PrimaryButton
               type="button"
               onClick={handleSubmit}
               disabled={
@@ -165,15 +159,12 @@ const PasswordUpdateRequiredPage = () => {
               }
             >
               {loading ? '처리 중...' : '비밀번호 변경하기'}
-            </CheckButton>
-          </ButtonWrapper>
+            </PrimaryButton>
 
-          <GuideText>
-            다른 서비스에서 사용한 적 없는 안전한 비밀번호를 사용하세요.
-            <br />
-            비밀번호는 8~25자의 영문, 숫자, 특수문자를 포함하며 공백 없이
-            입력해주세요.
-          </GuideText>
+            <TextButton type="button" onClick={handleDelay}>
+              다음에 변경하기
+            </TextButton>
+          </ButtonContainer>
         </Box>
       </Container>
       <Footer />
@@ -185,126 +176,162 @@ export default PasswordUpdateRequiredPage;
 
 const Container = styled.div`
   min-height: 80vh;
-  padding: 20px 15px;
+  padding: 60px 20px;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #fafafa;
-`;
+  background: ${({ theme }) => theme.colors.white};
+  box-sizing: border-box;
 
-const LogoWrapper = styled.div`
-  width: 100%;
-  max-width: 460px;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 30px;
-
-  & > div img {
-    height: 70px;
-    object-fit: contain;
+  @media ${({ theme }) => theme.mobile} {
+    padding: 30px 16px;
+    align-items: flex-start;
   }
 `;
 
 const Box = styled.div`
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  min-width: 480px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  padding: 48px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 460px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-`;
 
-const NoticeText = styled.p`
-  background-color: rgba(105, 111, 148, 0.2);
-  border: 1px solid rgba(85, 90, 130, 0.2);
-  padding: 16px 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #5a4635;
-  text-align: left;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  @media ${({ theme }) => theme.mobile} {
+    padding: 32px 24px;
+    border-radius: 16px;
+  }
 `;
 
 const Title = styled.h2`
-  font-size: 26px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 28px;
+  font-size: 28px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  margin: 0 0 32px 0;
   text-align: center;
+  letter-spacing: -0.5px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+`;
+
+const NoticeBox = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 32px;
+`;
+
+const NoticeIcon = styled.div`
+  font-size: 18px;
+  margin-top: 2px;
+`;
+
+const NoticeText = styled.p`
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  word-break: keep-all;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+`;
+
+const Label = styled.label`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  margin-bottom: 8px;
+  margin-left: 2px;
 `;
 
 const Input = styled.input`
   width: 100%;
-  height: 48px;
-  padding: 0 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid
+    ${({ theme, $hasError }) =>
+      $hasError ? theme.colors.danger : theme.colors.gray[300]};
+  border-radius: 10px;
   font-size: 15px;
-  margin-bottom: 8px;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  background-color: ${({ theme }) => theme.colors.white};
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.gray[400]};
+  }
+
   &:focus {
     outline: none;
-    border-color: #696f94;
+    border-color: ${({ theme, $hasError }) =>
+      $hasError ? theme.colors.danger : theme.colors.primary};
   }
 `;
 
 const ErrorText = styled.p`
-  color: #d9534f;
-  font-size: 13px;
-  margin: -4px 0 12px;
+  color: ${({ theme }) => theme.colors.danger};
+  font-size: 12px;
+  margin: 6px 0 0 4px;
+  font-weight: 500;
 `;
 
-const ButtonWrapper = styled.div`
-  margin-top: 12px;
+const ButtonContainer = styled.div`
+  margin-top: 16px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
 `;
 
-const DelayButton = styled.button`
-  flex: 1;
-  height: 48px;
-  background: #f5f5f5;
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-weight: 600;
+const PrimaryButton = styled.button`
+  width: 100%;
+  height: 54px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.25s ease;
+  transition: all 0.2s ease;
 
-  &:hover {
-    background: #e6e6e6;
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.primary_dark};
+    box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[300]};
+    color: ${({ theme }) => theme.colors.gray[500]};
+    cursor: not-allowed;
   }
 `;
 
-const CheckButton = styled.button`
-  flex: 1;
+const TextButton = styled.button`
+  width: 100%;
   height: 48px;
-  background: ${({ disabled }) => (disabled ? '#ccc' : 'rgb(105, 111, 148)')};
-  color: white;
+  background: transparent;
+  color: ${({ theme }) => theme.colors.gray[550]};
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   font-weight: 600;
-  font-size: 16px;
-  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  transition: background-color 0.25s ease;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s ease;
 
   &:hover {
-    background: ${({ disabled }) => (disabled ? '#ccc' : 'rgb(85, 90, 130)')};
+    color: ${({ theme }) => theme.colors.gray[800]};
+    background: ${({ theme }) => theme.colors.gray[100]};
   }
-`;
-
-const GuideText = styled.p`
-  font-size: 13px;
-  color: #666;
-  margin-top: 16px;
-  line-height: 1.5;
-  word-break: keep-all;
-  white-space: normal;
 `;

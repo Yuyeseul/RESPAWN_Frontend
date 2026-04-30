@@ -37,7 +37,7 @@ const NoticeList = () => {
       setLoading(true);
       try {
         const { page, size } = pageInfo;
-        const { data } = await axios.get('/api/notices/summaries', {
+        const { data } = await axios.get('/notices/summaries', {
           params: { page, size },
         });
         const content = data.content;
@@ -70,61 +70,42 @@ const NoticeList = () => {
       <TableWrap>
         <StyledTable role="table" aria-label="공지사항 목록">
           <thead>
-            <Tr as="tr">
-              <Th as="th" style={{ width: 100, textAlign: 'center' }}>
-                유형
-              </Th>
-              <Th as="th">제목</Th>
-              <Th as="th" style={{ width: 140, textAlign: 'center' }}>
-                작성일
-              </Th>
+            <Tr isHeader>
+              <Th style={{ width: '100px', textAlign: 'center' }}>유형</Th>
+              <Th>제목</Th>
+              <Th style={{ width: '140px', textAlign: 'center' }}>작성일</Th>
             </Tr>
           </thead>
           <tbody>
             {loading ? (
-              <Tr as="tr">
-                <Td as="td" colSpan={4} style={{ textAlign: 'center' }}>
-                  목록을 불러오는 중입니다...
-                </Td>
+              <Tr isNoData>
+                <Td colSpan={3}>목록을 불러오는 중입니다...</Td>
               </Tr>
             ) : notices.length > 0 ? (
-              notices.map((notice) => {
-                return (
-                  <Tr
-                    as="tr"
-                    key={notice.id}
-                    tabIndex={0}
-                    role="row"
-                    onClick={() =>
-                      navigate(`/customerCenter/notices/${notice.id}`)
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        navigate(`/customerCenter/notices/${notice.id}`);
-                      }
-                    }}
-                  >
-                    <Td as="td" style={{ textAlign: 'center' }}>
-                      <TypeBadge title={notice.noticeType}>
-                        {NOTICE_TYPE_MAP[notice.noticeType]?.label ||
-                          notice.noticeType}
-                      </TypeBadge>
-                    </Td>
-                    <Td as="td">
-                      <Ellipsis title={notice.title}>{notice.title}</Ellipsis>
-                    </Td>
-                    <Td as="td" style={{ textAlign: 'center' }}>
-                      <Mono>{formatDate(notice.createdAt)}</Mono>
-                    </Td>
-                  </Tr>
-                );
-              })
+              notices.map((notice) => (
+                <Tr
+                  key={notice.id}
+                  onClick={() =>
+                    navigate(`/customerCenter/notices/${notice.id}`)
+                  }
+                >
+                  <Td className="col-type">
+                    <TypeBadge>
+                      {NOTICE_TYPE_MAP[notice.noticeType]?.label ||
+                        notice.noticeType}
+                    </TypeBadge>
+                  </Td>
+                  <Td className="col-title">
+                    <Ellipsis>{notice.title}</Ellipsis>
+                  </Td>
+                  <Td className="col-date">
+                    <Mono>{formatDate(notice.createdAt)}</Mono>
+                  </Td>
+                </Tr>
+              ))
             ) : (
-              <Tr as="tr">
-                <Td as="td" colSpan={4} style={{ textAlign: 'center' }}>
-                  등록된 공지사항이 없습니다.
-                </Td>
+              <Tr isNoData>
+                <Td colSpan={3}>등록된 공지사항이 없습니다.</Td>
               </Tr>
             )}
           </tbody>
@@ -150,23 +131,29 @@ export default NoticeList;
 
 const PageContainer = styled.div`
   min-height: 70vh;
-  max-width: 1120px;
+  max-width: ${({ theme }) => theme.maxWidth};
   margin: 0 auto;
   padding: 28px 20px 40px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px 15px 30px;
+    gap: 16px;
+  }
 `;
 
 const BreadcrumbLink = styled(Link)`
   font-size: 14px;
   font-weight: 500;
-  color: #64748b; /* var(--muted) */
+  color: ${({ theme }) => theme.colors.gray[600]};
   text-decoration: none;
-  margin-bottom: -12px; /* 헤더와의 간격 조정 */
+  margin-bottom: -12px;
 
   &:hover {
     text-decoration: underline;
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -174,78 +161,163 @@ const PageHeader = styled.header`
   h1 {
     font-size: 28px;
     font-weight: 800;
-    margin: 0 0 8px;
-    color: #111827;
+    margin: 8px 0 8px;
+    color: ${({ theme }) => theme.colors.gray[900]};
+    word-break: keep-all;
   }
   p {
     font-size: 15px;
-    color: #6b7280;
+    color: ${({ theme }) => theme.colors.gray[600]};
     margin: 0;
+    word-break: keep-all;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    h1 {
+      font-size: 22px;
+    }
+    p {
+      font-size: 14px;
+    }
   }
 `;
 
 const TableWrap = styled.div`
-  border: 1px solid #e2e8f0;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 14px;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   overflow: hidden;
+
+  @media ${({ theme }) => theme.mobile} {
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
 `;
 
 const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  border-spacing: 0;
+
+  @media ${({ theme }) => theme.mobile} {
+    thead {
+      display: none;
+    }
+    tbody {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
 `;
 
 const Tr = styled.tr`
-  cursor: pointer;
+  cursor: ${({ isHeader, isNoData }) =>
+    isHeader || isNoData ? 'default' : 'pointer'};
   transition: background-color 0.2s;
+
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
   &:hover {
-    background-color: #f8fafc;
+    background-color: ${({ isHeader, isNoData, theme }) =>
+      !isHeader && !isNoData ? theme.colors.gray[50] : 'transparent'};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    display: ${({ isHeader }) => (isHeader ? 'none' : 'flex')};
+    flex-direction: column;
+    padding: 16px;
+    background: ${({ theme }) => theme.colors.white};
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+    border-radius: 12px;
+    gap: 12px;
+
+    &:last-child {
+      border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+      margin-bottom: 0;
+    }
   }
 `;
 
 const Th = styled.th`
   text-align: left;
-  padding: 12px 16px;
+  padding: 14px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: #64748b;
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background: ${({ theme }) => theme.colors.gray[50]};
 `;
 
 const Td = styled.td`
-  padding: 14px 16px;
-  color: #0f172a;
+  padding: 16px;
+  color: ${({ theme }) => theme.colors.gray[900]};
   font-size: 14px;
+
+  &.col-type {
+    text-align: center;
+    @media ${({ theme }) => theme.mobile} {
+      text-align: left;
+      padding: 0;
+    }
+  }
+
+  &.col-title {
+    font-weight: 500;
+    @media ${({ theme }) => theme.mobile} {
+      padding: 4px 0;
+      font-size: 15px;
+    }
+  }
+
+  &.col-date {
+    text-align: center;
+    color: ${({ theme }) => theme.colors.gray[550]};
+    @media ${({ theme }) => theme.mobile} {
+      text-align: left;
+      padding: 0;
+      font-size: 12px;
+    }
+  }
+
+  ${({ colSpan }) => colSpan && `text-align: center !important;`}
 `;
 
 const Mono = styled.span`
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 `;
 
-const Ellipsis = styled.span`
-  display: inline-block;
+const Ellipsis = styled.div`
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  word-break: break-all;
+
+  @media ${({ theme }) => theme.mobile} {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 `;
 
 const TypeBadge = styled.span`
   display: inline-block;
   padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: ${({ theme }) => theme.colors.primary_light};
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const PaginationBar = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-top: 8px;
+  padding-top: 12px;
 `;

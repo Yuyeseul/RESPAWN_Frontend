@@ -35,7 +35,8 @@ function DeliverModal({ onClose, onSaveComplete, initialData }) {
     });
   };
 
-  const handleZoneCode = () => {
+  const handleZoneCode = (e) => {
+    e.preventDefault();
     setIsDaumPostOpen(true);
   };
 
@@ -54,9 +55,9 @@ function DeliverModal({ onClose, onSaveComplete, initialData }) {
     try {
       let response;
       if (initialData) {
-        response = await axios.put(`/api/addresses/${formData.id}`, formData);
+        response = await axios.put(`/addresses/${formData.id}`, formData);
       } else {
-        response = await axios.post(`/api/addresses/add`, formData);
+        response = await axios.post(`/addresses/add`, formData);
       }
       // 서버에서 저장된 최신 주소 객체를 부모에 전달
       if (onSaveComplete) {
@@ -75,109 +76,122 @@ function DeliverModal({ onClose, onSaveComplete, initialData }) {
   return (
     <ModalOverlay>
       <ModalContent>
-        <CloseButton onClick={onClose}>×</CloseButton>
-        <Title>주소지 설정</Title>
-        <form onSubmit={handleSubmit}>
-          <FormRow>
-            <Label>주소지 별칭</Label>
-            <Input
-              name="addressName"
-              placeholder="주소지 별칭"
-              value={formData.addressName}
-              onChange={handleChange}
-              required
-            />
-          </FormRow>
+        {!isDaumPostOpen && (
+          <>
+            <Header>
+              <Title>{initialData ? '배송지 수정' : '새 배송지 추가'}</Title>
+              <CloseButton onClick={onClose}>×</CloseButton>
+            </Header>
 
-          <FormRow>
-            <Label>수령인 이름</Label>
-            <Input
-              name="recipient"
-              type="text"
-              placeholder="수령인 이름"
-              value={formData.recipient}
-              onChange={handleChange}
-              required
-            />
-          </FormRow>
+            <FormScrollArea onSubmit={handleSubmit}>
+              <FormSection>
+                <FormRow>
+                  <Label>주소지 별칭</Label>
+                  <Input
+                    name="addressName"
+                    placeholder="예: 우리집, 회사"
+                    value={formData.addressName}
+                    onChange={handleChange}
+                    required
+                  />
+                </FormRow>
 
-          <FormRow>
-            <Label>우편 번호</Label>
-            <FlexContainer>
-              <Input
-                name="zoneCode"
-                placeholder="우편 번호"
-                value={formData.zoneCode}
-                onChange={handleChange}
-                readOnly
-              />
-              <AddressButton onClick={handleZoneCode}>
-                우편번호 검색
-              </AddressButton>
-            </FlexContainer>
-          </FormRow>
-          <FormRow>
-            <Label>주소</Label>
-            <Input
-              name="baseAddress"
-              placeholder="주소"
-              value={formData.baseAddress}
-              readOnly
-            />
-          </FormRow>
+                <FormRow>
+                  <Label>수령인 이름</Label>
+                  <Input
+                    name="recipient"
+                    placeholder="이름을 입력하세요"
+                    value={formData.recipient}
+                    onChange={handleChange}
+                    required
+                  />
+                </FormRow>
 
-          <FormRow>
-            <Label>상세 주소</Label>
-            <Input
-              name="detailAddress"
-              placeholder="상세 주소"
-              value={formData.detailAddress}
-              onChange={handleChange}
-              required
-            />
-          </FormRow>
+                <FormRow>
+                  <Label>우편 번호</Label>
+                  <ZipCodeContainer>
+                    <Input
+                      name="zoneCode"
+                      placeholder="00000"
+                      value={formData.zoneCode}
+                      onChange={handleChange}
+                      readOnly
+                      tabIndex="-1"
+                    />
+                    <AddressButton onClick={handleZoneCode}>검색</AddressButton>
+                  </ZipCodeContainer>
+                </FormRow>
 
-          <FormRow>
-            <Label>연락처</Label>
-            <Input
-              name="phone"
-              placeholder="연락처"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-            />
-          </FormRow>
+                <FormRow>
+                  <Label>주소</Label>
+                  <Input
+                    name="baseAddress"
+                    placeholder="주소 검색을 이용해 주세요"
+                    value={formData.baseAddress}
+                    readOnly
+                    tabIndex="-1"
+                  />
+                </FormRow>
 
-          <FormRow>
-            <Label>추가 연락처</Label>
-            <Input
-              name="subPhone"
-              placeholder="추가 연락처"
-              value={formData.subPhone}
-              onChange={handleChange}
-            />
-          </FormRow>
-          <FormRow>
-            <input
-              type="checkbox"
-              name="basic"
-              checked={formData.basic}
-              onChange={handleChange}
-            />
-            &nbsp;기본 배송지로 설정
-          </FormRow>
+                <FormRow>
+                  <Label>상세 주소</Label>
+                  <Input
+                    name="detailAddress"
+                    placeholder="나머지 주소를 입력하세요"
+                    value={formData.detailAddress}
+                    onChange={handleChange}
+                    required
+                  />
+                </FormRow>
 
-          <SubmitButton type="submit">저장</SubmitButton>
-        </form>
+                <FormRow>
+                  <Label>연락처</Label>
+                  <Input
+                    name="phone"
+                    placeholder="-없이 입력하세요"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </FormRow>
+
+                <FormRow>
+                  <Label>추가 연락처(선택)</Label>
+                  <Input
+                    name="subPhone"
+                    placeholder="비상 연락처"
+                    value={formData.subPhone}
+                    onChange={handleChange}
+                  />
+                </FormRow>
+              </FormSection>
+
+              <CheckboxRow>
+                <input
+                  type="checkbox"
+                  id="basic"
+                  name="basic"
+                  checked={formData.basic}
+                  onChange={handleChange}
+                />
+                <label htmlFor="basic">기본 배송지로 설정</label>
+              </CheckboxRow>
+
+              <SubmitButton type="submit">저장</SubmitButton>
+            </FormScrollArea>
+          </>
+        )}
 
         {isDaumPostOpen && (
           <PostcodeWrapper>
-            <PostcodeCloseButton onClick={() => setIsDaumPostOpen(false)}>
-              ×
-            </PostcodeCloseButton>
+            <PostcodeHeader>
+              <span>주소 검색</span>
+              <button onClick={() => setIsDaumPostOpen(false)}>×</button>
+            </PostcodeHeader>
+            {/* 컨테이너 높이에 맞춰지도록 style 변경 */}
             <DaumPostcode
               onComplete={handleComplete}
-              style={{ width: '100%', height: '450px' }}
+              style={{ width: '100%', height: '100%' }}
             />
           </PostcodeWrapper>
         )}
@@ -190,145 +204,261 @@ export default DeliverModal;
 
 const ModalOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 2000;
+  padding: 16px;
+
+  /* 모바일 환경에서는 꽉 차게 보이도록 패딩 제거 */
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0;
+  }
 `;
 
 const ModalContent = styled.div`
   position: relative;
-  background: #fff;
-  padding: 24px;
-  border-radius: 8px;
-  width: 600px;
-  max-width: 90%;
+  background: ${({ theme }) => theme.colors.white};
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  /* 모바일 환경에서 전체화면 적용 및 모서리 둥글기 제거 */
+  @media ${({ theme }) => theme.mobile} {
+    max-width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
 `;
 
-const SubmitButton = styled.button`
-  margin-top: 16px;
-  background-color: #222;
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 4px;
-  cursor: pointer;
-  &:hover {
-    background-color: #555;
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px 20px;
   }
 `;
 
 const Title = styled.h2`
+  font-size: 18px;
   font-weight: 700;
-  font-size: 1.25rem;
-  margin-bottom: 24px;
-  color: #222;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  margin: 0;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.gray[800]};
+  }
+`;
+
+const FormScrollArea = styled.form`
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px;
+  }
+`;
+
+const FormSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 `;
 
 const FormRow = styled.div`
   display: flex;
+  flex-direction: row;
   align-items: center;
-  margin-bottom: 16px;
   gap: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 `;
 
 const Label = styled.label`
-  width: 120px;
-  font-weight: bold;
-  color: #444;
+  font-size: 14px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  min-width: 120px;
+  margin-top: 12px;
+  align-self: flex-start;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 0;
+    align-self: stretch;
+  }
 `;
 
 const Input = styled.input`
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #ccc;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 6px;
-  font-size: 16px;
-  box-sizing: border-box;
+  font-size: 15px;
+  background: ${({ readOnly, theme }) =>
+    readOnly ? theme.colors.gray[100] : theme.colors.white};
+
+  outline: none;
+  transition: border-color 0.2s;
 
   &:focus {
-    outline: none;
-    border-color: rgb(105, 111, 148);
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  ${({ readOnly, theme }) =>
+    readOnly &&
+    `
+    pointer-events: none; 
+    user-select: none;
+    cursor: default;
+    
+    &:focus {
+      border-color: ${theme.colors.gray[300]};
+    }
+  `}
+`;
+
+const ZipCodeContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  width: 100%;
+
+  input {
+    flex: 1;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    max-width: none;
   }
 `;
 
 const AddressButton = styled.button`
-  margin-left: 12px;
-  min-width: 80px;
-  height: 44px;
-  background: rgb(105, 111, 148);
-  color: white;
+  background: ${({ theme }) => theme.colors.gray[800]};
+  color: ${({ theme }) => theme.colors.white};
   padding: 0 16px;
-  font-size: 14px;
-  border: none;
   border-radius: 6px;
-  cursor: pointer;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background 0.2s;
 
   &:hover {
-    background: rgb(85, 90, 130);
+    background: ${({ theme }) => theme.colors.gray[700]};
   }
 `;
 
-const FlexContainer = styled.div`
+const CheckboxRow = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
-`;
+  margin-top: 24px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray[700]};
 
-const PostcodeWrapper = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1100;
-  background-color: white;
-  border-radius: 8px;
-  width: 450px;
-  height: 500px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-  padding: 40px 16px 16px 16px;
-  box-sizing: border-box;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 24px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #888;
-  z-index: 1001;
-
-  &:hover {
-    color: #000;
+  input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  label {
+    cursor: pointer;
+    user-select: none;
   }
 `;
 
-const PostcodeCloseButton = styled.button`
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 1200;
-  font-size: 20px;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
+const SubmitButton = styled.button`
+  width: 100%;
+  margin-top: 32px;
+  background: ${({ theme }) => theme.colors.gray[800]};
+  color: ${({ theme }) => theme.colors.white};
+  padding: 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
+  transition: opacity 0.2s;
 
   &:hover {
-    background: #eee;
+    opacity: 0.9;
+  }
+
+  /* 모바일에서 버튼이 하단에 좀 더 밀착되도록 조정 */
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 40px;
+  }
+`;
+
+const PostcodeWrapper = styled.div`
+  width: 100%;
+  height: 500px; /* PC 환경 기본 높이 */
+  background: ${({ theme }) => theme.colors.white};
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  @media ${({ theme }) => theme.mobile} {
+    height: 100%; /* 모바일에서 화면 전체 높이 사용 */
+    border-radius: 0;
+  }
+`;
+
+const PostcodeHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  span {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: ${({ theme }) => theme.colors.gray[600]};
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    &:hover {
+      color: ${({ theme }) => theme.colors.gray[800]};
+    }
   }
 `;

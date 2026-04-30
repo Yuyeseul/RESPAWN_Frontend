@@ -31,46 +31,43 @@ const InquiryList = () => {
     setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
 
+  // 상품 목록 불러오기 (마운트 시 1회)
   useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const res = await axios.get('/items/my-items/summary');
+        setItems(res.data);
+      } catch (err) {
+        console.error('상품 목록 불러오기 실패:', err);
+      }
+    };
     fetchItems();
   }, []);
 
+  // 문의 리스트 가져오기 (선택된 상품이나 페이지 변경 시)
   useEffect(() => {
+    const fetchInquiries = async (itemId) => {
+      try {
+        const res = await axios.get('/inquiries/seller', {
+          params: { page: pageInfo.page, size: pageInfo.size, itemId },
+        });
+        const data = res.data;
+        setInquiries(data.content);
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          isFirst: data.first,
+          isLast: data.last,
+        }));
+      } catch (err) {
+        console.error('문의 리스트 불러오기 실패:', err);
+      }
+    };
     fetchInquiries(selectedItem);
-  }, [selectedItem, pageInfo.page]);
+  }, [selectedItem, pageInfo.page, pageInfo.size]);
 
-  const fetchItems = async () => {
-    try {
-      const res = await axios.get('/api/items/my-items/summary');
-      console.log(res.data);
-      setItems(res.data);
-    } catch (err) {
-      console.error('상품 목록 불러오기 실패:', err);
-    }
-  };
-
-  // 문의 리스트 가져오기
-  const fetchInquiries = async (itemId) => {
-    try {
-      const res = await axios.get('/api/inquiries/seller', {
-        params: { page: pageInfo.page, size: pageInfo.size, itemId },
-      });
-      console.log(res.data);
-      const data = res.data;
-      setInquiries(data.content);
-      setPageInfo((prev) => ({
-        ...prev,
-        totalPages: data.totalPages,
-        totalElements: data.totalElements,
-        isFirst: data.first,
-        isLast: data.last,
-      }));
-    } catch (err) {
-      console.error('문의 리스트 불러오기 실패:', err);
-    }
-  };
-
-  // 상세 조회
+  // 상세 조회 (아코디언 토글)
   const handleToggleExpand = async (id) => {
     if (expandedId === id) {
       setExpandedId(null);
@@ -79,21 +76,20 @@ const InquiryList = () => {
 
     if (!expandedDetail[id]) {
       try {
-        const res = await axios.get(`/api/inquiries/${id}/detail`);
+        const res = await axios.get(`/inquiries/${id}/detail`);
         setExpandedDetail((prev) => ({ ...prev, [id]: res.data }));
       } catch (err) {
         console.error('상세 조회 실패:', err);
         return;
       }
     }
-
     setExpandedId(id);
   };
 
   // 답변 등록
   const handleAnswerSubmit = async (id, answer) => {
     try {
-      const res = await axios.post(`/api/inquiries/${id}/answer`, { answer });
+      const res = await axios.post(`/inquiries/${id}/answer`, { answer });
       setExpandedDetail((prev) => ({
         ...prev,
         [id]: res.data.inquiry,
@@ -114,86 +110,184 @@ const InquiryList = () => {
     <Container>
       <Header>
         <Title>판매자 문의 관리</Title>
-        <ItemSelector
-          value={selectedItem}
-          onChange={setSelectedItem}
-          productList={items}
-        />
+        <SelectorWrapper>
+          <ItemSelector
+            value={selectedItem}
+            onChange={setSelectedItem}
+            productList={items}
+          />
+        </SelectorWrapper>
       </Header>
-      <Table>
-        <thead>
-          <tr>
-            <th>상품명</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성일</th>
-            <th>문의유형</th>
-            <th>상태</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inquiries.length > 0 ? (
-            inquiries.map((item) => (
-              <React.Fragment key={item.id}>
-                <tr onClick={() => handleToggleExpand(item.id)}>
-                  <td>{item.itemName}</td>
-                  <td>{item.question}</td>
-                  <td>{item.buyerUsername}</td>
-                  <td>{new Date(item.questionDate).toLocaleDateString()}</td>
-                  <td>{inquiryTypeMap[item.inquiryType]}</td>
-                  <td>{item.status === 'ANSWERED' ? '답변 완료' : '대기'}</td>
-                </tr>
 
-                {expandedId === item.id && expandedDetail[item.id] && (
-                  <tr>
-                    <td colSpan={6} style={{ background: '#f9f9f9' }}>
-                      <DetailBox>
-                        <p>
-                          <strong>문의 내용:</strong>{' '}
-                          {expandedDetail[item.id].questionDetail}
-                        </p>
-
-                        <p>
-                          <strong>답변:</strong>{' '}
-                          {expandedDetail[item.id].answer || '미등록'}
-                        </p>
-
-                        <AnswerForm
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            const answer = e.target.answer.value;
-                            handleAnswerSubmit(item.id, answer);
-                            e.target.answer.value = '';
-                          }}
-                        >
-                          <AnswerInput
-                            name="answer"
-                            placeholder="답변을 입력하세요"
-                            defaultValue={expandedDetail[item.id].answer || ''}
-                          />
-                          <AnswerButton type="submit">등록</AnswerButton>
-                        </AnswerForm>
-                      </DetailBox>
+      {/* PC 환경: 기존 테이블 뷰 (디자인 업그레이드) */}
+      <DesktopTableWrapper>
+        <Table>
+          <thead>
+            <tr>
+              <th>상품명</th>
+              <th>제목</th>
+              <th>작성자</th>
+              <th>작성일</th>
+              <th>문의유형</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            {inquiries.length > 0 ? (
+              inquiries.map((item) => (
+                <React.Fragment key={item.id}>
+                  <tr
+                    onClick={() => handleToggleExpand(item.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>{item.itemName}</td>
+                    <td>{item.question}</td>
+                    <td>{item.buyerUsername}</td>
+                    <td>{new Date(item.questionDate).toLocaleDateString()}</td>
+                    <td>{inquiryTypeMap[item.inquiryType]}</td>
+                    <td>
+                      <StatusBadge $status={item.status}>
+                        {item.status === 'ANSWERED' ? '답변 완료' : '대기'}
+                      </StatusBadge>
                     </td>
                   </tr>
+
+                  {/* PC 펼쳐짐 영역 */}
+                  {expandedId === item.id && expandedDetail[item.id] && (
+                    <tr>
+                      <td colSpan={6} style={{ padding: 0, border: 'none' }}>
+                        <DetailWrapper onClick={(e) => e.stopPropagation()}>
+                          <DetailBox>
+                            <DetailRow>
+                              <DetailLabel>문의 내용</DetailLabel>
+                              <DetailContent>
+                                {expandedDetail[item.id].questionDetail}
+                              </DetailContent>
+                            </DetailRow>
+
+                            <DetailRow>
+                              <DetailLabel>답변 내용</DetailLabel>
+                              <DetailContent $isAnswer>
+                                {expandedDetail[item.id].answer || '미등록'}
+                              </DetailContent>
+                            </DetailRow>
+
+                            <AnswerForm
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                const answer = e.target.answer.value;
+                                if (!answer.trim())
+                                  return alert('답변을 입력해주세요.');
+                                handleAnswerSubmit(item.id, answer);
+                                e.target.answer.value = '';
+                              }}
+                            >
+                              <AnswerInput
+                                name="answer"
+                                placeholder="답변을 입력하세요"
+                                defaultValue={
+                                  expandedDetail[item.id].answer || ''
+                                }
+                              />
+                              <AnswerButton type="submit">등록</AnswerButton>
+                            </AnswerForm>
+                          </DetailBox>
+                        </DetailWrapper>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))
+            ) : (
+              <tr>
+                <NoDataCell colSpan="6">{'문의 내역이 없습니다.'}</NoDataCell>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </DesktopTableWrapper>
+
+      {/* 모바일 환경: 카드형 뷰 */}
+      <MobileListWrapper>
+        {inquiries.length > 0 ? (
+          inquiries.map((item) => (
+            <React.Fragment key={item.id}>
+              <MobileCard onClick={() => handleToggleExpand(item.id)}>
+                <CardHeader>
+                  <ItemName>{item.itemName}</ItemName>
+                  <DateText>
+                    {new Date(item.questionDate).toLocaleDateString()}
+                  </DateText>
+                </CardHeader>
+
+                <CardBody>
+                  <QuestionTitle>{item.question}</QuestionTitle>
+                  <MetaInfo>
+                    작성자: {item.buyerUsername} |{' '}
+                    {inquiryTypeMap[item.inquiryType]}
+                  </MetaInfo>
+                </CardBody>
+
+                <CardFooter>
+                  <StatusBadge $status={item.status}>
+                    {item.status === 'ANSWERED' ? '답변 완료' : '대기'}
+                  </StatusBadge>
+                </CardFooter>
+
+                {/* 모바일 펼쳐짐 영역 */}
+                {expandedId === item.id && expandedDetail[item.id] && (
+                  <MobileDetailBox onClick={(e) => e.stopPropagation()}>
+                    <DetailRow>
+                      <DetailLabel>문의 내용</DetailLabel>
+                      <DetailContent>
+                        {expandedDetail[item.id].questionDetail}
+                      </DetailContent>
+                    </DetailRow>
+
+                    <DetailRow>
+                      <DetailLabel>답변 내용</DetailLabel>
+                      <DetailContent $isAnswer>
+                        {expandedDetail[item.id].answer || '미등록'}
+                      </DetailContent>
+                    </DetailRow>
+
+                    <MobileAnswerForm
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const answer = e.target.answer.value;
+                        if (!answer.trim())
+                          return alert('답변을 입력해주세요.');
+                        handleAnswerSubmit(item.id, answer);
+                        e.target.answer.value = '';
+                      }}
+                    >
+                      <AnswerInput
+                        name="answer"
+                        placeholder="답변을 입력하세요"
+                        defaultValue={expandedDetail[item.id].answer || ''}
+                      />
+                      <AnswerButton type="submit">등록</AnswerButton>
+                    </MobileAnswerForm>
+                  </MobileDetailBox>
                 )}
-              </React.Fragment>
-            ))
-          ) : (
-            <tr>
-              <NoDataCell colSpan="6">{'문의 내역이 없습니다.'}</NoDataCell>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+              </MobileCard>
+            </React.Fragment>
+          ))
+        ) : (
+          <NoDataCard>문의 내역이 없습니다.</NoDataCard>
+        )}
+      </MobileListWrapper>
+
       {pageInfo.totalPages > 1 && (
-        <Pagination
-          currentPage={pageInfo.page + 1}
-          totalPages={pageInfo.totalPages}
-          onPageChange={handlePageChange}
-          isFirst={pageInfo.isFirst}
-          isLast={pageInfo.isLast}
-        />
+        <PaginationWrapper>
+          <Pagination
+            currentPage={pageInfo.page + 1}
+            totalPages={pageInfo.totalPages}
+            onPageChange={handlePageChange}
+            isFirst={pageInfo.isFirst}
+            isLast={pageInfo.isLast}
+          />
+        </PaginationWrapper>
       )}
     </Container>
   );
@@ -201,10 +295,23 @@ const InquiryList = () => {
 
 export default InquiryList;
 
+// --- 전면 개편된 스타일 영역 ---
+
 const Container = styled.div`
   max-width: 1600px;
   margin: 60px auto;
   padding: 0 20px;
+  font-family:
+    'Pretendard',
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin: 20px auto;
+    padding: 0 10px;
+  }
 `;
 
 const Header = styled.div`
@@ -212,75 +319,280 @@ const Header = styled.div`
   justify-content: space-between;
   margin-bottom: 20px;
   align-items: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
 `;
 
 const Title = styled.h2`
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 20px;
-  color: #555a82;
+  color: ${({ theme: { colors } }) => colors.primary};
+  margin: 0;
+`;
+
+const SelectorWrapper = styled.div`
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    select {
+      width: 100%;
+    }
+  }
+`;
+
+const DesktopTableWrapper = styled.div`
+  width: 100%;
+  @media ${({ theme }) => theme.mobile} {
+    display: none;
+  }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
   th,
   td {
-    padding: 12px 15px;
+    padding: 14px 15px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+    vertical-align: middle;
   }
 
   th {
-    background: #e6e8f4;
-    color: #333;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
+    color: ${({ theme: { colors } }) => colors.gray[800]};
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   tr:hover {
-    background: #f5f7fa;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
 `;
 
+const DetailWrapper = styled.div`
+  padding: 16px 24px;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+`;
+
 const DetailBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   text-align: left;
-  p {
-    margin: 6px 0;
-  }
+  max-width: 1200px;
+  margin: 0 auto;
+`;
+
+const DetailRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const DetailLabel = styled.span`
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme: { colors } }) => colors.primary};
+`;
+
+const DetailContent = styled.p`
+  margin: 0;
+  font-size: 14px;
+  color: ${({ theme: { colors } }) => colors.gray[700]};
+  line-height: 1.5;
+  background: ${(props) =>
+    props.$isAnswer ? props.theme.colors.white : 'transparent'};
+  padding: ${(props) => (props.$isAnswer ? '12px' : '0')};
+  border-radius: ${(props) => (props.$isAnswer ? '8px' : '0')};
+  border: ${(props) =>
+    props.$isAnswer ? `1px solid ${props.theme.colors.gray[200]}` : 'none'};
+  white-space: pre-wrap;
 `;
 
 const AnswerForm = styled.form`
   display: flex;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 8px;
 `;
 
 const AnswerInput = styled.input`
   flex: 1;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1.5px solid ${({ theme: { colors } }) => colors.gray[300]};
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: ${({ theme: { colors } }) => colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme: { colors } }) => colors.primary_alpha};
+  }
 `;
 
 const AnswerButton = styled.button`
-  padding: 8px 12px;
+  padding: 0 24px;
   border: none;
-  background: #222;
-  color: white;
-  border-radius: 6px;
+  background: ${({ theme: { colors } }) => colors.primary};
+  color: ${({ theme: { colors } }) => colors.white};
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 
   &:hover {
-    background: #444;
+    background: ${({ theme: { colors } }) => colors.primary_dark};
   }
 `;
 
 const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
-  color: #999;
-  font-size: 16px;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
+  font-size: 15px;
+`;
+
+const StatusBadge = styled.span`
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: ${(props) =>
+    props.$status === 'ANSWERED'
+      ? props.theme.colors.primary_hover
+      : props.theme.colors.angel_pink};
+  color: ${(props) =>
+    props.$status === 'ANSWERED'
+      ? props.theme.colors.primary
+      : props.theme.colors.danger};
+`;
+
+const PaginationWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+`;
+
+const MobileListWrapper = styled.div`
+  display: none;
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+`;
+
+const MobileCard = styled.div`
+  background: ${({ theme: { colors } }) => colors.white};
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:active {
+    background: ${({ theme: { colors } }) => colors.gray[50]};
+  }
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  padding-bottom: 8px;
+`;
+
+const ItemName = styled.span`
+  font-size: 13px;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
+  font-weight: 500;
+`;
+
+const DateText = styled.span`
+  font-size: 12px;
+  color: ${({ theme: { colors } }) => colors.gray[500]};
+  white-space: nowrap;
+  margin-left: 10px;
+`;
+
+const CardBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const QuestionTitle = styled.div`
+  font-size: 15px;
+  font-weight: 600;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
+  line-height: 1.4;
+`;
+
+const MetaInfo = styled.div`
+  font-size: 13px;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
+`;
+
+const CardFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+`;
+
+const MobileDetailBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 8px;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  cursor: default;
+`;
+
+const MobileAnswerForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+  }
+`;
+
+const NoDataCard = styled.div`
+  padding: 40px 0;
+  text-align: center;
+  color: ${({ theme: { colors } }) => colors.gray[550]};
+  font-size: 14px;
+  background: ${({ theme: { colors } }) => colors.white};
+  border-radius: 10px;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;

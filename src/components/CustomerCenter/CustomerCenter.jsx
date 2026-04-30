@@ -273,7 +273,7 @@ const CustomerCenter = () => {
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        const res = await axios.get('/api/notices/summaries', {
+        const res = await axios.get('/notices/summaries', {
           params: { page: 0, size: 5 },
         });
         setNotices(res.data.content || []);
@@ -291,7 +291,7 @@ const CustomerCenter = () => {
       <Main>
         <Header>
           <h1>도움이 필요하신가요?</h1>
-          <p>검색으로 바로 해결하거나, 필요한 정보를 찾아보세요.</p>
+          <p>검색을 통해 필요한 정보를 찾아보세요.</p>
         </Header>
 
         <SearchContainer>
@@ -343,12 +343,13 @@ const CustomerCenter = () => {
         <SectionSpacer />
 
         <ContactSection onContactClick={handleContactClick} />
-      </Main>
 
-      <FooterNote>
-        더 도움이 필요하면 1:1 문의를 남겨주세요. 평일 기준 24시간 내
-        응답합니다.
-      </FooterNote>
+        <FooterNote>
+          더 도움이 필요하면 1:1 문의를 남겨주세요.{' '}
+          <br className="mobile-only" />
+          평일 기준 24시간 내 응답합니다.
+        </FooterNote>
+      </Main>
 
       {modal.open && (
         <ModalOverlay onClick={() => setModal({ ...modal, open: false })}>
@@ -368,18 +369,13 @@ const CustomerCenter = () => {
 export default CustomerCenter;
 
 const Page = styled.div`
-  --indigo: #4e46e5ad;
-  --green: #22c55e;
-  --amber: #f59e0b;
-  --ink: #0f172a;
-  --muted: #64748b;
-  --line: #e2e8f0;
   min-height: 100vh;
-  color: var(--ink);
+  color: ${({ theme }) => theme.colors.gray[900]};
+  background-color: ${({ theme }) => theme.colors.gray[50]};
 `;
 
 const Main = styled.main`
-  max-width: 1120px;
+  max-width: ${({ theme }) => theme.maxWidth};
   padding: 28px 20px 40px;
   margin: 0 auto;
 `;
@@ -390,10 +386,15 @@ const Header = styled.header`
   h1 {
     font-size: 24px;
     margin: 0 0 6px;
+    color: ${({ theme }) => theme.colors.black};
+    word-break: keep-all;
   }
   p {
-    color: var(--muted);
-    margin: 0;
+    color: ${({ theme }) => theme.colors.gray[600]};
+    margin: 0 auto;
+    max-width: 400px;
+    line-height: 1.5;
+    word-break: keep-all;
   }
 `;
 
@@ -402,37 +403,41 @@ const SectionSpacer = styled.div`
 `;
 
 const LoadingWrapper = styled.div`
-  background: #fff;
-  border: 1px solid var(--line);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 14px;
   padding: 40px;
   text-align: center;
-  color: var(--muted);
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 14px;
 `;
 
 const SearchContainer = styled.div`
-  max-width: 720px; /* Adjust this value to your preferred width */
+  max-width: 720px;
   margin: 0 auto;
 `;
 
 const CmdWrap = styled.section`
-  background: #fff;
-  border: 1px solid var(--line);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 14px;
-  padding: 12px;
+  padding: 14px;
   margin: 16px 0 18px;
   .row {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   input {
     flex: 1 1 200px;
     padding: 12px;
-    border: 1px solid var(--line);
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
     border-radius: 10px;
     font-size: 14px;
+    &:focus {
+      border-color: ${({ theme }) => theme.colors.primary};
+      outline: none;
+    }
   }
   .chips {
     margin-top: 10px;
@@ -440,11 +445,18 @@ const CmdWrap = styled.section`
     gap: 8px;
     flex-wrap: wrap;
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    input {
+      padding: 10px;
+      font-size: 13px;
+    }
+  }
 `;
 
 const SearchBtn = styled.button`
-  background: var(--indigo);
-  color: #fff;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
   border: 0;
   border-radius: 10px;
   padding: 0 16px;
@@ -454,9 +466,9 @@ const SearchBtn = styled.button`
 `;
 
 const Chip = styled.button`
-  border: 1px dashed var(--line);
-  background: #f1f5f9;
-  color: var(--muted);
+  background: ${({ theme }) => theme.colors.gray[100]};
+  border: 1px dashed ${({ theme }) => theme.colors.gray[300]};
+  color: ${({ theme }) => theme.colors.gray[600]};
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 12px;
@@ -474,8 +486,8 @@ const TwoColumn = styled.div`
 `;
 
 const NoticeListSection = styled.section`
-  background: #fff;
-  border: 1px solid var(--line);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 14px;
   padding: 16px 20px;
 
@@ -484,7 +496,7 @@ const NoticeListSection = styled.section`
     justify-content: space-between;
     align-items: center;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
 
     h2 {
       font-size: 16px;
@@ -493,7 +505,7 @@ const NoticeListSection = styled.section`
 
     a {
       font-size: 13px;
-      color: var(--muted);
+      color: ${({ theme }) => theme.colors.gray[600]};
       text-decoration: none;
       &:hover {
         text-decoration: underline;
@@ -510,13 +522,27 @@ const NoticeListSection = styled.section`
   li a {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 8px 4px;
     text-decoration: none;
-    color: var(--ink);
+    color: ${({ theme }) => theme.colors.gray[900]};
     border-radius: 6px;
 
+    .title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .date {
+      @media ${({ theme }) => theme.mobile} {
+        display: none;
+      }
+    }
+
     &:hover {
-      background-color: #f8fafc;
+      background-color: ${({ theme }) => theme.colors.primary_light};
     }
   }
 `;
@@ -529,7 +555,7 @@ const SectionHeader = styled.header`
 
 const ViewAllLink = styled(Link)`
   font-size: 13px;
-  color: var(--muted);
+  color: ${({ theme }) => theme.colors.gray[600]};
   text-decoration: none;
   margin-right: 20px;
   &:hover {
@@ -544,8 +570,8 @@ const SectionTitle = styled.h2`
 `;
 
 const Card = styled.div`
-  background: #fff;
-  border: 1px solid var(--line);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
   overflow: hidden;
   .q {
@@ -556,7 +582,7 @@ const Card = styled.div`
     gap: 8px;
     align-items: center;
     padding: 12px 14px;
-    background: #fff;
+    background: ${({ theme }) => theme.colors.white};
     border: 0;
     cursor: pointer;
   }
@@ -564,8 +590,8 @@ const Card = styled.div`
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #eef2ff;
-    color: var(--indigo);
+    background: ${({ theme }) => theme.colors.lightNavy};
+    color: ${({ theme }) => theme.colors.primary};
     display: grid;
     place-items: center;
     font-size: 12px;
@@ -575,22 +601,22 @@ const Card = styled.div`
     font-size: 14px;
   }
   .arrow {
-    color: var(--muted);
+    color: ${({ theme }) => theme.colors.gray[600]};
   }
   .a {
     padding: 12px 14px 16px;
-    background: #f8fafc;
+    background: ${({ theme }) => theme.colors.white};
     display: grid;
     gap: 10px;
     grid-template-columns: 24px 1fr;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   }
   .amark {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: var(--indigo);
-    color: #fff;
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.white};
     display: grid;
     place-items: center;
     font-size: 12px;
@@ -598,7 +624,7 @@ const Card = styled.div`
     margin-top: 2px;
   }
   .at {
-    color: #334155;
+    color: ${({ theme }) => theme.colors.gray[700]};
     line-height: 1.6;
     grid-column: 2 / -1;
   }
@@ -613,9 +639,9 @@ const Card = styled.div`
 `;
 
 const Quick = styled.button`
-  border: 1px solid var(--line);
-  background: #fff;
-  color: #111827;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[900]};
   border-radius: 10px;
   padding: 8px 10px;
   font-size: 12px;
@@ -623,17 +649,17 @@ const Quick = styled.button`
   ${(p) =>
     p.$alt &&
     css`
-      background: #ecfccb;
-      border-color: #d9f99d;
+      background: ${({ theme }) => theme.colors.primary_hover};
+      border-color: ${({ theme }) => theme.colors.primary};
     `}
   &:hover {
-    border-color: #cbd5e1;
+    border-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
 const VerticalStack = styled.div`
   display: grid;
-  grid-template-columns: 1fr; /* 무조건 한 줄에 하나씩 */
+  grid-template-columns: 1fr;
   gap: 12px;
 `;
 
@@ -644,8 +670,8 @@ const Stack = styled.div`
 `;
 
 const StackBtn = styled.button`
-  background: #fff;
-  border: 1px solid var(--line);
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -656,13 +682,13 @@ const StackBtn = styled.button`
   transition: all 0.2s ease-in-out;
 
   &:hover {
-    background: #fcfcff;
+    background: ${({ theme }) => theme.colors.gray[100]};
     transform: translateY(-4px);
     box-shadow: 0 10px 20px rgba(78, 70, 229, 0.08);
 
     .icon {
-      background: var(--indigo);
-      color: #fff;
+      background: ${({ theme }) => theme.colors.lightNavy};
+      color: ${({ theme }) => theme.colors.white};
     }
   }
 
@@ -670,7 +696,7 @@ const StackBtn = styled.button`
     font-size: 24px;
     width: 48px;
     height: 48px;
-    background: #f1f5f9;
+    background: ${({ theme }) => theme.colors.gray[100]};
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -681,14 +707,27 @@ const StackBtn = styled.button`
   .label {
     font-weight: 600;
     font-size: 14px;
-    color: var(--ink);
+    color: ${({ theme }) => theme.colors.gray[900]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 15px 10px;
+    .icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+    .label {
+      font-size: 13px;
+    }
   }
 `;
 
 const Contact = styled.div`
   height: 100%;
-  background: linear-gradient(145deg, #ffffff, #f8fafc);
-  border: 1px solid var(--line);
+  background: ${({ theme }) => theme.colors.white};
+  );
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 20px;
   padding: 30px 20px;
   display: flex;
@@ -699,7 +738,7 @@ const Contact = styled.div`
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 
   .title {
-    color: var(--muted);
+    color: ${({ theme }) => theme.colors.gray[700]};
     font-size: 14px;
     font-weight: 500;
   }
@@ -710,7 +749,7 @@ const Contact = styled.div`
     letter-spacing: -0.5px;
   }
   .time {
-    color: var(--muted);
+    color: ${({ theme }) => theme.colors.gray[700]};
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 20px;
@@ -720,8 +759,8 @@ const Contact = styled.div`
 const CallBtn = styled.button`
   width: 100%;
   max-width: 200px;
-  background: var(--green);
-  color: #fff;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
   border: 0;
   border-radius: 12px;
   padding: 14px;
@@ -731,18 +770,32 @@ const CallBtn = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background: #1e293b;
+    background: ${({ theme }) => theme.colors.primary_dark};
     transform: scale(1.02);
   }
 `;
 
 const FooterNote = styled.footer`
   max-width: 1120px;
-  margin: 8px auto 28px;
-  color: var(--muted);
+  margin: 40px auto 0;
+  color: ${({ theme }) => theme.colors.gray[600]};
   padding: 0 20px;
   text-align: center;
   font-size: 14px;
+  line-height: 1.6;
+  word-break: keep-all;
+
+  .mobile-only {
+    display: none;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 13px;
+
+    .mobile-only {
+      display: block;
+    }
+  }
 `;
 
 const ModalOverlay = styled.div`
@@ -758,7 +811,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.white};
   padding: 32px;
   border-radius: 24px;
   width: 100%;
@@ -770,26 +823,26 @@ const ModalContent = styled.div`
     font-size: 20px;
     font-weight: 800;
     text-align: center;
-    color: var(--ink);
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 
   .body {
-    color: #475569;
+    color: ${({ theme }) => theme.colors.gray[700]};
     font-size: 15px;
     line-height: 1.7;
     white-space: pre-wrap;
     margin-bottom: 28px;
-    background: #f8fafc;
+    background: ${({ theme }) => theme.colors.gray[100]};
     padding: 20px;
     border-radius: 12px;
-    border: 1px solid var(--line);
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   }
 
   button {
     width: 100%;
     padding: 14px;
-    background: var(--indigo);
-    color: #fff;
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.white};
     border: 0;
     border-radius: 12px;
     font-weight: 700;

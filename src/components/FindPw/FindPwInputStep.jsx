@@ -66,17 +66,20 @@ const FindPwInputStep = ({ onComplete }) => {
         ? { ...base, phoneNumber: v.phone }
         : { ...base, email: v.email };
     },
-    apiCaller: async (requestData) => {
+    sendApi: async (requestData) => {
       const data = await findPasswordApi(requestData);
       return data;
     },
     onSuccess: (data, v) => {
       if (data) {
+        const receivedPhoneNumber = data.maskedPhoneNumber;
+        const receivedEmail = data.maskedEmail;
         if (data.userId) sessionStorage.setItem('userId', data.userId);
+        sessionStorage.setItem('userType', userType);
         onComplete({
           name: v.name,
-          phoneNumber: data.phoneNumber,
-          email: data.email,
+          phoneNumber: receivedPhoneNumber,
+          email: receivedEmail,
         });
       } else {
         setError(data?.message || '조회 실패');

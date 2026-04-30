@@ -8,12 +8,14 @@ const menuItems = [
     items: [
       { key: 'coupon', label: '쿠폰' },
       { key: 'orders', label: '주문목록/배송조회' },
+      { key: 'wishlist', label: '관심상품' },
     ],
   },
   {
     title: 'MY 활동',
     items: [
       { key: 'inquiry_history', label: '문의내역 확인' },
+      { key: 'chat', label: '실시간 문의' },
       { key: 'refund', label: '환불내역 확인' },
       { key: 'review', label: '구매후기' },
       { key: 'point', label: '적립금' },
@@ -72,27 +74,31 @@ export default MypageDetail;
 
 const Container = styled.div`
   display: flex;
-  max-width: 1200px;
+  max-width: ${({ theme }) => theme.maxWidth};
   margin: 40px auto;
   font-family: 'Noto Sans KR', sans-serif;
 `;
 
 const Sidebar = styled.aside`
-  width: 220px;
-  padding: 20px 10px;
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  width: 280px;
+  padding: 20px 40px;
+  border-right: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    display: none;
+  }
 `;
 
 const MenuTitle = styled.h1`
   font-size: 32px;
   margin-bottom: 30px;
   font-weight: 900;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[700]};
   cursor: pointer;
   transition: color 0.2s ease;
 
   &:hover {
-    color: rgb(85, 90, 130);
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -100,7 +106,7 @@ const SubMenuTitle = styled.h2`
   font-size: 18px;
   margin-bottom: 10px;
   font-weight: 700;
-  color: #444;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
 const MenuList = styled.ul`
@@ -118,23 +124,27 @@ const MenuItem = styled.li`
   cursor: pointer;
   font-weight: ${(props) => (props.$active ? '700' : '500')};
   font-size: 16px;
-  color: ${(props) => (props.$active ? 'rgb(85, 90, 130)' : '#111')};
+  color: ${(props) =>
+    props.$active ? props.theme.colors.primary : props.theme.colors.gray[900]};
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 
   &::before {
     content: '▶';
     font-size: 13px;
-    color: ${(props) => (props.$active ? 'rgb(85, 90, 130)' : 'transparent')};
+    color: ${(props) =>
+      props.$active ? props.theme.colors.primary : 'transparent'};
     transition: color 0.2s ease;
   }
 
   &:hover {
-    background-color: #f3f6ff;
-    color: rgb(85, 90, 130);
+    background-color: ${({ theme }) => theme.colors.white};
+    color: ${({ theme }) => theme.colors.primary};
 
     &::before {
-      color: rgb(85, 90, 130);
+      color: ${({ theme }) => theme.colors.primary};
     }
   }
 `;
@@ -145,4 +155,7 @@ const MainContent = styled.div`
   min-height: calc(100vh - 120px);
   overflow-y: auto;
   border-radius: 8px;
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0;
+  }
 `;

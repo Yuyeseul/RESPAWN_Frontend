@@ -15,17 +15,15 @@ import {
   SendButton,
   ButtonRow,
   BackButton,
-  UserInfo,
-  Label,
-  Value,
 } from '../../styles/FindSendStyles';
 
 const FindIdSendStep = ({ userInfo, onNext, onPrev }) => {
-  const { loading, error, setError, sendEmail, sendPhone } = useSendForm({
+  const { loading, error, sendEmail, sendPhone } = useSendForm({
     sendApi: async ({ type }) => {
       const token = sessionStorage.getItem('token');
       const userId = sessionStorage.getItem('userId');
-      return sendId({ userId, token, type });
+      const userType = sessionStorage.getItem('userType');
+      return sendId({ userId, token, type, userType });
     },
     onNext,
   });
@@ -38,11 +36,6 @@ const FindIdSendStep = ({ userInfo, onNext, onPrev }) => {
 
       <Card>
         <Title>아이디 찾기</Title>
-
-        <UserInfo>
-          <Label>이름</Label>
-          <Value>{userInfo.name}</Value>
-        </UserInfo>
 
         {error && <ErrorMsg>{error}</ErrorMsg>}
 

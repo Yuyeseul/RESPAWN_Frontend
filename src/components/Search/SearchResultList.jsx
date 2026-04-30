@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import ProductCard from '../Product/ProductCard';
 import axios from '../../api/axios';
+import CartConfirmModal from '../Cart/CartConfirmModal';
 
 const SearchResultList = ({ query, items, resultsCount, loading }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastAddedProduct, setLastAddedProduct] = useState(null);
+
   const handleAddToCart = async (product) => {
     try {
-      await axios.post('/api/cart/add', {
+      await axios.post('/cart/add', {
         itemId: product.id,
         count: 1,
       });
-      alert(`${product.name}이(가) 담겼습니다.`);
+      setLastAddedProduct(product);
+      setIsModalOpen(true);
     } catch (err) {
       console.error('장바구니 담기 실패:', err);
 
@@ -52,6 +57,12 @@ const SearchResultList = ({ query, items, resultsCount, loading }) => {
           ))}
         </Grid>
       )}
+
+      <CartConfirmModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        productName={lastAddedProduct?.name || lastAddedProduct?.itemName}
+      />
     </Wrapper>
   );
 };
@@ -59,8 +70,16 @@ const SearchResultList = ({ query, items, resultsCount, loading }) => {
 export default SearchResultList;
 
 const Wrapper = styled.main`
-  padding-top: 4px; /* 미세 간격 */
+  padding-top: 4px;
+  max-width: ${({ theme }) => theme.maxWidth};
+  margin: 0 auto;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 `;
+
 const Header = styled.div`
   margin-bottom: 20px;
   display: flex;
@@ -72,15 +91,20 @@ const Header = styled.div`
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
+  color: ${({ theme }) => theme.colors.gray[800]};
 
   span {
-    color: rgb(105, 111, 148);
+    color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 20px;
   }
 `;
 
 const ResultCount = styled.span`
   font-size: 16px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const Grid = styled.div`
@@ -88,12 +112,9 @@ const Grid = styled.div`
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
 
-  @media (max-width: 1024px) {
+  @media ${({ theme }) => theme.mobile} {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+    gap: 12px;
   }
 `;
 
@@ -101,7 +122,7 @@ const sharedStateStyle = `
   margin-top: 60px;
   text-align: center;
   font-size: 18px;
-  color: #777;
+  color: ${({ theme }) => theme.colors.gray[600]};
   min-height: 300px;
   display: flex;
   align-items: center;

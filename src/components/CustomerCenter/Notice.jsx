@@ -21,9 +21,7 @@ const Notice = () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.get(
-        `/api/notices/view?noticeId=${noticeId}`
-      );
+      const { data } = await axios.get(`/notices/view?noticeId=${noticeId}`);
       setNotice(data);
     } catch (e) {
       setError('공지사항을 불러오는 중 오류가 발생했습니다.');
@@ -37,9 +35,26 @@ const Notice = () => {
     fetchNotice();
   }, [fetchNotice]);
 
-  if (loading) return <p>로딩 중...</p>;
-  if (error) return <ErrorBox>{error}</ErrorBox>;
-  if (!notice) return <p>공지사항 정보가 없습니다.</p>;
+  if (loading)
+    return (
+      <PageContainer>
+        <LoadingBox>공지사항을 불러오는 중입니다...</LoadingBox>
+      </PageContainer>
+    );
+
+  if (error)
+    return (
+      <PageContainer>
+        <ErrorBox>{error}</ErrorBox>
+      </PageContainer>
+    );
+
+  if (!notice)
+    return (
+      <PageContainer>
+        <LoadingBox>공지사항 정보가 없습니다.</LoadingBox>
+      </PageContainer>
+    );
 
   return (
     <PageContainer>
@@ -77,18 +92,27 @@ const Notice = () => {
 export default Notice;
 
 const PageContainer = styled.div`
-  max-width: 1120px;
+  max-width: ${({ theme }) => theme.maxWidth};
   min-height: 70vh;
   margin: 0 auto;
   padding: 28px 20px 40px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px 15px 30px;
+  }
 `;
 
 const NoticeWrapper = styled.div`
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
   padding: 32px;
   margin-bottom: 24px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 24px 16px;
+    border-radius: 12px;
+  }
 `;
 
 const NoticeHeader = styled.header`
@@ -99,50 +123,75 @@ const TitleRow = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 
   h1 {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1f2937;
+    font-size: 26px;
+    font-weight: 800;
+    color: ${({ theme }) => theme.colors.gray[900]};
     margin: 0;
+    line-height: 1.3;
+    word-break: keep-all;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    h1 {
+      font-size: 20px;
+    }
   }
 `;
 
 const TypeBadge = styled.span`
   flex-shrink: 0;
-  padding: 4px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 999px;
-  background-color: #eef2ff;
-  color: #4338ca;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  background-color: ${({ theme }) => theme.colors.primary_light};
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const Metadata = styled.div`
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   font-size: 14px;
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.gray[600]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 13px;
+  }
 `;
 
 const Separator = styled.span`
   margin: 0 8px;
+  color: ${({ theme }) => theme.colors.gray[300]};
 `;
 
 const Divider = styled.hr`
   border: 0;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   margin: 0;
 `;
 
 const NoticeBody = styled.div`
   padding: 32px 4px;
   font-size: 16px;
-  color: #374151;
-  white-space: pre-wrap; /* 줄바꿈 유지 */
-  line-height: 1.7;
-  min-height: 250px;
+  color: ${({ theme }) => theme.colors.gray[800]};
+  white-space: pre-wrap;
+  line-height: 1.8;
+  min-height: 300px;
+  word-break: break-all;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 24px 0;
+    font-size: 15px;
+    min-height: 200px;
+  }
 `;
 
 const PageFooter = styled.footer`
@@ -152,9 +201,9 @@ const PageFooter = styled.footer`
 `;
 
 const ListButton = styled.button`
-  background-color: #fff;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background-color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[700]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 8px;
   padding: 10px 20px;
   font-size: 15px;
@@ -163,24 +212,30 @@ const ListButton = styled.button`
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f9fafb;
+    background-color: ${({ theme }) => theme.colors.gray[50]};
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    padding: 14px;
   }
 `;
 
-// 에러 및 로딩 박스 스타일
 const ErrorBox = styled.div`
-  color: #ef4444;
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  padding: 16px;
-  border-radius: 8px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background: ${({ theme }) => theme.colors.gray[50]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  padding: 20px;
+  border-radius: 12px;
   font-size: 15px;
   text-align: center;
 `;
 
 const LoadingBox = styled.div`
-  padding: 40px;
+  padding: 100px 20px;
   text-align: center;
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 16px;
 `;

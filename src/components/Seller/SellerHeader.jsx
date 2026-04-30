@@ -27,10 +27,10 @@ const SellerHeader = () => {
           </Left>
           <Right>
             <span>{user?.name}님</span>
-            <span onClick={handleLogout} style={{ cursor: 'pointer' }}>
-              로그아웃
-            </span>
-            <span>고객센터</span>
+            <MenuButton onClick={handleLogout}>로그아웃</MenuButton>
+            <MenuButton onClick={() => navigate('/customerCenter')}>
+              고객센터
+            </MenuButton>
           </Right>
         </TopMenu>
       </TopBar>
@@ -42,20 +42,28 @@ export default SellerHeader;
 
 const HeaderContainer = styled.header`
   width: 100%;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
 `;
 
 const TopBar = styled.div`
   padding: 8px 20px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 8px 12px;
+  }
 `;
 
 const TopMenu = styled.div`
   display: flex;
-  justify-content: space-between; // 변경
+  justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 12px;
+  }
 `;
 
 const Left = styled.div`
@@ -67,4 +75,17 @@ const Right = styled.div`
   display: flex;
   align-items: center;
   gap: 20px;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 12px;
+  }
+`;
+
+const MenuButton = styled.span`
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
 `;

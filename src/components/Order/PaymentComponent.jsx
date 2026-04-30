@@ -8,7 +8,7 @@ const PaymentComponent = ({ orderInfo, onPaymentComplete, onClose }) => {
     script.async = true;
     document.body.appendChild(script);
 
-    const requestPay = () => {
+    const requestPay = async () => {
       if (!window.IMP) {
         alert('결제 모듈 로딩에 실패했습니다.');
         onClose();
@@ -30,6 +30,7 @@ const PaymentComponent = ({ orderInfo, onPaymentComplete, onClose }) => {
         selectedAddressId,
         selectedCartItemIds,
         usePointAmount,
+        couponCode,
       } = orderInfo;
 
       // 상품명 생성 (첫 번째 상품명 + 외 n개)
@@ -76,51 +77,70 @@ const PaymentComponent = ({ orderInfo, onPaymentComplete, onClose }) => {
           payMethod = 'card';
       }
 
-      IMP.request_pay(
-        {
-          pg: pgProvider,
-          pay_method: payMethod,
-          merchant_uid: merchantUid,
-          name: productName,
-          amount: totalAmount,
-          buyer_name: buyerInfo.name,
-          buyer_email: buyerInfo.email,
-          buyer_tel: buyerInfo.phone,
-        },
-        async (response) => {
-          if (response.success) {
-            try {
-              const { data } = await axios.post('/api/payments/verify', {
-                impUid: response.imp_uid,
-                merchantUid: response.merchant_uid,
-                orderId,
-                selectedAddressId,
-                selectedCartItemIds,
-                usePointAmount,
-              });
+      try {
+        const prepareResponse = await axios.post('/temporary/save', {
+          orderId: orderId,
+          usePointAmount: usePointAmount || 0,
+          addressId: selectedAddressId,
+          couponCode: couponCode,
+        });
 
-              if (data.success) {
-                onPaymentComplete({
+        console.log('임시 저장 응답:', prepareResponse.data);
+
+        const temporaryId = prepareResponse.data.temporaryId;
+
+        IMP.request_pay(
+          {
+            pg: pgProvider,
+            pay_method: payMethod,
+            merchant_uid: merchantUid,
+            name: productName,
+            amount: totalAmount,
+            buyer_name: buyerInfo.name,
+            buyer_email: buyerInfo.email,
+            buyer_tel: buyerInfo.phone,
+            m_redirect_url: `https://respawnstore.shop/payments/mobile/callback?temporaryId=${temporaryId}`,
+          },
+          async (response) => {
+            if (response.success) {
+              try {
+                const { data } = await axios.post('/payments/verify', {
                   impUid: response.imp_uid,
                   merchantUid: response.merchant_uid,
-                  payMethod: selectedPayment,
-                  amount: totalAmount,
+                  orderId,
+                  selectedAddressId,
+                  selectedCartItemIds,
+                  usePointAmount,
                 });
-              } else {
+
+                if (data.success) {
+                  onPaymentComplete({
+                    impUid: response.imp_uid,
+                    merchantUid: response.merchant_uid,
+                    payMethod: selectedPayment,
+                    amount: totalAmount,
+                  });
+                } else {
+                  alert('서버 결제 검증에 실패했습니다.');
+                  onClose();
+                }
+              } catch (error) {
+                console.error('결제 검증 오류:', error);
                 alert('서버 결제 검증에 실패했습니다.');
                 onClose();
               }
-            } catch (error) {
-              console.error('결제 검증 오류:', error);
-              alert('서버 결제 검증에 실패했습니다.');
+            } else {
+              alert(`결제 실패: ${response.error_msg}`);
               onClose();
             }
-          } else {
-            alert(`결제 실패: ${response.error_msg}`);
-            onClose();
           }
-        }
-      );
+        );
+      } catch (error) {
+        // 백엔드 통신 실패 (사전 검증 실패) 처리
+        console.error('결제 준비 중 오류:', error);
+        alert('결제 요청을 초기화하는 데 실패했습니다. 다시 시도해주세요.');
+        onClose();
+      }
     };
 
     // 스크립트 로드 후 바로 결제 실행

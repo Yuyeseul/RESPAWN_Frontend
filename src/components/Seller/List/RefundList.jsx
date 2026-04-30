@@ -37,8 +37,8 @@ const RefundList = () => {
     const fetchRefunds = async () => {
       const endpoint =
         activeTab === 'requested'
-          ? '/api/orders/seller/refund-requests'
-          : '/api/orders/seller/refund-completed';
+          ? '/orders/seller/refund-requests'
+          : '/orders/seller/refund-completed';
 
       try {
         const res = await axios.get(endpoint, {
@@ -76,59 +76,98 @@ const RefundList = () => {
 
   return (
     <Container>
-      <Title>환불 요청 목록</Title>
-      <TabMenu>
-        <TabButton
-          active={activeTab === 'requested'}
-          onClick={() => handleTabChange('requested')}
-        >
-          환불 요청 중
-        </TabButton>
-        <TabButton
-          active={activeTab === 'completed'}
-          onClick={() => handleTabChange('completed')}
-        >
-          환불 완료
-        </TabButton>
-      </TabMenu>
+      <Header>
+        <Title>환불 관리</Title>
+        <TabMenu>
+          <TabButton
+            $active={activeTab === 'requested'}
+            onClick={() => handleTabChange('requested')}
+          >
+            환불 요청 중
+          </TabButton>
+          <TabButton
+            $active={activeTab === 'completed'}
+            onClick={() => handleTabChange('completed')}
+          >
+            환불 완료
+          </TabButton>
+        </TabMenu>
+      </Header>
 
-      <Table>
-        <thead>
-          <tr>
-            <Th width="15%">주문 ID</Th>
-            <Th width="40%">상품명</Th>
-            <Th width="20%">환불 요청 날짜</Th>
-            <Th width="15%">주문 금액</Th>
-            <Th width="10%">수량</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {refunds.length > 0 ? (
-            refunds.map((item) => (
-              <tr
-                key={item.orderItemId}
-                onClick={() => handleClick(item.orderItemId)}
-              >
-                <td>{item.orderItemId}</td>
-                <td>{item.itemName}</td>
-                <td>
-                  {new Date(item.refundInfo.requestedAt).toLocaleDateString()}
-                </td>
-                <td>{item.orderPrice?.toLocaleString()}원</td>
-                <td>{item.count}</td>
-              </tr>
-            ))
-          ) : (
+      {/* PC 환경: 데스크톱 테이블 뷰 */}
+      <DesktopTableWrapper>
+        <Table>
+          <thead>
             <tr>
-              <NoDataCell colSpan="5">
-                {activeTab === 'requested'
-                  ? '환불 요청 내역이 없습니다.'
-                  : '환불 완료 내역이 없습니다.'}
-              </NoDataCell>
+              <Th width="15%">주문번호</Th>
+              <Th width="40%">상품명</Th>
+              <Th width="20%">환불 요청일</Th>
+              <Th width="15%">주문 금액</Th>
+              <Th width="10%">수량</Th>
             </tr>
-          )}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {refunds.length > 0 ? (
+              refunds.map((item) => (
+                <tr
+                  key={item.orderItemId}
+                  onClick={() => handleClick(item.orderItemId)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>{item.orderItemId}</td>
+                  <td>{item.itemName}</td>
+                  <td>
+                    {new Date(item.refundInfo.requestedAt).toLocaleDateString()}
+                  </td>
+                  <td>{item.orderPrice?.toLocaleString()}원</td>
+                  <td>{item.count}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <NoDataCell colSpan="5">
+                  {activeTab === 'requested'
+                    ? '환불 요청 내역이 없습니다.'
+                    : '환불 완료 내역이 없습니다.'}
+                </NoDataCell>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </DesktopTableWrapper>
+
+      {/* 모바일 환경: 카드형 리스트 뷰 */}
+      <MobileListWrapper>
+        {refunds.length > 0 ? (
+          refunds.map((item) => (
+            <MobileCard
+              key={item.orderItemId}
+              onClick={() => handleClick(item.orderItemId)}
+            >
+              <CardHeader>
+                <OrderId>주문번호: {item.orderItemId}</OrderId>
+                <DateText>
+                  {new Date(item.refundInfo.requestedAt).toLocaleDateString()}
+                </DateText>
+              </CardHeader>
+              <CardBody>
+                <ItemName>{item.itemName}</ItemName>
+                <PriceRow>
+                  <strong>{item.orderPrice?.toLocaleString()}원</strong> /{' '}
+                  {item.count}개
+                </PriceRow>
+              </CardBody>
+            </MobileCard>
+          ))
+        ) : (
+          <NoDataCard>
+            {activeTab === 'requested'
+              ? '환불 요청 내역이 없습니다.'
+              : '환불 완료 내역이 없습니다.'}
+          </NoDataCard>
+        )}
+      </MobileListWrapper>
+
       {pageInfo.totalPages > 1 && (
         <PaginationWrapper>
           <Pagination
@@ -146,72 +185,130 @@ const RefundList = () => {
 
 export default RefundList;
 
-// 스타일 추가
+// --- 전면 개편된 스타일 영역 ---
+
 const Container = styled.div`
   max-width: 1600px;
   margin: 60px auto;
   padding: 0 20px;
+  font-family:
+    'Pretendard',
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin: 20px auto;
+    padding: 0 10px;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 `;
 
 const Title = styled.h2`
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  margin-bottom: 20px;
-  color: #555a82;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
+  margin: 0;
 `;
 
 const TabMenu = styled.div`
   display: flex;
-  margin-bottom: 20px;
+  gap: 10px;
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+  }
 `;
 
 const TabButton = styled.button`
-  background: ${({ active }) => (active ? '#555a82' : '#e6e8f4')};
-  color: ${({ active }) => (active ? 'white' : '#555a82')};
-  border: none;
-  padding: 10px 20px;
-  font-weight: 700;
+  background: ${({ $active, theme: { colors } }) =>
+    $active ? colors.primary : colors.gray[100]};
+  color: ${({ $active, theme: { colors } }) =>
+    $active ? colors.white : colors.gray[600]};
+  border: 1.5px solid
+    ${({ $active, theme: { colors } }) =>
+      $active ? colors.primary : colors.gray[100]};
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
   cursor: pointer;
-  margin-right: 10px;
-  border-radius: 5px;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
 
   &:hover {
-    background: #4a4e70;
-    color: white;
+    background: ${({ $active, theme: { colors } }) =>
+      $active ? colors.primary_dark : colors.gray[200]};
+    border-color: ${({ $active, theme: { colors } }) =>
+      $active ? colors.primary_dark : colors.gray[200]};
+    color: ${({ $active, theme: { colors } }) =>
+      $active ? colors.white : colors.gray[900]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    flex: 1;
+    padding: 12px 0;
+  }
+`;
+
+const DesktopTableWrapper = styled.div`
+  width: 100%;
+  @media ${({ theme }) => theme.mobile} {
+    display: none;
   }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   table-layout: fixed;
 
+  th,
+  td {
+    padding: 14px 15px;
+    text-align: center;
+    border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+    vertical-align: middle;
+  }
+
   th {
-    background: #e6e8f4;
-    color: #333;
+    background: ${({ theme: { colors } }) => colors.primary_hover};
+    color: ${({ theme: { colors } }) => colors.gray[800]};
+    font-weight: 600;
   }
 
   tr:hover {
-    background: #f5f7fa;
+    background: ${({ theme: { colors } }) => colors.gray[50]};
   }
-
   td {
-    padding: 12px 15px;
-    text-align: center;
-    border-bottom: 1px solid #eee;
-    word-break: break-word;
+    word-break: keep-all;
   }
+`;
+
+const Th = styled.th`
+  width: ${({ width }) => width || 'auto'};
 `;
 
 const NoDataCell = styled.td`
   padding: 50px 0 !important;
   text-align: center;
-  color: #999;
-  font-size: 16px;
+  color: ${({ theme: { colors } }) => colors.gray[500]};
+  font-size: 15px;
 `;
 
 const PaginationWrapper = styled.div`
@@ -220,8 +317,87 @@ const PaginationWrapper = styled.div`
   margin-top: 30px;
 `;
 
-const Th = styled.th`
-  padding: 12px 15px;
+const MobileListWrapper = styled.div`
+  display: none;
+  @media ${({ theme }) => theme.mobile} {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+`;
+
+const MobileCard = styled.div`
+  background: ${({ theme: { colors } }) => colors.white};
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background: ${({ theme: { colors } }) => colors.gray[50]};
+  }
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  padding-bottom: 8px;
+`;
+
+const OrderId = styled.span`
+  font-size: 13px;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
+  font-weight: 500;
+`;
+
+const DateText = styled.span`
+  font-size: 12px;
+  color: ${({ theme: { colors } }) => colors.gray[500]};
+`;
+
+const CardBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const ItemName = styled.div`
+  font-size: 15px;
+  font-weight: 600;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
+  line-height: 1.4;
+  word-break: keep-all;
+`;
+
+const PriceRow = styled.div`
+  font-size: 14px;
+  color: ${({ theme: { colors } }) => colors.gray[650]};
+  margin-top: 4px;
+
+  strong {
+    color: ${({ theme: { colors } }) => colors.primary};
+    font-size: 15px;
+    font-weight: 700;
+  }
+`;
+
+const NoDataCard = styled.div`
+  padding: 40px 0;
   text-align: center;
-  width: ${({ width }) => width || 'auto'};
+  color: ${({ theme: { colors } }) => colors.gray[500]};
+  font-size: 14px;
+  background: ${({ theme: { colors } }) => colors.white};
+  border-radius: 10px;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
 `;

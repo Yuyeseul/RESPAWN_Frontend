@@ -1,24 +1,29 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from '../../api/axios';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import StepProgress from '../common/StepProgress';
 import PaymentComponent from './PaymentComponent';
 import AddressManager from './AddressManager';
 import DiscountManager from './DiscountManager';
+import { BASE_URL } from '../../api/axios';
 
 const OrderList = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const isCompleting = React.useRef(false);
   const { orderId } = useParams();
   const [orderData, setOrderData] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [buyerInfo, setBuyerInfo] = useState({
     name: '',
     phone: '',
     email: '',
   });
+
+  const toggleExpand = () => setIsExpanded(!isExpanded);
+  const visibleOrders = isExpanded ? orders : orders.slice(0, 1);
+  const remainingCount = orders.length - 1;
 
   const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
 
@@ -38,13 +43,13 @@ const OrderList = () => {
   const [showPaymentComponent, setShowPaymentComponent] = useState(false);
 
   const PAYMENT_OPTIONS = {
-    신용카드: '신용카드 결제창이 전환됩니다.',
+    일반결제: '신용카드 결제창이 전환됩니다.',
+    삼성페이: '삼성페이 앱으로 결제창이 전환됩니다.',
+    토스페이: '토스 앱으로 결제창이 전환됩니다.',
+    네이버페이: '네이버페이 결제창으로 전환됩니다.',
+    페이코: '페이코 앱으로 결제창이 전환됩니다.',
     무통장입금: '무통장입금 결제창이 전환됩니다.',
     카카오페이: '카카오페이 앱으로 결제창이 전환됩니다.',
-    토스페이: '토스 앱으로 결제창이 전환됩니다.',
-    네이버페이: '네이버페이 결제창으로 이동합니다.',
-    페이코: '페이코 앱으로 결제창이 전환됩니다.',
-    삼성페이: '삼성페이 앱으로 결제창이 전환됩니다.',
   };
 
   // 결제하기 버튼 클릭 시 바로 PaymentComponent 실행 (모달 없이)
@@ -75,7 +80,7 @@ const OrderList = () => {
 
     // 결제 완료 후 주문 완료 처리
     axios
-      .post(`/api/orders/${orderId}/complete`, {
+      .post(`/orders/${orderId}/complete`, {
         addressId: selectedAddressId,
         couponCode: discountInfo.couponCode,
       })
@@ -133,10 +138,9 @@ const OrderList = () => {
     const currentOrderId = orderId;
     const sendDeleteRequest = () => {
       if (isCompleting.current || !currentOrderId) return;
-      fetch('/api/orders/temporary', {
-        method: 'DELETE',
-        keepalive: true,
-      });
+      axios
+        .delete('/orders/temporary')
+        .catch((err) => console.error('삭제 실패:', err));
     };
 
     const handleBeforeUnload = (event) => {
@@ -169,7 +173,7 @@ const OrderList = () => {
     if (!orderId) return;
 
     axios
-      .get(`/api/orders/${orderId}`)
+      .get(`/orders/${orderId}`)
       .then((res) => {
         const data = res.data;
         console.log('orderList', data);
@@ -240,21 +244,46 @@ const OrderList = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.map((item) => (
+            {visibleOrders.map((item) => (
               <tr key={item.orderItemId}>
                 <td>
                   <ProductInfo>
-                    <img src={item.imageUrl} alt={item.itemName} />
-                    <div>{item.itemName}</div>
+                    <img
+                      src={`${BASE_URL}${item.imageUrl}`}
+                      alt={item.itemName}
+                    />
+                    <div className="info-text">
+                      <div className="name">{item.itemName}</div>
+                      <div className="mobile-only-price">
+                        {item.itemPrice.toLocaleString()}원 / {item.count}개
+                      </div>
+                    </div>
                   </ProductInfo>
                 </td>
-                <td>{item.itemPrice.toLocaleString()}원</td>
-                <td>{item.count}</td>
-                <td>{(item.itemPrice * item.count).toLocaleString()}원</td>
+                <td data-label="상품가격">
+                  {item.itemPrice.toLocaleString()}원
+                </td>
+                <td data-label="수량">{item.count}개</td>
+                <td data-label="주문금액">
+                  {(item.itemPrice * item.count).toLocaleString()}원
+                </td>
               </tr>
             ))}
           </tbody>
         </ProductTable>
+
+        {orders.length > 1 && (
+          <ExpandButton onClick={toggleExpand}>
+            {isExpanded ? (
+              <>접기 ▲</>
+            ) : (
+              <>
+                {orders[0].itemName} 외 <strong>{remainingCount}건</strong>{' '}
+                더보기 ▼
+              </>
+            )}
+          </ExpandButton>
+        )}
       </Section>
 
       <CheckoutLayout>
@@ -302,6 +331,7 @@ const OrderList = () => {
             selectedAddressId,
             selectedCartItemIds,
             usePointAmount: discountInfo.usedPoint,
+            couponCode: discountInfo.couponCode,
           }}
           onPaymentComplete={handlePaymentComplete}
           onClose={handlePaymentClose}
@@ -315,8 +345,14 @@ export default OrderList;
 
 const Container = styled.div`
   padding: 40px;
-  max-width: 1200px;
+  max-width: ${({ theme }) => theme.maxWidth};
+  min-height: 500px;
+  width: 100%;
   margin: 0 auto;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px 15px;
+  }
 `;
 
 const Section = styled.div`
@@ -326,13 +362,23 @@ const Section = styled.div`
 const StepProgressWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 10px; /* 타이틀과 간격 */
+  margin-bottom: 10px;
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-bottom: 30px;
+  }
 `;
 
 const Title = styled.h2`
   font-size: 34px;
   text-align: center;
-  margin: 0 0 40px 0; /* 아래쪽 마진 유지 */
+  margin: 0 0 40px 0;
+  color: ${({ theme }) => theme.colors.gray[700]};
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
 `;
 
 const ProductTable = styled.table`
@@ -342,25 +388,101 @@ const ProductTable = styled.table`
   th,
   td {
     padding: 16px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
     text-align: center;
   }
 
   th {
-    background-color: #f9f9f9;
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      display: block;
+      width: 100%;
+    }
+
+    @media ${({ theme }) => theme.mobile} {
+    display: block;
+    thead { display: none; }
+    tbody { display: block; width: 100%; }
+
+    tr {
+      display: block;
+      background: ${({ theme }) => theme.colors.white};
+      border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+      border-radius: 16px; 
+      margin-bottom: 20px;
+      padding: 20px; 
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0; 
+      border: none;
+      font-size: 14px;
+
+      &[data-label='수량'],
+      &[data-label='상품가격'] {
+        display: none;
+      }
+
+      /* 상품 정보 섹션 (이미지+이름) */
+      &:first-child {
+        display: block;
+      }
+
+      /* 최종 주문금액 섹션 */
+      &[data-label='주문금액'] {
+        margin-top: 0;
+        font-weight: bold;
+        font-size: 17px;
+        color: ${({ theme }) => theme.colors.primary};
+
+        &::before {
+          content: '최종 합계';
+          color: ${({ theme }) => theme.colors.gray[800]};
+          font-weight: 500;
+        }
+      }
+    }
   }
 `;
 
 const ProductInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
+  text-align: left;
 
   img {
-    width: 70px;
-    height: 70px;
-    border-radius: 4px;
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
     object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: 15px;
+    word-break: keep-all;
+    padding-bottom: 10px;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
+    padding-bottom: 15px;
+    margin-bottom: 10px;
   }
 `;
 
@@ -369,14 +491,25 @@ const CheckoutLayout = styled.div`
   justify-content: space-between;
   gap: 40px;
   align-items: flex-start;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    gap: 20px;
+  }
 `;
 
 const LeftPanel = styled.div`
   flex: 2;
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+  }
 `;
 
 const RightPanel = styled.div`
   flex: 1;
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+  }
 `;
 
 const PaymentSection = styled.div`
@@ -398,30 +531,26 @@ const PaymentMethodList = styled.div`
     padding: 12px 20px;
     min-width: 120px;
     font-size: 15px;
-    border: 1px solid #ccc;
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
     border-radius: 8px;
-    background: #fff;
+    background: ${({ theme }) => theme.colors.white};
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-      background: #f0f8ff;
-      border-color: rgb(85, 90, 130);
-      color: rgb(85, 90, 130);
+      border-color: ${({ theme }) => theme.colors.primary};
+      color: ${({ theme }) => theme.colors.primary};
     }
 
     &.selected {
-      background-color: #e6f0ff;
-      border-color: rgb(85, 90, 130);
-      color: rgb(85, 90, 130);
+      border-color: ${({ theme }) => theme.colors.primary};
+      color: ${({ theme }) => theme.colors.primary};
       font-weight: 600;
     }
 
-    &:disabled {
-      background: #f2f2f2;
-      color: #999;
-      border-color: #ddd;
-      cursor: not-allowed;
+    @media ${({ theme }) => theme.mobile} {
+      flex: 1 1 calc(50% - 12px);
+      min-width: 0;
     }
   }
 `;
@@ -432,8 +561,12 @@ const BankList = styled.div`
   gap: 10px;
   margin-top: 20px;
 
+  @media ${({ theme }) => theme.mobile} {
+    grid-template-columns: 1fr;
+  }
+
   div {
-    background: #f5f5f5;
+    background: ${({ theme }) => theme.colors.gray[100]};
     padding: 10px;
     text-align: center;
     border-radius: 6px;
@@ -444,11 +577,11 @@ const BankList = styled.div`
 const NoticeBox = styled.div`
   margin-top: 20px;
   padding: 16px;
-  background: #fff3cd;
-  border: 1px solid #ffeeba;
+  background: ${({ theme }) => theme.colors.pink_lace};
+  border: 1px solid ${({ theme }) => theme.colors.pink_lace};
   border-radius: 6px;
   font-size: 14px;
-  color: #856404;
+  color: ${({ theme }) => theme.colors.wish};
 `;
 
 const LoadingOverlay = styled.div`
@@ -457,12 +590,12 @@ const LoadingOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); // 반투명 검정
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 9999; // 최상단 배치
+  z-index: 9999;
   color: white;
   gap: 20px;
 `;
@@ -471,10 +604,9 @@ const Spinner = styled.div`
   width: 50px;
   height: 50px;
   border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top: 5px solid #ffffff;
+  border-top: 5px solid ${({ theme }) => theme.colors.white};
   border-radius: 50%;
   animation: spin 1s linear infinite;
-
   @keyframes spin {
     0% {
       transform: rotate(0deg);
@@ -482,5 +614,32 @@ const Spinner = styled.div`
     100% {
       transform: rotate(360deg);
     }
+  }
+`;
+
+const ExpandButton = styled.button`
+  width: 100%;
+  padding: 12px;
+  background-color: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+
+  strong {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+    border-radius: 8px;
+    margin-top: -10px;
+    margin-bottom: 20px;
   }
 `;

@@ -15,6 +15,16 @@ import SearchResultList from '../components/Search/SearchResultList';
 
 const PAGE_SIZE = 8;
 
+const SORT_OPTIONS = [
+  { value: 'createdAt_desc', label: '최신순' },
+  { value: 'soldCount_desc', label: '판매량순' },
+  { value: 'wishCount_desc', label: '좋아요순' },
+  { value: 'reviewCount_desc', label: '후기많은순' },
+  { value: 'price_asc', label: '낮은가격순' },
+  { value: 'price_desc', label: '높은가격순' },
+  { value: 'review_desc', label: '후기많은순' },
+];
+
 const SearchResultListPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -52,6 +62,12 @@ const SearchResultListPage = () => {
 
   const [resultsCount, setResultsCount] = useState(0);
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const currentSort = queryParams.get('sort') || 'createdAt';
+  const currentDir = queryParams.get('dir') || 'desc';
+  const currentSortValue = `${currentSort}_${currentDir}`;
+
   // 3. 데이터 페칭 함수
   const fetchPage = useCallback(
     async (nextPage, isInitial = false) => {
@@ -67,12 +83,9 @@ const SearchResultListPage = () => {
         sp.set('page', String(nextPage));
         sp.set('size', String(PAGE_SIZE));
 
-        const res = await axios.get(
-          `/api/items/search/advanced?${sp.toString()}`,
-          {
-            signal: controller.signal,
-          }
-        );
+        const res = await axios.get(`/items/search/advanced?${sp.toString()}`, {
+          signal: controller.signal,
+        });
         console.log('검색 결과:', res.data);
         if (ignoreRef.current) return;
 
@@ -182,6 +195,22 @@ const SearchResultListPage = () => {
     navigate(`/search?${sp.toString()}`);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSortSelect = (value) => {
+    const [sortField, sortDir] = value.split('_');
+    navigateWithUpdate({ sort: sortField, dir: sortDir });
+    setIsDropdownOpen(false);
+  };
+
   // 데이터/상수 (UI용)
   const DELIVERY_METHODS = [
     { id: '직접배송', name: '직접배송' },
@@ -201,7 +230,20 @@ const SearchResultListPage = () => {
     { id: '헤드셋', name: '헤드셋' },
     { id: '마우스', name: '마우스' },
     { id: '키보드', name: '키보드' },
+    { id: '스피커', name: '스피커' },
   ];
+
+  const handleApplyAll = (filters) => {
+    const { categories, companies, delivery, price } = filters;
+
+    navigateWithUpdate({
+      categoryIds: categories,
+      company: companies,
+      deliveryType: delivery,
+      minPrice: price.min,
+      maxPrice: price.max,
+    });
+  };
 
   return (
     <>
@@ -221,7 +263,33 @@ const SearchResultListPage = () => {
           maxPrice={maxPrice}
           onPriceChange={handlePriceChange}
           onReset={handleReset}
+          onApplyAll={handleApplyAll}
         />
+
+        <SortContainer>
+          <DropdownContainer ref={dropdownRef}>
+            <DropdownHeader onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+              {SORT_OPTIONS.find((opt) => opt.value === currentSortValue)
+                ?.label || '최신순'}
+              <Arrow $isOpen={isDropdownOpen}>▼</Arrow>
+            </DropdownHeader>
+
+            {isDropdownOpen && (
+              <DropdownList>
+                {SORT_OPTIONS.map((opt) => (
+                  <DropdownItem
+                    key={opt.value}
+                    $isSelected={currentSortValue === opt.value}
+                    onClick={() => handleSortSelect(opt.value)}
+                  >
+                    {opt.label}
+                  </DropdownItem>
+                ))}
+              </DropdownList>
+            )}
+          </DropdownContainer>
+        </SortContainer>
+
         <SearchResultList
           query={query}
           items={items}
@@ -253,6 +321,64 @@ const Sentinel = styled.div`
 `;
 const Status = styled.div`
   text-align: center;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
   padding: 20px 0;
+`;
+
+const SortContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
+const DropdownContainer = styled.div`
+  position: relative;
+  width: 140px;
+  z-index: 50;
+`;
+
+const DropdownHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 4px;
+  font-size: 14px;
+  background: ${({ theme }) => theme.colors.white};
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.gray[600]};
+`;
+
+const Arrow = styled.span`
+  font-size: 10px;
+  transition: transform 0.2s;
+  transform: ${({ $isOpen }) => ($isOpen ? 'rotate(180deg)' : 'rotate(0)')};
+`;
+
+const DropdownList = styled.ul`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 0;
+  overflow: hidden;
+`;
+
+const DropdownItem = styled.li`
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  background: ${({ $isSelected, theme }) =>
+    $isSelected ? theme.colors.gray[100] : theme.colors.white};
+  font-weight: ${({ $isSelected }) => ($isSelected ? '600' : '400')};
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray[100]};
+  }
 `;

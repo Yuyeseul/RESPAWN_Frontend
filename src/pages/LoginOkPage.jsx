@@ -1,15 +1,19 @@
 import React, { useEffect } from 'react';
 import axios from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext'; // 추가: useAuth 불러오기
 
 function LoginOkPage() {
   const navigate = useNavigate();
+  const { fetchUser } = useAuth();
+
   useEffect(() => {
     const handleLogin = async () => {
       try {
         const response = await axios.get('/loginOk');
-        const data = response.data;
-        sessionStorage.setItem('userData', JSON.stringify(data));
+        // const data = response.data;
+        // sessionStorage.setItem('userData', JSON.stringify(data));
+        await fetchUser();
 
         if (window.opener && !window.opener.closed) {
           window.opener.postMessage({ type: 'LOGIN_SUCCESS' }, '*');

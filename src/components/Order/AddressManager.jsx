@@ -12,7 +12,6 @@ const AddressManager = ({ defaultAddress, onAddressSelect }) => {
     recipient: '',
     phone: '',
   });
-  const [showAddressForm, setShowAddressForm] = useState(true);
   const [selectedAddressType, setSelectedAddressType] = useState('basic');
   const [prevAddressType, setPrevAddressType] = useState('basic');
 
@@ -82,40 +81,47 @@ const AddressManager = ({ defaultAddress, onAddressSelect }) => {
   };
 
   return (
-    <AddressSection>
-      <AddressHeader onClick={() => setShowAddressForm(!showAddressForm)}>
-        배송정보
-        <span>{showAddressForm ? '▲' : '▼'}</span>
-      </AddressHeader>
-      <AddressRadioGroup>
-        <label>
-          <input
-            type="radio"
-            name="addressType"
-            checked={selectedAddressType === 'basic'}
-            onChange={() => handleAddressTypeChange('basic')}
+    <SectionContainer>
+      <SectionHeader>
+        <Title>배송 정보</Title>
+      </SectionHeader>
+
+      <ContentBody>
+        <ButtonGroup>
+          <TabButton
+            active={selectedAddressType === 'basic'}
+            onClick={() => handleAddressTypeChange('basic')}
             disabled={!defaultAddress}
-          />{' '}
-          기본 배송지
-        </label>
+          >
+            기본 배송지
+          </TabButton>
+          <TabButton
+            active={selectedAddressType === 'select'}
+            onClick={() => handleAddressTypeChange('select')}
+          >
+            배송지 변경
+          </TabButton>
+          <AddLink onClick={() => handleAddressTypeChange('new')}>
+            + 새 배송지 등록
+          </AddLink>
+        </ButtonGroup>
 
-        <label>
-          <input
-            type="radio"
-            name="addressType"
-            checked={selectedAddressType === 'select'}
-            onChange={() => handleAddressTypeChange('select')}
-          />{' '}
-          선택 배송지
-        </label>
-
-        <AddressListButton
-          type="button"
-          onClick={() => handleAddressTypeChange('new')}
-        >
-          새로운 배송지 추가
-        </AddressListButton>
-      </AddressRadioGroup>
+        <DisplayCard>
+          <InfoGrid>
+            <div className="label">받는 분</div>
+            <div className="value bold">{addressForm.recipient || '-'}</div>
+            <div className="label">연락처</div>
+            <div className="value">{addressForm.phone || '-'}</div>
+            <div className="label">주소</div>
+            <div className="value">
+              <ZipCode>({addressForm.zoneCode || '00000'})</ZipCode>
+              <AddressText>
+                {addressForm.baseAddress} {addressForm.detailAddress}
+              </AddressText>
+            </div>
+          </InfoGrid>
+        </DisplayCard>
+      </ContentBody>
 
       {isDeliveryModalOpen && (
         <DeliveryModal
@@ -130,7 +136,6 @@ const AddressManager = ({ defaultAddress, onAddressSelect }) => {
           }}
         />
       )}
-
       {isAddressListModalOpen && (
         <AddressListModal
           onClose={() => setIsAddressListModalOpen(false)}
@@ -139,122 +144,121 @@ const AddressManager = ({ defaultAddress, onAddressSelect }) => {
           mode="order"
         />
       )}
-
-      {showAddressForm && (
-        <AddressForm>
-          <FormGroup>
-            <label>우편번호</label>
-            <Input type="text" value={addressForm.zoneCode} readOnly />
-          </FormGroup>
-          <FormGroup>
-            <label>기본주소</label>
-            <Input type="text" value={addressForm.baseAddress} readOnly />
-          </FormGroup>
-          <FormGroup>
-            <label>상세주소</label>
-            <Input type="text" value={addressForm.detailAddress} readOnly />
-          </FormGroup>
-          <FormGroup>
-            <label>받는 사람</label>
-            <Input type="text" value={addressForm.recipient} readOnly />
-          </FormGroup>
-          <FormGroup>
-            <label>전화번호</label>
-            <Input type="text" value={addressForm.phone} readOnly />
-          </FormGroup>
-        </AddressForm>
-      )}
-    </AddressSection>
+    </SectionContainer>
   );
 };
 
 export default AddressManager;
 
-const AddressSection = styled.div`
-  margin: 40px 0;
+const SectionContainer = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  padding: 0;
 `;
 
-const AddressHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
+const SectionHeader = styled.div`
+  padding: 20px 0;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[900]};
+`;
+
+const Title = styled.h3`
   font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 10px 0;
-  border-bottom: 1px solid #ccc;
+  font-weight: 700;
+  margin: 0;
+  color: ${({ theme }) => theme.colors.gray[900]};
 `;
 
-const AddressRadioGroup = styled.div`
-  display: flex;
-  gap: 20px;
-  margin: 20px 0;
+const ContentBody = styled.div`
+  padding: 24px 0;
+`;
 
-  label {
-    font-size: 14px;
+const ButtonGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
+
+const TabButton = styled.button`
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid
+    ${({ active, theme }) =>
+      active ? theme.colors.primary : theme.colors.gray[300]};
+  background: ${({ active, theme }) =>
+    active ? theme.colors.primary : theme.colors.white};
+  color: ${({ active, theme }) =>
+    active ? theme.colors.white : theme.colors.gray[600]};
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 6px 10px;
+    font-size: 12px;
+    flex: 1;
+    max-width: fit-content;
   }
 `;
 
-const AddressListButton = styled.button`
-  padding: 8px 14px;
-  font-size: 14px;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+const AddLink = styled.button`
+  margin-left: auto;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 12px;
+    padding: 4px 0;
+  }
 `;
 
-const AddressForm = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+const DisplayCard = styled.div`
+  background: ${({ theme }) => theme.colors.gray[50]};
   padding: 16px;
-  background: #fafafa;
   border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
 `;
 
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+const InfoGrid = styled.div`
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  row-gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
 
-  label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #333;
+  .label {
+    color: ${({ theme }) => theme.colors.gray[600]};
   }
-
-  input {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.95rem;
-  }
-
-  button {
-    background: #222;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 12px;
-    cursor: pointer;
-    &:hover {
-      background: #444;
+  .value {
+    color: ${({ theme }) => theme.colors.gray[900]};
+    &.bold {
+      font-weight: 600;
     }
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    grid-template-columns: 70px 1fr;
+  }
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: ${({ readOnly }) => (readOnly ? '#f5f5f5' : 'white')};
-  cursor: ${({ readOnly }) => (readOnly ? 'default' : 'text')};
-  font-size: 16px;
+const ZipCode = styled.span`
+  display: block;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  margin-bottom: 2px;
+`;
 
-  &:focus {
-    border-color: ${({ readOnly }) => (readOnly ? '#ccc' : '#0056ff')};
-    outline: none;
-  }
+const AddressText = styled.p`
+  margin: 0;
+  word-break: break-all;
+  color: ${({ theme }) => theme.colors.gray[800]};
 `;

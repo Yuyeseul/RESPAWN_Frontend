@@ -67,10 +67,8 @@ const FindIdInputStep = ({ onComplete }) => {
         ? { ...base, phoneNumber: v.phone }
         : { ...base, email: v.email };
     },
-    // endpoint, axiosInstance 제거
     sendApi: async (requestData) => {
       const data = await findIdApi(requestData);
-      // 여기서 token/userId 같은 후속 저장이 필요한 경우 onSuccess에서 처리하므로 반환만
       return data;
     },
     onSuccess: (data, v) => {
@@ -81,6 +79,7 @@ const FindIdInputStep = ({ onComplete }) => {
 
         if (data.token) sessionStorage.setItem('token', data.token);
         if (data.userId) sessionStorage.setItem('userId', data.userId);
+        sessionStorage.setItem('userType', userType);
 
         onComplete(
           {

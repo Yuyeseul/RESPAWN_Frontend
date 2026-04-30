@@ -35,6 +35,7 @@ const ProfileComplete = () => {
   const [confirmPhone, setConfirmPhone] = useState(initialConfirmPhoneState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // 인증번호 UI
   const [showPhoneConfirm, setShowPhoneConfirm] = useState(false);
@@ -55,6 +56,8 @@ const ProfileComplete = () => {
 
   // 전화번호 인증 요청 (응답값 false -> 중복X)
   const verifyPhoneNumber = async () => {
+    if (isVerifying) return; // 실행 중이면 블록
+    setIsVerifying(true);
     try {
       const duplicateCheck = await axios.get(
         `/signup/phoneNumber/${phoneNumber.phoneNumber}`
@@ -87,6 +90,8 @@ const ProfileComplete = () => {
         isPhoneNumberAvailable: false,
         error: '전화번호 인증 요청 중 오류가 발생했습니다.',
       }));
+    } finally {
+      setIsVerifying(false); // 💡 종료 시 해제
     }
   };
 
@@ -146,6 +151,8 @@ const ProfileComplete = () => {
           error: requiredPhoneNumber ? '' : '유효한 전화번호를 입력하세요.',
         });
         setShowPhoneConfirm(false);
+        setTimerActive(false);
+        setCountdown(0);
         break;
       case 'confirmPhone':
         setConfirmPhone({
@@ -218,16 +225,17 @@ const ProfileComplete = () => {
     <Container>
       <Card>
         <Title>추가 정보 입력</Title>
-        <Desc>소셜 로그인 계정의 추가 정보를 입력해주세요.</Desc>
+        <Desc>원활한 서비스 이용을 위해 추가 정보를 입력해주세요.</Desc>
 
         <Form onSubmit={onSubmit} noValidate>
           {needs.name && (
             <Field>
+              <Label>이름</Label>
               <Input
                 id="name"
                 name="name"
                 type="text"
-                placeholder="이름"
+                placeholder="이름을 입력해주세요"
                 value={name}
                 onChange={onChange('name')}
                 required
@@ -238,6 +246,7 @@ const ProfileComplete = () => {
 
           {needs.phoneNumber && (
             <Field>
+              <Label>휴대폰 번호</Label>
               <InputRow>
                 <Input
                   id="phoneNumber"
@@ -245,55 +254,52 @@ const ProfileComplete = () => {
                   type="tel"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  placeholder="01012345678"
+                  placeholder="숫자만 입력"
                   value={phoneNumber.phoneNumber}
                   onChange={onChange('phoneNumber')}
+                  $hasError={!!phoneNumber.error}
                   required
                 />
-                <Button
+                <InlineButton
                   type="button"
                   disabled={
                     !phoneNumber.isRequiredPhoneNumber ||
-                    phoneNumber.isCheckedPhoneNumber
+                    phoneNumber.isCheckedPhoneNumber ||
+                    isVerifying
                   }
                   onClick={verifyPhoneNumber}
                 >
-                  인증하기
-                </Button>
+                  {isVerifying ? '요청 중...' : '인증하기'}
+                </InlineButton>
               </InputRow>
-              <Hint>숫자만 입력 (하이픈 없이)</Hint>
 
               {showPhoneConfirm && (
-                <Field>
-                  <InputRow>
-                    <Input
-                      id="confirmPhone"
-                      name="confirmPhone"
-                      type="text"
-                      placeholder="인증번호 입력"
-                      value={confirmPhone.confirmPhone}
-                      onChange={onChange('confirmPhone')}
-                      disabled={phoneNumber.isCheckedPhoneNumber}
-                    />
-                    <Button
-                      type="button"
-                      onClick={confirmPhoneVerificationCode}
-                      disabled={phoneNumber.isCheckedPhoneNumber}
-                    >
-                      {phoneNumber.isCheckedPhoneNumber
-                        ? '인증완료'
-                        : '인증확인'}
-                    </Button>
-                  </InputRow>
-                  {timerActive && (
-                    <Timer>
-                      인증 유효 시간: {Math.floor(countdown / 60)}:
-                      {String(countdown % 60).padStart(2, '0')}
-                    </Timer>
-                  )}
-                </Field>
+                <InputRow style={{ marginTop: '8px' }}>
+                  <Input
+                    id="confirmPhone"
+                    name="confirmPhone"
+                    type="text"
+                    placeholder="인증번호 6자리 입력"
+                    value={confirmPhone.confirmPhone}
+                    onChange={onChange('confirmPhone')}
+                    disabled={phoneNumber.isCheckedPhoneNumber}
+                  />
+                  <InlineButton
+                    type="button"
+                    onClick={confirmPhoneVerificationCode}
+                    disabled={phoneNumber.isCheckedPhoneNumber}
+                  >
+                    {phoneNumber.isCheckedPhoneNumber ? '인증완료' : '인증확인'}
+                  </InlineButton>
+                </InputRow>
               )}
 
+              {timerActive && (
+                <Timer>
+                  남은 시간: {Math.floor(countdown / 60)}:
+                  {String(countdown % 60).padStart(2, '0')}
+                </Timer>
+              )}
               {phoneNumber.error && <ErrorMsg>{phoneNumber.error}</ErrorMsg>}
             </Field>
           )}
@@ -301,9 +307,9 @@ const ProfileComplete = () => {
           {error && <ErrorMsg role="alert">{error}</ErrorMsg>}
 
           {isReadyToSubmit && (
-            <Button type="submit" disabled={submitting}>
-              {submitting ? '저장 중...' : '저장'}
-            </Button>
+            <SubmitButton type="submit" disabled={submitting}>
+              {submitting ? '저장 중...' : '정보 저장하기'}
+            </SubmitButton>
           )}
         </Form>
       </Card>
@@ -315,104 +321,193 @@ export default ProfileComplete;
 
 const Container = styled.div`
   min-height: 100vh;
+  padding: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #fafafa;
-  padding: 40px 20px;
+  background: ${({ theme }) => theme.colors.white};
+  box-sizing: border-box;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+    align-items: center;
+  }
 `;
 
 const Card = styled.div`
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
+  padding: 48px;
+  border-radius: 20px;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  box-sizing: border-box;
+  background-color: ${({ theme }) => theme.colors.white};
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 32px 24px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  }
 `;
 
 const Title = styled.h1`
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  margin: 0 0 12px 0;
   text-align: center;
+  letter-spacing: -0.5px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
 `;
 
 const Desc = styled.p`
-  color: #666;
-  margin-bottom: 20px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  margin: 0 0 32px 0;
   text-align: center;
+  word-break: keep-all;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 `;
 
 const Field = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
 `;
 
-const Input = styled.input`
-  flex: 1;
-  padding: 12px;
-  font-size: 16px;
-  border: none;
-  border-bottom: 2px solid #ccc;
-  background: transparent;
-  border-radius: 6px 6px 0 0;
-  &:focus {
-    outline: none;
-    border-bottom: 2px solid rgb(105, 111, 148);
-  }
-  &:disabled {
-    background: #f6f6f6;
-    color: #aaa;
-  }
-`;
-
-const Button = styled.button`
-  background: rgb(105, 111, 148);
-  color: white;
-  width: 110px;
-  padding: 12px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.1s;
-  &:hover:not(:disabled) {
-    background: rgb(85, 90, 130);
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
+const Label = styled.label`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[700]};
+  margin-bottom: 8px;
+  margin-left: 2px;
 `;
 
 const InputRow = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
-const Hint = styled.span`
+const Input = styled.input`
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid
+    ${({ theme, $hasError }) =>
+      $hasError ? theme.colors.danger : theme.colors.gray[300]};
+  border-radius: 10px;
+  font-size: 15px;
+  color: ${({ theme }) => theme.colors.gray[900]};
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  background-color: ${({ theme }) => theme.colors.white};
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.gray[400]};
+    /* 모바일에서 글씨가 길면 ...으로 처리되도록 방어코드 추가 */
+    text-overflow: ellipsis;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme, $hasError }) =>
+      $hasError ? theme.colors.danger : theme.colors.primary};
+  }
+
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+    color: ${({ theme }) => theme.colors.gray[500]};
+    cursor: not-allowed;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 0 12px;
+    font-size: 14px;
+  }
+`;
+
+const InlineButton = styled.button`
+  width: 100px;
+  height: 52px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.primary_dark};
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[300]};
+    color: ${({ theme }) => theme.colors.white};
+    cursor: not-allowed;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 84px;
+    font-size: 13px;
+  }
+`;
+
+const SubmitButton = styled.button`
+  width: 100%;
+  height: 54px;
+  margin-top: 12px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors?.primary_dark};
+    box-shadow: 0 4px 12px rgba(85, 90, 130, 0.2);
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[300]};
+    color: ${({ theme }) => theme.colors.white};
+    cursor: not-allowed;
+  }
+`;
+
+const ErrorMsg = styled.p`
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 12px;
-  color: #999;
+  margin: 6px 0 0 4px;
+  font-weight: 500;
 `;
 
-const ErrorMsg = styled.div`
-  color: #d93025;
-  font-size: 14px;
-`;
-
-const Timer = styled.span`
-  font-size: 14px;
-  color: #555;
-  margin-left: 8px;
+const Timer = styled.p`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 600;
+  margin: 6px 0 0 4px;
 `;

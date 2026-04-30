@@ -107,10 +107,6 @@ const SignupPage = () => {
   const [emailCountdown, setEmailCountdown] = useState(0);
   const [emailTimerActive, setEmailTimerActive] = useState(false);
 
-  const handleBackToMain = () => {
-    navigate('/login');
-  };
-
   // 아이디 중복 검사 (응답값 false -> 중복X)
   const checkId = async () => {
     try {
@@ -234,7 +230,7 @@ const SignupPage = () => {
       }
 
       // 중복이 아니면 인증 요청 시작
-      const response = await axios.get('/api/email/auth', {
+      const response = await axios.get('/email/auth', {
         params: {
           address: email.email,
         },
@@ -268,7 +264,7 @@ const SignupPage = () => {
   // 이메일 인증코드 확인
   const confirmEmailVerificationCode = async () => {
     try {
-      const response = await axios.post('/api/email/auth', null, {
+      const response = await axios.post('/email/auth', null, {
         params: {
           address: email.email,
           authCode: confirmEmail.confirmEmail,
@@ -880,7 +876,7 @@ const BackButton = styled.button`
   background: none;
   border: none;
   font-size: 16px;
-  color: rgb(105, 111, 148);
+  color: ${({ theme }) => theme.colors.secondary};
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 8px;
@@ -903,6 +899,10 @@ const LogoWrapper = styled.div`
       height: 56px;
     }
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    margin-top: 27px;
+  }
 `;
 
 const SignupBox = styled.div`
@@ -919,7 +919,7 @@ const SignupBox = styled.div`
   @media ${({ theme }) => theme.mobile} {
     border: none;
     box-shadow: none;
-    margin-top: 20px;
+    margin-top: 0px;
     background: ${({ theme }) => theme.colors.gray[50]};
   }
 `;

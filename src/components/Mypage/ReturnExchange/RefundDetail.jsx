@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../../api/axios';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import Pagination from '../../Pagination';
+import MypageLayout from '../MypageLayout';
+import { BASE_URL } from '../../../api/axios';
 
 const RefundDetail = () => {
   const [refunds, setRefunds] = useState([]);
@@ -33,86 +35,103 @@ const RefundDetail = () => {
     setPageInfo((p) => ({ ...p, page: page - 1 }));
   };
 
-  const fetchRefunds = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/orders/refund-requests', {
-        params: { page: pageInfo.page, size: pageInfo.size },
-      });
-
-      const data = response.data;
-      console.log(data);
-      setRefunds(data.content);
-      setPageInfo((prev) => ({
-        ...prev,
-        totalPages: data.totalPages,
-        totalElements: data.totalElements,
-        isFirst: data.first,
-        isLast: data.last,
-      }));
-      setLoading(false);
-    } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          '환불 내역을 불러오는 중 오류가 발생했습니다.'
-      );
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchRefunds();
-  }, [pageInfo.page]);
+    const fetchRefunds = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('/orders/refund-requests', {
+          params: { page: pageInfo.page, size: pageInfo.size },
+        });
 
-  if (loading) return <Container>로딩중...</Container>;
-  if (error) return <Container>에러: {error}</Container>;
+        const data = response.data;
+        console.log(data);
+        setRefunds(data.content);
+        setPageInfo((prev) => ({
+          ...prev,
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          isFirst: data.first,
+          isLast: data.last,
+        }));
+        setLoading(false);
+      } catch (err) {
+        setError(
+          err.response?.data?.error ||
+            '환불 내역을 불러오는 중 오류가 발생했습니다.'
+        );
+        setLoading(false);
+      }
+    };
+
+    fetchRefunds();
+  }, [pageInfo.page, pageInfo.size]);
+
+  if (loading)
+    return (
+      <MypageLayout title="환불 내역">
+        <LoadingWrapper>
+          <Spinner />
+          <LoadingText>환불 내역을 불러오는 중입니다...</LoadingText>
+        </LoadingWrapper>
+      </MypageLayout>
+    );
+  if (error)
+    return (
+      <MypageLayout title="환불 내역">
+        <ErrorText>에러: {error}</ErrorText>
+      </MypageLayout>
+    );
 
   return (
-    <Container>
-      <Title>환불 내역</Title>
+    <MypageLayout title="환불 내역">
       {refunds.length === 0 && <NoData>환불 요청 내역이 없습니다.</NoData>}
+
       {refunds.map((order) => (
-        <div key={order.orderId}>
+        <OrderGroup key={order.orderId}>
           {order.items.map((item) => (
             <RefundCard key={item.orderItemId}>
-              <Header>
+              <CardHeader>
                 <OrderInfo>
-                  <p>주문번호: {order.orderId}</p>
-                  <p>
-                    주문일:{' '}
-                    {new Date(order.orderDate).toLocaleDateString('ko-KR')}
-                  </p>
+                  <span className="label">주문번호</span>
+                  <span className="value">{order.orderId}</span>
+                  <span className="date">
+                    | {new Date(order.orderDate).toLocaleDateString('ko-KR')}
+                  </span>
                 </OrderInfo>
                 <StatusBadge status={item.refundStatus}>
                   {getKoreanStatus(item.refundStatus)}
                 </StatusBadge>
-              </Header>
+              </CardHeader>
 
               <ProductSection>
-                <ProductImage src={item.imageUrl} alt={item.itemName} />
+                <ProductImage
+                  src={`${BASE_URL}${item.imageUrl}`}
+                  alt={item.itemName}
+                />
                 <ProductDetails>
                   <h4>{item.itemName}</h4>
-                  <p>수량: {item.count}개</p>
-                  <p>
-                    총 가격:{' '}
-                    <strong>
+                  <div className="meta">
+                    <span>수량: {item.count}개</span>
+                    <span className="price">
                       {(item.count * item.orderPrice).toLocaleString()}원
-                    </strong>
-                  </p>
+                    </span>
+                  </div>
                 </ProductDetails>
               </ProductSection>
 
-              <Reason>
-                <p>
-                  <strong>환불 사유:</strong> {item.refundReason || '-'}
-                </p>
-                <p>
-                  <strong>상세 내용:</strong> {item.refundDetail || '-'}
-                </p>
-              </Reason>
+              <ReasonBox>
+                <div className="reason-item">
+                  <span className="title">환불 사유</span>
+                  <span className="content">{item.refundReason || '-'}</span>
+                </div>
+                <div className="reason-item">
+                  <span className="title">상세 내용</span>
+                  <span className="content">{item.refundDetail || '-'}</span>
+                </div>
+              </ReasonBox>
             </RefundCard>
           ))}
-        </div>
+        </OrderGroup>
       ))}
       {pageInfo.totalPages > 1 && (
         <Pagination
@@ -123,69 +142,116 @@ const RefundDetail = () => {
           isLast={pageInfo.isLast}
         />
       )}
-    </Container>
+    </MypageLayout>
   );
 };
 
 export default RefundDetail;
 
-const Container = styled.div`
-  max-width: 1000px;
+// === 스타일 영역 ===
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 `;
 
-const Title = styled.h2`
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 30px;
+const pulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 `;
 
-const NoData = styled.p`
-  text-align: center;
-  color: #666;
-  text-size: 16px;
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top-color: ${({ theme }) => theme.colors.secondary};
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.gray[550]};
+  font-size: 14px;
+  font-weight: 600;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
+
+const OrderGroup = styled.div`
+  margin-bottom: 24px;
 `;
 
 const RefundCard = styled.div`
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
   border-radius: 12px;
-  padding: 30px;
-  margin-bottom: 30px;
-  background-color: #fafafa;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  margin-bottom: 16px;
+  background-color: ${({ theme }) => theme.colors.white};
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px;
+  }
 `;
 
-const Header = styled.div`
+const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   margin-bottom: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 `;
 
 const OrderInfo = styled.div`
-  font-size: 16px;
-  color: #444;
-  p {
-    margin: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+
+  .label {
+    color: ${({ theme }) => theme.colors.gray[600]};
+  }
+  .value {
+    color: ${({ theme }) => theme.colors.gray[700]};
+  }
+  .date {
+    color: ${({ theme }) => theme.colors.gray[600]};
+    font-size: 14px;
   }
 `;
 
 const StatusBadge = styled.span`
-  padding: 8px 10px;
-  border-radius: 18px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-  background-color: ${({ status }) => {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.white};
+  background-color: ${({ status, theme }) => {
     switch (status) {
       case 'REQUESTED':
-        return '#f39c12';
+        return theme.colors.yellow;
       case 'REFUNDED':
-      case 'APPROVED':
-        return '#27ae60';
-      case 'REJECTED':
-        return '#e74c3c';
+        return theme.colors.success;
       default:
-        return '#7f8c8d';
+        return theme.colors.gray[500];
     }
   }};
 `;
@@ -193,7 +259,12 @@ const StatusBadge = styled.span`
 const ProductSection = styled.div`
   display: flex;
   align-items: center;
-  margin-top: 16px;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  @media ${({ theme }) => theme.mobile} {
+    align-items: flex-start;
+  }
 `;
 
 const ProductImage = styled.img`
@@ -201,32 +272,70 @@ const ProductImage = styled.img`
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  margin-right: 16px;
-  border: 1px solid #ccc;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 64px;
+    height: 64px;
+  }
 `;
 
 const ProductDetails = styled.div`
+  flex: 1;
+  color: ${({ theme }) => theme.colors.gray[700]};
   h4 {
-    margin: 0 0 5px 0;
     font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-
-  p {
-    margin: 4px 0;
-    color: #555;
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    .price {
+      font-weight: 700;
+    }
   }
 `;
 
-const Reason = styled.div`
-  margin-top: 16px;
+const ReasonBox = styled.div`
+  background-color: ${({ theme }) => theme.colors.gray[50]};
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .reason-item {
+    display: flex;
+    font-size: 14px;
+    line-height: 1.5;
+
+    .title {
+      min-width: 70px;
+      font-weight: 700;
+      color: ${({ theme }) => theme.colors.gray[600]};
+    }
+    .content {
+      color: ${({ theme }) => theme.colors.gray[700]};
+    }
+  }
+`;
+
+const ErrorText = styled.div`
+  text-align: center;
+  padding: 40px;
+  color: ${({ theme }) => theme.colors.danger};
+`;
+
+const NoData = styled.div`
+  text-align: center;
+  padding: 80px 0;
+  color: ${({ theme }) => theme.colors.gray[600]};
   font-size: 16px;
-  color: #444;
-
-  p {
-    margin: 5px 0;
-  }
-
-  strong {
-    color: #333;
-  }
 `;

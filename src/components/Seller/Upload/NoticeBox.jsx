@@ -19,18 +19,17 @@ export default NoticeBox;
 
 const Wrapper = styled.div`
   width: 240px;
-  background-color: rgba(105, 111, 148, 0.2);
-  border: 1px solid rgba(85, 90, 130, 0.2);
+  background-color: ${({ theme }) => theme.colors.lightNavy};
   padding: 20px;
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.6;
-  color: #444;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const Title = styled.h4`
   font-weight: bold;
-  color: #c0392b;
+  color: ${({ theme }) => theme.colors.red};
   margin-bottom: 15px;
 `;
 

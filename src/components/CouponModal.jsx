@@ -16,10 +16,19 @@ const CouponModal = ({ onClose, onApply, orderSummary }) => {
   };
 
   useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
+  useEffect(() => {
     const controller = new AbortController();
     (async () => {
       try {
-        const { data } = await axios.get('/api/coupons/view', {
+        const { data } = await axios.get('/coupons/view', {
           params: {
             orderId: orderSummary.orderId,
           },
@@ -59,7 +68,7 @@ const CouponModal = ({ onClose, onApply, orderSummary }) => {
 
     try {
       // 백엔드의 /check API 호출
-      const res = await axios.get('/api/coupons/check', {
+      const res = await axios.get('/coupons/check', {
         params: {
           orderId: orderSummary.orderId,
           code: coupon.coupon.code,
@@ -151,32 +160,59 @@ const Backdrop = styled.div`
 
 const Modal = styled.div`
   width: 520px;
-  max-width: 92vw;
-  background: #fff;
-  border-radius: 10px;
+  max-width: 100%;
+  background: ${({ theme }) => theme.colors.white};
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    position: fixed;
+    inset: 0;
+  }
 `;
 
 const Header = styled.div`
   padding: 16px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   font-weight: 700;
   font-size: 18px;
 `;
 
 const Body = styled.div`
   padding: 16px 20px;
-  height: 60vh;
+  flex: 1;
   overflow: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.gray[600]};
+    border-radius: 10px;
+  }
 `;
 
 const Footer = styled.div`
   padding: 12px 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid ${({ theme }) => theme.colors.gray[300]};
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 16px 20px;
+    button {
+      width: 100%;
+      height: 52px;
+    }
+  }
 `;
 
 const SectionTitle = styled.h3`
@@ -185,7 +221,7 @@ const SectionTitle = styled.h3`
   margin-top: 20px;
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
 
   &:first-child {
     margin-top: 0;
@@ -197,7 +233,7 @@ const Row = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[300]};
   opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 `;
 
@@ -215,28 +251,47 @@ const CouponName = styled.div`
 const CouponCondition = styled.div`
   font-weight: 400;
   font-size: 13px;
-  color: #666;
+  color: ${({ theme }) => theme.colors.gray[600]};
 `;
 
 const CouponExpire = styled.div`
   font-weight: 400;
   font-size: 13px;
-  color: #999;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
 const SmallBtn = styled.button`
-  padding: 8px 12px;
-  border: 1px solid #ccc;
+  padding: 10px 16px;
   border-radius: 6px;
-  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  background: ${({ disabled }) => (disabled ? '#f0f0f0' : '#fff')};
+  transition: all 0.2s;
+
+  ${({ $primary, theme }) =>
+    $primary
+      ? `
+    background: ${theme.colors.primary};
+    color: ${theme.colors.white};
+    border: none;
+    &:hover { background: ${theme.colors.secondary}; }
+  `
+      : `
+    background: ${theme.colors.white};
+    color: ${theme.colors.gray[700]};
+    border: 1px solid ${theme.colors.gray[300]};
+    &:hover { background: ${theme.colors.gray[100]}; }
+  `}
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[400]};
+    cursor: not-allowed;
+  }
 `;
 
-// 사용 불가 사유를 표시할 스타일 추가
 const Reason = styled.div`
   font-size: 13px;
-  color: #e53935; /* 강조되는 색상 */
+  color: ${({ theme }) => theme.colors.red};
   font-weight: 500;
 `;

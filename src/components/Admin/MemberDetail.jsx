@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from '../../api/axios';
@@ -9,34 +9,47 @@ const MemberDetail = () => {
   const isBuyer = userType === 'buyer';
   const isSeller = userType === 'seller';
 
-  // 로딩/에러
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 사용자 데이터(폼 상태)
+  const [isGradeOpen, setIsGradeOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsGradeOpen(false);
+      }
+    };
+    if (isGradeOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isGradeOpen]);
+
   const [form, setForm] = useState({
     name: '',
     username: '',
     phoneNumber: '',
     email: '',
-    company: '', // 판매자용
-    companyNumber: '', // 판매자용
+    company: '',
+    companyNumber: '',
     memo: '',
     enabled: true,
-    accountNonExpired: true, // 계정 만료 휴면계정
-    accountNonLocked: true, // 계정 잠김
+    accountNonExpired: true,
+    accountNonLocked: true,
     accountExpiryDate: null,
     failedLoginAttempts: 0,
     lastPasswordChangedAt: '',
     role: '',
     createdAt: '',
-    grade: '', // 구매자용
+    grade: '',
   });
 
-  // 원본 비교용
   const [original, setOriginal] = useState(null);
 
-  // 임시 알림/모달
   const [toast, setToast] = useState('');
   const [confirm, setConfirm] = useState({
     open: false,
@@ -44,7 +57,6 @@ const MemberDetail = () => {
     onConfirm: null,
   });
 
-  // util 함수
   const mapToForm = (data) => ({
     name: data.name || '',
     username: data.username || '',
@@ -53,7 +65,6 @@ const MemberDetail = () => {
     company: data.company || '',
     companyNumber: data.companyNumber || '',
     memo: data.memo || '',
-    // 추가 표시용
     enabled: Boolean(data.enabled),
     accountNonExpired: Boolean(data.accountNonExpired),
     accountNonLocked: Boolean(data.accountNonLocked),
@@ -62,7 +73,7 @@ const MemberDetail = () => {
     lastPasswordChangedAt: data.lastPasswordChangedAt || '',
     role: data.role || '',
     createdAt: data.createdAt || '',
-    grade: data.grade || '',
+    grade: data.grade || 'BASIC',
   });
 
   useEffect(() => {
@@ -72,13 +83,12 @@ const MemberDetail = () => {
       try {
         const [{ data: summary }, { data: memoRes }] = await Promise.all([
           axios.get(`/admin/${userType}/${userId}/summary`),
-          axios.get(`/api/admin/memo`, { params: { userType, userId } }),
+          axios.get(`/admin/memo`, { params: { userType, userId } }),
         ]);
         const mapped = mapToForm(summary);
-        mapped.memo = memoRes?.content ?? ''; // 메모 병합
+        mapped.memo = memoRes?.content ?? '';
         setForm(mapped);
         setOriginal(mapped);
-        console.log(mapped);
       } catch (e) {
         console.error(e);
         setError('회원/메모 정보를 불러오는 중 오류가 발생했습니다.');
@@ -89,8 +99,7 @@ const MemberDetail = () => {
     fetchUser();
   }, [userType, userId]);
 
-  // 저장대상만 비교(예: memo만 저장하는 경우)
-  const pickSavable = (f) => ({ memo: f.memo });
+  const pickSavable = (f) => ({ memo: f.memo, grade: f.grade });
   const dirty = useMemo(
     () =>
       JSON.stringify(pickSavable(form)) !==
@@ -103,7 +112,6 @@ const MemberDetail = () => {
     setForm((p) => ({ ...p, [name]: value }));
   };
 
-  // 상태 토글
   const onToggleStatus = () => {
     const nextEnabled = !form.enabled;
     setConfirm({
@@ -143,7 +151,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 비밀번호 틀림 잠김 해제
   const onUnlock = () => {
     setConfirm({
       open: true,
@@ -158,7 +165,6 @@ const MemberDetail = () => {
           const { data } = await axios.post(
             `/admin/${userType}/${userId}/unlock`
           );
-          // 서버가 accountNonLocked=true로 반영되도록 처리되어 있다고 가정
           setForm((p) => ({
             ...p,
             accountNonLocked: true,
@@ -180,7 +186,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 만료(휴면계정) 해제
   const onUnexpire = () => {
     setConfirm({
       open: true,
@@ -195,7 +200,6 @@ const MemberDetail = () => {
           const { data } = await axios.post(
             `/admin/${userType}/${userId}/unexpire`
           );
-          // 서버가 만료 해제 후 accountNonExpired=true 상태가 되도록 처리되어 있다고 가정
           setForm((p) => ({ ...p, accountNonExpired: true }));
           setOriginal((o) => ({ ...(o || {}), accountNonExpired: true }));
           setToast(data?.message || '계정 만료를 해제했습니다.');
@@ -209,7 +213,6 @@ const MemberDetail = () => {
     });
   };
 
-  // 임시 비밀번호 발급: 모달 확인
   const onResetPassword = () => {
     setConfirm({
       open: true,
@@ -221,8 +224,6 @@ const MemberDetail = () => {
       cancelText: '취소',
       onConfirm: async () => {
         try {
-          // const { data } = await axios.post(`/admin/${userType}/${userId}/reset-password`);
-          // setToast(`임시 비밀번호가 전송되었습니다. (${data.maskedDestination})`);
           setToast('임시 비밀번호가 전송되었습니다.');
         } catch (e) {
           console.error(e);
@@ -232,38 +233,50 @@ const MemberDetail = () => {
     });
   };
 
-  // 저장: 모달 확인 → 저장
   const onSave = () => {
     if (!dirty) return;
     setConfirm({
       open: true,
       title: '변경사항 저장',
-      description: '입력하신 변경사항(메모)을 저장합니다. 계속하시겠습니까?',
+      description: '입력하신 변경사항을 저장합니다. 계속하시겠습니까?',
       confirmText: '저장',
       cancelText: '취소',
       onConfirm: async () => {
         try {
           setLoading(true);
           setError('');
-          const payload = {
-            userType,
-            userId: Number(userId),
-            content: form.memo ?? '',
-          };
-          const { data } = await axios.post(`/api/admin/memo/upsert`, payload);
-          const nextMemo = data?.content ?? payload.content;
-          setForm((p) => ({ ...p, memo: nextMemo }));
-          setOriginal((o) => ({ ...(o || {}), memo: nextMemo }));
-          setToast('메모가 저장되었습니다.');
+
+          const tasks = [];
+
+          if (form.memo !== original.memo) {
+            tasks.push(
+              axios.post(`/admin/memo/upsert`, {
+                userType,
+                userId: Number(userId),
+                content: form.memo ?? '',
+              })
+            );
+          }
+
+          if (isBuyer && form.grade !== original.grade) {
+            tasks.push(
+              axios.put(`/api/grade/${userId}`, {
+                newGrade: form.grade,
+              })
+            );
+          }
+
+          await Promise.all(tasks);
+
+          setOriginal((o) => ({
+            ...(o || {}),
+            memo: form.memo,
+            grade: form.grade,
+          }));
+          setToast('변경사항이 저장되었습니다.');
         } catch (e) {
-          console.error(
-            'UPsert error',
-            e?.response?.status,
-            e?.response?.data || e.message
-          );
-          setError(
-            e?.response?.data?.message || '메모 저장 중 오류가 발생했습니다.'
-          );
+          console.error(e);
+          setError('저장 중 오류가 발생했습니다.');
         } finally {
           setLoading(false);
         }
@@ -271,26 +284,28 @@ const MemberDetail = () => {
     });
   };
 
-  // 되돌리기: 모달 확인 → 원복
   const onRevert = () => {
     if (!dirty || !original) return;
     setConfirm({
       open: true,
       title: '변경사항 되돌리기',
       description:
-        '저장되지 않은 메모를 원래대로 되돌립니다. 계속하시겠습니까?',
+        '저장되지 않은 변경사항을 원래대로 되돌립니다. 계속하시겠습니까?',
       confirmText: '되돌리기',
       cancelText: '취소',
       onConfirm: () => {
-        setForm((p) => ({ ...p, memo: original.memo || '' }));
-        setToast('메모 변경사항을 되돌렸습니다.');
+        setForm((p) => ({
+          ...p,
+          memo: original.memo || '',
+          grade: original.grade || 'BASIC',
+        }));
+        setToast('변경사항을 되돌렸습니다.');
       },
     });
   };
 
   if (loading && !original) return <Center>로딩 중...</Center>;
-  if (error && !original)
-    return <Center style={{ color: '#ef4444' }}>{error}</Center>;
+  if (error && !original) return <Center error>{error}</Center>;
   if (!original) return null;
 
   return (
@@ -359,7 +374,37 @@ const MemberDetail = () => {
               <Divider />
               <CompactRow>
                 <Label>등급</Label>
-                <Value>{form.grade || '-'}</Value>
+                <CustomSelectWrapper
+                  ref={dropdownRef}
+                  onClick={() => setIsGradeOpen(!isGradeOpen)}
+                >
+                  <SelectBox $isOpen={isGradeOpen}>
+                    <span className="selected-text">{form.grade}</span>
+                    <span className="arrow">▼</span>
+                  </SelectBox>
+
+                  {isGradeOpen && (
+                    <OptionList>
+                      {['BASIC', 'VIP', 'VVIP', 'VVIP_PLUS'].map(
+                        (gradeOption) => (
+                          <OptionItem
+                            key={gradeOption}
+                            $active={form.grade === gradeOption}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onChange({
+                                target: { name: 'grade', value: gradeOption },
+                              });
+                              setIsGradeOpen(false);
+                            }}
+                          >
+                            {gradeOption}
+                          </OptionItem>
+                        )
+                      )}
+                    </OptionList>
+                  )}
+                </CustomSelectWrapper>
               </CompactRow>
             </>
           )}
@@ -399,7 +444,9 @@ const MemberDetail = () => {
 
             <Stat>
               <StatLabel>실패</StatLabel>
-              <StatValue mono>{form.failedLoginAttempts ?? 0}</StatValue>
+              <StatValue mono data-ok={form.failedLoginAttempts === 0}>
+                {form.failedLoginAttempts ?? 0}
+              </StatValue>
             </Stat>
           </KeyStats>
 
@@ -431,20 +478,12 @@ const MemberDetail = () => {
           <Divider style={{ marginTop: 12 }} />
 
           <CardTitle style={{ marginTop: 8 }}>메모</CardTitle>
-          <TextareaAutosize
+          <StyledTextarea
             name="memo"
             value={form.memo}
             onChange={onChange}
             placeholder="내부 참고용 메모를 입력하세요."
             minRows={5}
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid rgba(15, 23, 42, 0.12)',
-              borderRadius: 8,
-              resize: 'none',
-              fontSize: '16px',
-            }}
           />
         </Card>
       </Grid>
@@ -452,7 +491,7 @@ const MemberDetail = () => {
       <FooterBar>
         {error && <ErrorText>{error}</ErrorText>}
         {toast && <Toast onAnimationEnd={() => setToast('')}>{toast}</Toast>}
-        <div style={{ flex: 1 }} />
+        <div className="spacer" />
         <GhostBtn onClick={onRevert} disabled={!dirty}>
           되돌리기
         </GhostBtn>
@@ -466,9 +505,7 @@ const MemberDetail = () => {
           <Modal>
             <h3>{confirm.title}</h3>
             {confirm.description && (
-              <p style={{ margin: '6px 0 18px 0', color: '#4b5563' }}>
-                {confirm.description}
-              </p>
+              <ModalDesc>{confirm.description}</ModalDesc>
             )}
             <ModalActions>
               <GhostBtn
@@ -494,6 +531,8 @@ const MemberDetail = () => {
 
 export default MemberDetail;
 
+// === 스타일 영역 ===
+
 const Page = styled.div`
   display: grid;
   gap: 16px;
@@ -503,7 +542,7 @@ const Center = styled.div`
   display: grid;
   place-items: center;
   height: 300px;
-  color: #374151;
+  color: ${(p) => (p.error ? p.theme.colors.danger : p.theme.colors.gray[700])};
 `;
 
 const Header = styled.div`
@@ -511,8 +550,16 @@ const Header = styled.div`
   gap: 12px;
   align-items: center;
   justify-content: space-between;
+
   h2 {
     margin: 0;
+    color: ${({ theme: { colors } }) => colors.gray[900]};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 `;
 
@@ -520,6 +567,18 @@ const HeaderActions = styled.div`
   display: inline-flex;
   gap: 8px;
   align-items: center;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    flex-wrap: wrap;
+
+    button {
+      flex: 1;
+      text-align: center;
+      justify-content: center;
+      min-width: 120px;
+    }
+  }
 `;
 
 const GhostBtn = styled.button`
@@ -527,12 +586,17 @@ const GhostBtn = styled.button`
   padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
-  background: #eef2f7;
-  color: #1f2937;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  transition: background 0.12s ease, transform 0.06s ease;
+  background: ${({ theme: { colors } }) => colors.gray[100]};
+  color: ${({ theme: { colors } }) => colors.gray[800]};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  transition:
+    background 0.12s ease,
+    transform 0.06s ease;
+  font-size: 14px;
+  font-weight: 500;
+
   &:hover {
-    background: #e5eaf1;
+    background: ${({ theme: { colors } }) => colors.gray[200]};
     transform: translateY(-1px);
   }
   &:active {
@@ -542,28 +606,34 @@ const GhostBtn = styled.button`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
 `;
 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 16px;
-  @media (max-width: 980px) {
+
+  @media ${({ theme }) => theme.mobile} {
     grid-template-columns: 1fr;
   }
 `;
 
 const Card = styled.div`
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: ${({ theme: { colors } }) => colors.white};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px;
 `;
 
 const CardTitle = styled.h3`
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
   font-size: 16px;
-  color: #111827;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
 `;
 
 const CompactRow = styled.div`
@@ -571,18 +641,22 @@ const CompactRow = styled.div`
   grid-template-columns: 120px 1fr;
   gap: 10px;
   align-items: center;
-  padding: 6px 0;
-  @media (max-width: 640px) {
+  padding: 8px 0;
+
+  @media ${({ theme }) => theme.mobile} {
     grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 10px 0;
   }
 `;
 
 const Value = styled.div`
-  padding: 8px 10px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 10px 12px;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   border-radius: 8px;
-  background: #fafbfc;
-  color: #111827;
+  background: ${({ theme: { colors } }) => colors.gray[50]};
+  color: ${({ theme: { colors } }) => colors.gray[900]};
+  font-size: 14px;
   font-family: ${(p) =>
     p.mono ? 'ui-monospace,SFMono-Regular,Menlo,monospace' : 'inherit'};
   overflow: hidden;
@@ -590,40 +664,183 @@ const Value = styled.div`
   white-space: nowrap;
 `;
 
+// ==========================================
+// ⭐️ 커스텀 드롭다운 메뉴 스타일 완벽 분리
+// ==========================================
+const CustomSelectWrapper = styled.div`
+  position: relative;
+  width: 150px;
+  cursor: pointer;
+  user-select: none;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+const SelectBox = styled.div`
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid
+    ${({ theme: { colors }, $isOpen }) =>
+      $isOpen ? colors.primary : colors.gray[300]};
+  border-radius: 6px;
+  background: ${({ theme: { colors } }) => colors.white};
+  color: ${({ theme: { colors } }) => colors.gray[800]};
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme: { colors }, $isOpen }) =>
+      $isOpen ? colors.primary : colors.gray[400]};
+  }
+
+  .selected-text {
+    flex: 1;
+  }
+
+  /* 화살표 애니메이션 */
+  .arrow {
+    font-size: 10px;
+    color: ${({ theme: { colors }, $isOpen }) =>
+      $isOpen ? colors.primary : colors.gray[600]};
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: ${({ $isOpen }) =>
+      $isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
+  }
+`;
+
+const OptionList = styled.ul`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: ${({ theme: { colors } }) => colors.white};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+
+  /* 스크롤바 스타일링 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme: { colors } }) => colors.gray[300]};
+    border-radius: 4px;
+  }
+
+  /* 부드럽게 나타나는 효과 */
+  animation: dropdownScale 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top center;
+
+  @keyframes dropdownScale {
+    from {
+      opacity: 0;
+      transform: translateY(-5px) scaleY(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scaleY(1);
+    }
+  }
+`;
+
+const OptionItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  font-weight: ${({ $active }) => ($active ? '700' : '500')};
+  color: ${({ theme: { colors }, $active }) =>
+    $active ? colors.primary : colors.gray[800]};
+  background: ${({ theme: { colors }, $active }) =>
+    $active ? colors.primary_light : 'transparent'};
+
+  .check {
+    font-size: 14px;
+    font-weight: 800;
+    color: ${({ theme: { colors } }) => colors.primary};
+    animation: fadeInCheck 0.2s ease;
+  }
+
+  &:hover {
+    background: ${({ theme: { colors }, $active }) =>
+      $active ? colors.primary_light : colors.gray[50]};
+    color: ${({ theme: { colors }, $active }) =>
+      $active ? colors.primary : colors.gray[900]};
+  }
+
+  @keyframes fadeInCheck {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
+// ==========================================
+
 const Divider = styled.hr`
   border: 0;
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
-  margin: 10px 0;
+  border-top: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  margin: 12px 0;
 `;
 
 const KeyStats = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 8px;
-  margin: 6px 0 8px 0;
+  margin: 6px 0 12px 0;
+
+  @media ${({ theme }) => theme.mobile} {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const Stat = styled.div`
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: ${({ theme: { colors } }) => colors.gray[50]};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px 10px;
   text-align: center;
 `;
 
 const ClickableStat = styled(Stat)`
   position: relative;
   cursor: ${(p) => (p['data-clickable'] ? 'pointer' : 'default')};
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 
   ${(p) =>
     p['data-clickable'] &&
     `
-    &:hover { background: #8794b1ff; box-shadow: inset 0 0 0 1px rgba(15,23,42,0.08); }
+    &:hover { 
+      background: ${p.theme.colors.primary_light}; 
+      box-shadow: inset 0 0 0 1px ${p.theme.colors.gray[300]}; 
+    }
   `}
 
   &:focus-visible {
-    outline: 2px solid rgba(37, 50, 77, 0.35);
+    outline: 2px solid ${({ theme: { colors } }) => colors.primary_alpha};
     outline-offset: 2px;
   }
   ${(p) => !p['data-clickable'] && `opacity: 0.6;`}
@@ -632,7 +849,8 @@ const ClickableStat = styled(Stat)`
 const StatValue = styled.div`
   position: relative;
   font-weight: 700;
-  color: ${(p) => (p['data-ok'] ? '#111827' : '#ef4444')};
+  color: ${(p) =>
+    p['data-ok'] ? p.theme.colors.gray[900] : p.theme.colors.danger};
   min-height: 24px;
   display: flex;
   align-items: center;
@@ -650,44 +868,104 @@ const StatValue = styled.div`
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    color: #fff;
-    font-weight: 800;
+    color: ${({ theme: { colors } }) => colors.white};
+    background: ${({ theme: { colors } }) => colors.secondary};
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
     white-space: nowrap;
   }
 `;
 
 const StatLabel = styled.div`
   font-size: 12px;
-  color: #6b7280;
+  font-weight: 500;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
   margin-bottom: 6px;
 `;
 
 const Label = styled.label`
-  color: #6b7280;
+  color: ${({ theme: { colors } }) => colors.gray[650]};
   font-size: 13px;
+  font-weight: 600;
+`;
+
+const StyledTextarea = styled(TextareaAutosize)`
+  width: 100%;
+  padding: 12px;
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[300]};
+  border-radius: 8px;
+  resize: none;
+  font-size: 15px;
+  font-family: inherit;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: ${({ theme: { colors } }) => colors.secondary};
+    box-shadow: 0 0 0 3px ${({ theme: { colors } }) => colors.primary_alpha};
+  }
+
+  &::placeholder {
+    color: ${({ theme: { colors } }) => colors.gray[400]};
+  }
 `;
 
 const FooterBar = styled.div`
   position: sticky;
   bottom: 0;
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: ${({ theme: { colors } }) => colors.gray[50]};
+  border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   border-radius: 12px;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  z-index: 10;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.02);
+
+  .spacer {
+    flex: 1;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    flex-wrap: wrap;
+    padding: 12px;
+    border-radius: 8px;
+
+    .spacer {
+      display: none;
+    }
+  }
 `;
 
 const ErrorText = styled.span`
-  color: #ef4444;
+  color: ${({ theme: { colors } }) => colors.danger};
   font-size: 14px;
+  font-weight: 600;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+  }
 `;
 
 const Toast = styled.div`
-  color: #111827;
+  color: ${({ theme: { colors } }) => colors.gray[900]};
   font-size: 14px;
+  font-weight: 600;
   animation: fade 2.4s ease forwards;
+
+  @media ${({ theme }) => theme.mobile} {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
   @keyframes fade {
     0% {
       opacity: 0;
@@ -708,52 +986,71 @@ const Toast = styled.div`
 
 const PrimaryBtn = styled.button`
   all: unset;
-  padding: 10px 16px;
+  padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  background: #25324d;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
-  transition: transform 0.06s ease, box-shadow 0.12s ease, background 0.12s ease;
+  background: ${({ theme: { colors } }) => colors.secondary};
+  color: ${({ theme: { colors } }) => colors.white};
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 4px 12px ${({ theme: { colors } }) => colors.primary_alpha};
+  transition:
+    transform 0.06s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(37, 50, 77, 0.22);
+    background: ${({ theme: { colors } }) => colors.primary};
+    box-shadow: 0 6px 16px ${({ theme: { colors } }) => colors.primary_alpha};
   }
   &:active {
     transform: translateY(0);
-    box-shadow: 0 4px 12px rgba(37, 50, 77, 0.18);
+    box-shadow: 0 4px 12px ${({ theme: { colors } }) => colors.primary_alpha};
   }
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    flex: 1;
+    padding: 12px 0;
   }
 `;
 
 const Dim = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.28);
+  background: ${({ theme: { colors } }) => colors.overlay};
   display: grid;
   place-items: center;
+  z-index: 1000;
 `;
 
 const Modal = styled.div`
-  background: #fff;
+  background: ${({ theme: { colors } }) => colors.white};
   border-radius: 12px;
   width: min(480px, 92vw);
-  padding: 18px;
+  padding: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
   h3 {
     margin: 0;
+    color: ${({ theme: { colors } }) => colors.gray[900]};
   }
-  p {
-    margin: 8px 0 0 0;
-  }
+`;
+
+const ModalDesc = styled.p`
+  margin: 12px 0 24px 0;
+  color: ${({ theme: { colors } }) => colors.gray[600]};
+  line-height: 1.5;
+  font-size: 15px;
 `;
 
 const ModalActions = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-end;
-  margin-top: 18px;
 `;

@@ -29,7 +29,7 @@ function OrderDetail() {
     const fetchOrderDetail = async () => {
       try {
         const response = await axios.get(
-          `/api/orders/seller/orders/${orderItemId}`
+          `/orders/seller/orders/${orderItemId}`
         );
         setOrder(response.data);
       } catch (error) {
@@ -147,33 +147,53 @@ const Wrapper = styled.div`
   margin: 40px auto 80px;
   padding: 0 20px;
   font-family: 'Noto Sans KR', sans-serif;
-  color: #333;
+  color: ${({ theme }) => theme.colors.gray[800]};
+
+  @media ${({ theme }) => theme.mobile} {
+    margin: 20px auto 40px;
+    padding: 0 15px;
+  }
 `;
 
 const Title = styled.h1`
   font-size: 28px;
   font-weight: 700;
-  color: #111;
+  color: ${({ theme }) => theme.colors.gray[900]};
   margin-bottom: 40px;
   letter-spacing: -0.02em;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
 `;
 
 const Section = styled.section`
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: 10px;
   padding: 24px 32px;
   margin-bottom: 32px;
   box-shadow: 0 6px 15px rgb(0 0 0 / 0.07);
+
+  @media ${({ theme }) => theme.mobile} {
+    padding: 20px 20px;
+    margin-bottom: 24px;
+  }
 `;
 
 const SectionTitle = styled.h2`
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 28px;
-  color: #000;
-  border-bottom: 2px solid #555a82;
+  color: ${({ theme }) => theme.colors.black};
+  border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
   padding-bottom: 10px;
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
 `;
 
 const Table = styled.table`
@@ -186,28 +206,67 @@ const Table = styled.table`
     padding: 14px 16px;
     font-size: 15px;
     vertical-align: middle;
+    word-break: keep-all;
   }
 
   th {
     width: 130px;
     font-weight: 600;
-    color: #555a82;
+    color: ${({ theme }) => theme.colors.primary};
     text-align: left;
-    background: #f3f4f6;
+    background: ${({ theme }) => theme.colors.gray[100]};
     border-radius: 6px 0 0 6px;
   }
 
   td {
-    background: #f9fafb;
+    background: ${({ theme }) => theme.colors.gray[50]};
     border-radius: 0 6px 6px 0;
     font-weight: 500;
-    color: #111;
+    color: ${({ theme }) => theme.colors.gray[900]};
   }
 
   .highlight {
     font-weight: 700;
     font-size: 16px;
-    color: #000;
+    color: ${({ theme }) => theme.colors.black};
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    border-spacing: 0;
+    display: block;
+
+    tbody {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 8px 0;
+      margin-bottom: 16px;
+    }
+
+    th,
+    td {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    th {
+      width: auto;
+      border-radius: 6px 0 0 6px;
+    }
+
+    td {
+      border-radius: 0 6px 6px 0;
+    }
+
+    .highlight {
+      font-size: 15px;
+    }
   }
 `;
 
@@ -216,16 +275,25 @@ const FlexContainer = styled.div`
   gap: 32px;
   flex-wrap: wrap;
   justify-content: space-between;
+
   & > section {
     flex: 1;
     min-width: 400px;
+    @media ${({ theme }) => theme.mobile} {
+      min-width: 100%;
+      margin-bottom: 0;
+    }
+  }
+  @media ${({ theme }) => theme.mobile} {
+    gap: 24px;
+    flex-direction: column;
   }
 `;
 
 const BackButton = styled.button`
   background: none;
   border: none;
-  color: #555a82;
+  color: ${({ theme }) => theme.colors.primary};
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -233,6 +301,11 @@ const BackButton = styled.button`
   padding: 0;
   &:hover {
     text-decoration: underline;
+  }
+
+  @media ${({ theme }) => theme.mobile} {
+    font-size: 15px;
+    margin-bottom: 16px;
   }
 `;
 
@@ -242,26 +315,27 @@ const StatusBadge = styled.span`
   border-radius: 20px;
   font-weight: 600;
   font-size: 14px;
-  color: white;
+  color: ${({ theme }) => theme.colors.white};
+  white-space: nowrap;
 
-  background-color: ${(props) => {
-    switch (props.status) {
+  background-color: ${({ status, theme }) => {
+    switch (status) {
       case 'TEMPORARY':
-        return '#bdbdbd';
+        return theme.colors.gray[400];
       case 'ORDERED':
-        return '#4caf50';
+        return theme.colors.success_light;
       case 'PAID':
-        return '#2196f3';
+        return theme.colors.blue;
       case 'CANCELED':
-        return '#f44336';
+        return theme.colors.danger;
       case 'RETURNED':
-        return '#ff9800';
+        return theme.colors.orange;
       case 'REFUND_REQUESTED':
-        return '#673ab7';
+        return theme.colors.purple;
       case 'REFUNDED':
-        return '#9c27b0';
+        return theme.colors.purple_dark;
       default:
-        return '#696f94';
+        return theme.colors.secondary;
     }
   }};
 `;
