@@ -499,8 +499,16 @@ const GradeBadge = styled.span`
 `;
 
 const Wrap = styled.div`
-  display: grid;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+
+  @media ${({ theme }) => theme.mobile} {
+    gap: 12px;
+  }
 `;
 
 const Tabs = styled.div`
@@ -640,9 +648,7 @@ const ResetBtn = styled(ButtonBase)`
 
 const TableWrap = styled.div`
   width: 100%;
-  max-width: 1300px;
   background: ${({ theme: { colors } }) => colors.white};
-  margin-top: 16px;
   border: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
   border-radius: 8px;
   overflow-x: auto;
@@ -887,13 +893,16 @@ const ManageBtn = styled.button`
 
 const PaginationBar = styled.div`
   display: flex;
-  max-width: 1300px;
   justify-content: center;
-  padding: 16px 12px;
-  border-top: 1px solid ${({ theme: { colors } }) => colors.gray[200]};
+  align-items: center;
+  margin-top: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
 
   @media ${({ theme }) => theme.mobile} {
-    border-top: none;
+    margin-top: 16px;
+    padding-bottom: 8px;
   }
 `;
 

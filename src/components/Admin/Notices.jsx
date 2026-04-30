@@ -56,7 +56,7 @@ function Notices() {
     };
 
     fetchNotices();
-  }, [pageInfo, pageInfo.page, pageInfo.size]);
+  }, [pageInfo.page, pageInfo.size]);
 
   const formatDate = (dateString) => {
     return dateString.substring(0, 10);
